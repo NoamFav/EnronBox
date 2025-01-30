@@ -1,0 +1,196 @@
+# ================================
+# OS-Specific Junk (macOS, Windows, Linux)
+# ================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+lost+found/
+
+# ================================
+# IDE-Specific (VSCode, JetBrains, Eclipse, Xcode, Sublime, etc.)
+# ================================
+
+## VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+## IntelliJ IDEA (JetBrains IDEs: PyCharm, WebStorm, etc.)
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+.idea/**/gradle.xml
+.idea/**/libraries/
+.idea_modules/
+*.iws
+out/
+
+## Eclipse
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+.settings/
+.externalToolBuilders/
+*.launch
+*.pydevproject
+.cproject
+.autotools
+.factorypath
+.buildpath
+.target
+.tern-project
+.texlipse
+.springBeans
+.recommenders/
+
+## Xcode
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+## Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+
+# ================================
+# Dependency Directories (Node, Python, Java, Rust, etc.)
+# ================================
+
+## Node.js
+node_modules/
+jspm_packages/
+bower_components/
+web_modules/
+.npm/
+.yarn/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+## Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+pip-wheel-metadata/
+
+## Java / Gradle / Maven
+target/
+build/
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+dependency-reduced-pom.xml
+release.properties
+target/
+
+## Rust
+target/
+Cargo.lock
+
+## C / C++ / Go
+*.o
+*.out
+*.a
+*.so
+*.dylib
+*.lib
+*.dll
+*.exe
+*.pdb
+*.dSYM/
+
+## PHP / Composer
+vendor/
+composer.lock
+
+## Swift / CocoaPods
+Pods/
+DerivedData/
+*.xcworkspace
+
+# ================================
+# Logs, Coverage, and Debugging Files
+# ================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+coverage/
+*.lcov
+.nyc_output/
+
+# ================================
+# Version Control and Build Artifacts
+# ================================
+*.lock
+*.bak
+*.swp
+*~
+*.orig
+*.rej
+*.patch
+*.tgz
+*.zip
+*.tar
+*.gz
+*.7z
+
+# ================================
+# Environment Variables and Secrets
+# ================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+*.cer
+
+# ================================
+# Generated Documentation / Reports
+# ================================
+*.pdf
+*.docx
+*.pptx
+*.csv
+*.json
+*.xml
