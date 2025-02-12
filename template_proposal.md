@@ -1,48 +1,191 @@
-# Group Number:
+---
+theme: ~/tokyo_night.json
+author: Noam Favier
+date: MMMM dd, YYYY
+paging: Slide %d / %d
+---
+
+# Group Number: 3
 
 # Group Members:
 
-# Anticipated role distribution (e.g. project leader, leader code, leader report, leader presentation, leader administration):
+- Noam Favier
+- David Brune
+- Remi Heijmans
+- Jiang Geer
+- Giorgos de Jonge
+- Esteban Naranjo Amortegui
+- Octavian Rujan
 
-# Umbrella topic (e.g.):
+# Anticipated role distribution: Not defined yet
 
-# Proposal title:
+# Natural Language Processing (NLP)
 
-## 1 Motivation and problem statement (500 words max)
+# Iris: An NLP-Driven AI Coding Assistant with Context-Aware Reasoning
 
-Provide a concise description of: What is the exact problem you try to solve? Why is it important to solve this problem? Provide the necessary context. Support your claims with references!
+---
 
-## 2 Research questions (at least 3 concrete research questions)
+## 1 Motivation and problem statement
 
-What are the research questions you are trying to answer? Please note that we expect more than one vague research question here. Make sure to have relevant and concrete research questions. Check, whether you can answer your research question using experiments. The research questions should be SMART (specific, measurable, achievable, relevant, time-bound).
+The way developers write code has changed recently because to AI-driven coding tools like OpenAI Codex and GitHub Copilot. However, there is minimal interaction or adaptive learning based on a developer's workflow; instead, these tools mostly provide static code suggestions. Additionally, they are unable to have conversations in plain language, which makes complicated coding tasks like context recall, multistep refactoring, and debugging less intuitive.
 
-## 3 Chosen approaches (700 words max)
+Iris, our suggested AI coding assistant, overcomes these drawbacks by integrating contextual memory, local large-scale language models (LLMs), and natural language processing (NLP) to produce a completely offline, conversation-based coding assistant. Iris can function as a true AI programmer by responding to natural language queries, remembering previous interactions, and assisting with real-time feature implementation and debugging thanks to the NLP core's conversational interaction, intent recognition, and contextual suggestions.
 
-Describe your chosen approach. Argue properly based on scientific literature and state-of-the-art, why
-your chosen approaches are feasible to solve the problem at hand. You should explain: which algorithms you choose for which reason, involved/required datasets and how you validate your approaches. Provide references to approaches you are reusing or adapting (e.g. existing software tools, algorithms, datasets, libraries). You do not have to develop everything from scratch. Instead concentrate on the interesting aspects of your work. After reading this section, examiners should understand what you will be doing, what your groups’ contribution will be (in addition to what the existing software already provides) and whether your proposed approaches match the intended learning outcomes of the project.
+The focus of our project will be on developing an NLP pipeline for speech-to-text conversion, intent classification, and multi-turn dialogue management. By adopting local LLMs for reasoning and memory-based context tracking, we will ensure that Iris remains adaptable and highly personalized to each developer’s workflow. Additionally, the project will emphasize privacy and offline capabilities, making it an innovative alternative to existing cloud-based solutions. Moreover, Iris would be given a voice, allowing developers to interact with it hands-free, further enhancing productivity and accessibility.
 
-## 4 Experiments (300 words max)
+This work is highly relevant in an era where software complexity continues to grow, and hands-free, voice-driven coding environments can significantly boost productivity while reducing cognitive load.
 
-What experiments are you planning to conduct using the chosen approaches that will help to answer your research questions? Make sure that for each research question, you have a plan on how to conduct the experiments to be able to answer it. No research question without experiment and no experiment without a link to a research question!!
+---
 
-## 5 Related work (500 words max)
+## 2 Research questions
 
-Compare your approaches to related work. References to scientific literature and professional projects
-are required. It is essential that you compare your approach and do not just describe the work of others.
-It should become clear what you do differently and which ideas you are borrowing.
+1. How can NLP techniques be applied to intent classification and dialogue management for a coding assistant?
+2. What methods can be used to ensure accurate contextual understanding and recall in multi-turn interactions within a coding environment?
+3. How can speech recognition and NLP-based dialogue systems be optimized for real-time, hands-free developer interactions?
 
-## 6 Relation of proposal to courses in your curriculum (50 words max)
+---
 
-Mention, how the proposal is connected to courses in your curriculum. Concentrate especially on the courses you have in the current semester.
+## 3 Chosen approaches
 
-## 7 Planning (2 Gantt Charts in a readable format)
+The core of our project lies in combining NLP for conversation and dialogue management with LLMs for code reasoning and context-aware suggestions. We will build the following key components:
 
-Provide one Gantt Chart for project phases 2 and 3 each. We understand that the planning for phase 3 might not yet be too detailed but it should be clear, what your ambitions are for phase 2 and how you would like to use phase 3 to further enhance your approaches. An example planning can be found on Canvas.
+---
 
-## 8 Minimal passing requirements (50 words max)
+### Speech-to-Text (STT)
 
-Mention what you think should be the minimal passing requirements or what you think are still acceptable outcomes of your project. Think in terms of the product itself (what approaches need to be there) and the validation (what research questions need to be answered by providing the corresponding research questions). Please note that we in any case expect a proper scientific work (motivation of choices, no plagiarism, individual understanding of the project etc.), a scientific report following the guidelines and a well-designed presentation).
+For offline speech recognition, Vosk or DeepSpeech will be utilized. These technologies will be tailored to identify terminology unique to coding and will be integrated with our NLP pipeline for additional processing. Developer commands will be transformed into actionable text by the STT module so that the NLU engine may examine it.
 
-## 9 References (no limit, but at least 10 references)
+---
 
-Use a commonly used style for your references. Be consistent.
+### Natural Language Understanding (NLU)
+
+Our NLU engine will classify developer queries and extract relevant intents using frameworks like spaCy and transformer-based models. The main tasks of the NLU system are:
+
+1. Intent Detection: Classifies commands (e.g., code navigation, debugging, feature implementation).
+   - Example: “Iris, highlight all occurrences of playerSpeed in this file.” → Intent: Code Search
+2. Entity Recognition and Context Extraction: Identifies specific parts of the code or coding concepts mentioned in the query.
+   - Example: “What’s the function for normalizing a vector?” → Entity: normalizeVector()
+3. Dialogue Management: Handles multi-turn interactions and provides suggestions or clarifications when commands are ambiguous. This module will manage the flow of conversation to ensure accurate, contextually aware responses.
+
+---
+
+### Local Large Language Model (LLM)
+
+For reasoning and code understanding, we will integrate a self-hosted LLM (e.g., Mistral-7B or Llama-3) to generate intelligent responses. While the NLP pipeline handles conversation flow and command classification, the LLM will reason about the codebase context and provide relevant suggestions or generate code snippets.
+
+---
+
+### Memory and Context Tracking
+
+To ensure Iris remains contextually aware, we will implement a memory system using SQLite/Redis for short-term memory and FAISS for semantic search and long-term recall. This allows Iris to store and retrieve information about recent interactions, active files, and project-specific logic.
+
+---
+
+### Editor and IDE Integration
+
+Iris will integrate with Neovim ,VS Code and IntelliJ, allowing it to perform tasks such as opening files, navigating to functions, refactoring code, and suggesting improvements. This integration will be managed through Lua (Neovim), TypeScript (VS Code extensions), and Java (IntelliJ plugins).
+
+---
+
+### Text-to-Speech (TTS)
+
+For audio feedback and responses, we will use TTS engines like Mozilla TTS or Google TTS. This will enable Iris to provide spoken feedback, code suggestions, and debugging tips to the developer.
+
+---
+
+### Validation and Evaluation
+
+We will validate the system with experiments that measure:
+
+- STT accuracy (transcription accuracy for coding commands)
+- Intent classification accuracy (precision, recall, F1 score)
+- Dialogue coherence and context recall (multi-turn dialogue success rate)
+
+---
+
+## 4 Experiments
+
+We plan to conduct the following experiments to answer our research questions:
+
+1. Speech-to-Text Accuracy
+   - Measure transcription accuracy for coding-specific vocabulary and multi-word commands.
+   - Evaluate performance in noisy environments (e.g., background typing noise).
+2. Intent Classification and Context Extraction
+   - Test the accuracy of intent detection across a set of predefined commands.
+   - Evaluate how well the system extracts entities (e.g., variable names, function calls) and recalls project context.
+3. Dialogue Coherence and Multi-Turn Interaction
+   - Simulate multi-turn dialogues and measure the system’s ability to handle context changes and clarifications.
+   - Track success rates for context recall and adaptive responses.
+
+---
+
+## 5 Related work
+
+Several existing tools, such as OpenAI Codex, GitHub Copilot, Claude, and TabNine, provide AI-driven code suggestions, but their primary focus is on code generation rather than natural language interaction.
+
+Recent advancements in NLP for conversational AI (e.g., BERT, Dialogue Transformers) have demonstrated significant improvements in intent recognition and dialogue management. Research on semantic search for codebases (e.g., CodeBERT) offers a promising direction for building context-aware assistants.
+
+Our approach differentiates itself by combining voice-driven interaction, multi-turn NLP dialogue, and offline LLM-based reasoning, creating a fully adaptive coding assistant that is privacy-focused and highly interactive.
+
+---
+
+## 6 Relation of proposal to courses in your curriculum
+
+This project relates to Theoretical computer science, Machine Learning, and Human-Computer Interaction, applying advanced concepts from all three to build a novel developer tool. The focus on NLP and dialogue systems makes it directly relevant to current coursework and research in conversational AI.
+
+---
+
+## 7 Planning : To be defined
+
+---
+
+## 8 Minimal passing requirements
+
+The minimal passing requirement is a working STT and NLP pipeline that handles intent detection, multi-turn dialogue, and context tracking. Integration with at least one IDE and successful validation of NLP experiments is essential. Advanced reasoning and debugging features are secondary but desirable.
+
+---
+
+## 9 References
+
+1. **Vosk Speech Recognition** – Open-source offline STT toolkit
+
+   - Alpha Cephei. "Vosk Speech Recognition Toolkit." Available at: [https://alphacephei.com/vosk/](https://alphacephei.com/vosk/)
+
+2. **Mozilla DeepSpeech** – End-to-End Deep Learning for Speech Recognition
+
+   - Hannun, A., et al. "Deep Speech: Scaling up end-to-end speech recognition." _arXiv preprint arXiv:1412.5567_, 2014.
+   - GitHub: [https://github.com/mozilla/DeepSpeech](https://github.com/mozilla/DeepSpeech)
+
+3. **spaCy** – Industrial-Strength NLP in Python
+
+   - Honnibal, M., & Montani, I. “spaCy: Industrial-strength Natural Language Processing in Python.” Available at: https://spacy.io
+
+4. **Rasa NLU** – Conversational AI framework
+
+   - Bocklisch, T., et al. "Rasa: Open source language understanding and dialogue management." _arXiv preprint arXiv:1712.05181_, 2017.
+
+5. **Transformer Models (e.g., BERT, GPT)**
+
+   - Devlin, J., et al. "BERT: Pre-training of deep bidirectional transformers for language understanding." _arXiv preprint arXiv:1810.04805_, 2018.
+   - Brown, T., et al. "Language models are few-shot learners." _arXiv preprint arXiv:2005.14165_, 2020.
+
+6. **FAISS** – Facebook AI Similarity Search
+
+   - Johnson, J., Douze, M., & Jégou, H. "Billion-scale similarity search with GPUs." _arXiv preprint arXiv:1702.08734_, 2017.
+
+7. **CodeBERT** – A Pre-trained Model for Programming Language and Natural Language
+
+   - Feng, Z., et al. "CodeBERT: A Pre-trained Model for Programming and Natural Languages." _arXiv preprint arXiv:2002.08155_, 2020.
+
+8. **Mistral-7B** and **Llama-2** Documentation
+
+   - Touvron, H., et al. "LLaMA: Open and Efficient Foundation Language Models." _arXiv preprint arXiv:2307.09288_, 2023.
+   - Mistral AI. "Mistral-7B: A new generation of open-weight language models." Available at: [https://mistral.ai](https://mistral.ai)
+
+9. **Neovim API Documentation**
+
+   - "Neovim Lua API Documentation." Available at: [https://neovim.io](https://neovim.io)
+
+10. **Visual Studio Code Extension API Documentation**
+
+    - "Visual Studio Code Extension Documentation." Available at: [https://code.visualstudio.com/docs/extensions/overview](https://code.visualstudio.com/docs/extensions/overview)
