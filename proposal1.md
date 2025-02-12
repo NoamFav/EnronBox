@@ -1,8 +1,17 @@
+---
+theme: ~/tokyo_night.json
+author: Noam Favier
+date: MMMM dd, YYYY
+paging: Slide %d / %d
+---
+
 # **Project Proposal: Voice-Driven AI Coding Assistant**
 
 # **Group 3**
 
 # **Umbrella Topic: NLP**
+
+---
 
 # **Table of Contents**
 
@@ -27,6 +36,8 @@
 The **Voice-Driven AI Coding Assistant** is a highly advanced, **fully offline, real-time AI companion** designed to enhance software development workflows by integrating **speech-to-text (STT), natural language understanding (NLU), local LLM reasoning, and memory-based adaptation** into a developer’s workflow.
 
 Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even the advanced Claude**, this assistant is not simply a **code generator**. Instead, it acts as a **true AI pair programmer**, capable of understanding the intention of the developer, tracking project context, and actively assisting in real-time via **voice control and inline interaction**.
+
+---
 
 ### **Key Objectives**
 
@@ -76,6 +87,8 @@ Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even th
   - Developer: _"Yes, I prefer the state pattern."_
   - Iris: _(Implements the player movement logic using the state pattern.)_
 
+---
+
 ### **2️⃣ AI That Learns & Adapts**
 
 - Tracks user coding habits and **suggests improvements based on prior edits**.
@@ -85,6 +98,8 @@ Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even th
   - If the user **prefers a certain loop structure**, AI adapts to match that style automatically.
   - If the developer **often writes logs before exceptions**, AI suggests doing so proactively.
   - Iris remembers **project-specific logic** and **avoids redundant suggestions**.
+
+---
 
 ### **3️⃣ Memory & Context Awareness**
 
@@ -97,6 +112,8 @@ Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even th
   - Developer: _"No, just remind me how it works."_
   - Iris: _(Provides a summary of function usage.)_
 
+---
+
 ### **4️⃣ AI-Powered Debugging & Code Review**
 
 - Iris proactively detects **common logic errors**, missing conditions, and performance inefficiencies.
@@ -105,6 +122,8 @@ Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even th
   - Iris: _"You’re modifying a list while iterating through it. That could cause a runtime error. Want me to suggest a safer approach?"_
   - Developer: _"Yeah, what do you suggest?"_
   - Iris: _(Proposes using a separate list to store modifications before applying them.)_
+
+---
 
 ### **5️⃣ IDE & Editor Control**
 
@@ -118,6 +137,8 @@ Unlike existing AI tools such as **GitHub Copilot, OpenAI GPT models, or even th
 - Another Example:
   - Developer: _"Iris, rename the `playerSpeed` variable to `velocity` across the project."_
   - Iris: _(Searches for all instances of `playerSpeed` and renames them to `velocity`.)_
+
+---
 
 ## **3. Expanded Tech Stack & Architecture**
 
