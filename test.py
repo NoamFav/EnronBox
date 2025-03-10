@@ -4,7 +4,7 @@ import re
 import nltk
 import os
 import email
-from email.parser import Parser
+from email.parser import Parser  # Keep for compatibility
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
@@ -17,14 +17,23 @@ import seaborn as sns
 from textblob import TextBlob
 
 # Download necessary NLTK resources
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+nltk.download("punkt")
+nltk.download("stopwords")
+nltk.download("wordnet")
+
 
 class EnronEmailClassifier:
     def __init__(self):
-        self.categories = ['Work', 'Urgent', 'Business', 'Personal', 'Meeting', 'External', 'Newsletter']
-        self.stop_words = set(stopwords.words('english'))
+        self.categories = [
+            "Work",
+            "Urgent",
+            "Business",
+            "Personal",
+            "Meeting",
+            "External",
+            "Newsletter",
+        ]
+        self.stop_words = set(stopwords.words("english"))
         self.lemmatizer = WordNetLemmatizer()
         self.text_model = None
         self.numerical_model = None
@@ -41,18 +50,22 @@ class EnronEmailClassifier:
         text = text.lower()
 
         # Remove HTML tags
-        text = re.sub(r'<.*?>', '', text)
+        text = re.sub(r"<.*?>", "", text)
 
         # Remove special characters and numbers
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
+        text = re.sub(r"[^a-zA-Z\s]", "", text)
 
         # Tokenize text
         tokens = text.split()
 
         # Remove stopwords and lemmatize
-        cleaned_tokens = [self.lemmatizer.lemmatize(token) for token in tokens if token not in self.stop_words]
+        cleaned_tokens = [
+            self.lemmatizer.lemmatize(token)
+            for token in tokens
+            if token not in self.stop_words
+        ]
 
-        return ' '.join(cleaned_tokens)
+        return " ".join(cleaned_tokens)
 
     def load_enron_emails(self, enron_dir, max_emails=10000):
         """Load and process emails from the Enron dataset"""
@@ -69,7 +82,7 @@ class EnronEmailClassifier:
                 continue
 
             # Process each user's email folders
-            mail_dir = os.path.join(user_dir, 'maildir')
+            mail_dir = os.path.join(user_dir, "maildir")
             if not os.path.exists(mail_dir):
                 continue
 
@@ -96,9 +109,15 @@ class EnronEmailClassifier:
                         current_label += 1
 
                 # Process emails in the folder
-                for subfolder in ['', 'inbox', 'sent', 'deleted_items']:
-                    subfolder_path = os.path.join(folder_path, subfolder) if subfolder else folder_path
-                    if not os.path.exists(subfolder_path) or not os.path.isdir(subfolder_path):
+                for subfolder in ["", "inbox", "sent", "deleted_items"]:
+                    subfolder_path = (
+                        os.path.join(folder_path, subfolder)
+                        if subfolder
+                        else folder_path
+                    )
+                    if not os.path.exists(subfolder_path) or not os.path.isdir(
+                        subfolder_path
+                    ):
                         continue
 
                     for filename in os.listdir(subfolder_path):
@@ -110,14 +129,17 @@ class EnronEmailClassifier:
                             continue
 
                         try:
-                            with open(filepath, 'r', encoding='latin1') as f:
+                            with open(filepath, "r", encoding="latin1") as f:
                                 msg_content = f.read()
 
                             # Parse the email
                             msg = email.message_from_string(msg_content)
 
                             # Extract subject
-                            subject = msg.get('Subject', '')
+                            subject = msg.get("Subject", "")
+
+                            # Extract sender (define outside the if/else block)
+                            sender = msg.get("From", "")
 
                             # Extract body
                             body = ""
@@ -125,44 +147,54 @@ class EnronEmailClassifier:
                                 for part in msg.walk():
                                     content_type = part.get_content_type()
                                     if content_type == "text/plain":
-                                        body += part.get_payload(decode=True).decode('latin1', errors='ignore')
+                                        payload = part.get_payload(decode=True)
+                                        if isinstance(payload, bytes):
+                                            body += payload.decode(
+                                                "latin1", errors="ignore"
+                                            )
+                                        else:
+                                            body += str(payload)
                             else:
-                                body = msg.get_payload(decode=True)
-                                if body:
-                                    body = body.decode('latin1', errors='ignore')
-
-                            # Extract sender
-                            sender = msg.get('From', '')
+                                payload = msg.get_payload(decode=True)
+                                if isinstance(payload, bytes):
+                                    body = payload.decode("latin1", errors="ignore")
+                                else:
+                                    body = str(payload)
 
                             # Extract CC recipients
-                            cc = msg.get('Cc', '')
+                            cc = msg.get("Cc", "")
                             num_recipients = 1  # At least one recipient
                             if cc:
-                                num_recipients += cc.count('@')
+                                num_recipients += cc.count("@")
 
                             # Extract date
-                            date_str = msg.get('Date', '')
+                            date_str = msg.get("Date", "")
                             try:
                                 time_sent = pd.to_datetime(date_str)
                             except:
-                                time_sent = pd.Timestamp('2000-01-01')
+                                time_sent = pd.Timestamp("2000-01-01")
 
                             # Check for attachments
                             has_attachment = False
                             for part in msg.walk():
-                                if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition'):
+                                if (
+                                    part.get_content_maintype() != "multipart"
+                                    and part.get("Content-Disposition")
+                                ):
                                     has_attachment = True
                                     break
 
                             # Add email to dataset
-                            emails.append({
-                                'subject': subject,
-                                'body': body,
-                                'sender': sender,
-                                'has_attachment': has_attachment,
-                                'num_recipients': num_recipients,
-                                'time_sent': time_sent
-                            })
+                            emails.append(
+                                {
+                                    "subject": subject,
+                                    "body": body,
+                                    "sender": sender,
+                                    "has_attachment": has_attachment,
+                                    "num_recipients": num_recipients,
+                                    "time_sent": time_sent,
+                                }
+                            )
 
                             # Add corresponding label
                             labels.append(label_map[folder])
@@ -196,46 +228,87 @@ class EnronEmailClassifier:
         features = pd.DataFrame()
 
         # Preprocess email body
-        features['cleaned_text'] = email_data['body'].apply(self.preprocess_text)
+        features["cleaned_text"] = email_data["body"].apply(self.preprocess_text)
+        assert isinstance(features, pd.DataFrame), "features is not a DataFrame"
+        assert "cleaned_text" in features.columns, "'cleaned_text' column is missing"
 
         # Extract emotional features using TextBlob
-        features['polarity'] = email_data['body'].apply(
-            lambda text: TextBlob(str(text)).sentiment.polarity if not isinstance(text, float) else 0
+        features["polarity"] = email_data["body"].apply(
+            lambda text: (
+                TextBlob(str(text)).sentiment.polarity
+                if not isinstance(text, float)
+                else 0
+            )
         )
-        features['subjectivity'] = email_data['body'].apply(
-            lambda text: TextBlob(str(text)).sentiment.subjectivity if not isinstance(text, float) else 0
+        features["subjectivity"] = email_data["body"].apply(
+            lambda text: (
+                TextBlob(str(text)).sentiment.subjectivity
+                if not isinstance(text, float)
+                else 0
+            )
         )
 
         # Extract email metadata features
-        features['subject_length'] = email_data['subject'].apply(lambda x: len(str(x)) if not pd.isna(x) else 0)
-        features['body_length'] = email_data['body'].apply(lambda x: len(str(x)) if not pd.isna(x) else 0)
-        features['has_attachment'] = email_data['has_attachment'].astype(int)  # Convert boolean to int
-    features['num_recipients'] = email_data['num_recipients']
+        features["subject_length"] = email_data["subject"].apply(
+            lambda x: len(str(x)) if not pd.isna(x) else 0
+        )
+        features["body_length"] = email_data["body"].apply(
+            lambda x: len(str(x)) if not pd.isna(x) else 0
+        )
+        features["has_attachment"] = email_data["has_attachment"].astype(
+            int
+        )  # Convert boolean to int
+        features["num_recipients"] = email_data["num_recipients"]
 
         # Extract hour from time_sent
-        features['time_sent_hour'] = email_data['time_sent'].apply(lambda x: x.hour if not pd.isna(x) else 12)
+        features["time_sent_hour"] = email_data["time_sent"].apply(
+            lambda x: x.hour if not pd.isna(x) else 12
+        )
 
         # Check for urgency keywords in subject
-        urgent_keywords = ['urgent', 'asap', 'immediately', 'deadline', 'important']
-        features['urgent_subject'] = email_data['subject'].apply(
-            lambda x: any(keyword in str(x).lower() for keyword in urgent_keywords) if not pd.isna(x) else False
-        ).astype(int)  # Convert boolean to int
+        urgent_keywords = ["urgent", "asap", "immediately", "deadline", "important"]
+        features["urgent_subject"] = (
+            email_data["subject"]
+            .apply(
+                lambda x: (
+                    any(keyword in str(x).lower() for keyword in urgent_keywords)
+                    if not pd.isna(x)
+                    else False
+                )
+            )
+            .astype(int)
+        )  # Convert boolean to int
 
         # Check for excessive punctuation (common in spam)
-        features['exclamation_count'] = email_data['subject'].apply(
-            lambda x: str(x).count('!') if not pd.isna(x) else 0
+        features["exclamation_count"] = email_data["subject"].apply(
+            lambda x: str(x).count("!") if not pd.isna(x) else 0
         )
 
         # Check for common business phrases
-        business_phrases = ['meeting', 'report', 'project', 'update', 'budget', 'client']
-        features['business_score'] = email_data['body'].apply(
-            lambda x: sum(1 for phrase in business_phrases if phrase in str(x).lower()) if not pd.isna(x) else 0
+        business_phrases = [
+            "meeting",
+            "report",
+            "project",
+            "update",
+            "budget",
+            "client",
+        ]
+        features["business_score"] = email_data["body"].apply(
+            lambda x: (
+                sum(1 for phrase in business_phrases if phrase in str(x).lower())
+                if not pd.isna(x)
+                else 0
+            )
         )
 
         # Check for external vs internal emails
-        features['is_external'] = email_data['sender'].apply(
-            lambda x: 'enron.com' not in str(x).lower() if not pd.isna(x) else True
-        ).astype(int)
+        features["is_external"] = (
+            email_data["sender"]
+            .apply(
+                lambda x: "enron.com" not in str(x).lower() if not pd.isna(x) else True
+            )
+            .astype(int)
+        )
 
         return features
 
@@ -251,8 +324,10 @@ class EnronEmailClassifier:
         mapped_labels = np.array([label_map[label] for label in labels])
 
         # Update the categories based on the labels we've seen
-        self.categories = [self.categories[label] if label < len(self.categories) else f"Class_{label}"
-                         for label in unique_labels]
+        self.categories = [
+            self.categories[label] if label < len(self.categories) else f"Class_{label}"
+            for label in unique_labels
+        ]
 
         # Split the dataset
         X_train, X_test, y_train, y_test = train_test_split(
@@ -260,16 +335,25 @@ class EnronEmailClassifier:
         )
 
         # Create text processing pipeline for cleaned_text
-        text_pipeline = Pipeline([
-            ('tfidf', TfidfVectorizer(max_features=5000)),
-            ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
-        ])
+        text_pipeline = Pipeline(
+            [
+                ("tfidf", TfidfVectorizer(max_features=5000)),
+                (
+                    "classifier",
+                    RandomForestClassifier(n_estimators=100, random_state=42),
+                ),
+            ]
+        )
+
+        # Extract the cleaned_text series for training
+        train_text = X_train["cleaned_text"].values
+        test_text = X_test["cleaned_text"].values
 
         # Train the model on text
-        text_pipeline.fit(X_train['cleaned_text'], y_train)
+        text_pipeline.fit(train_text, y_train)
 
         # Train another model on the numerical features
-        numerical_features = X_train.drop(columns=['cleaned_text'])
+        numerical_features = X_train.drop(columns=["cleaned_text"])
         numerical_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
         numerical_classifier.fit(numerical_features, y_train)
 
@@ -279,12 +363,16 @@ class EnronEmailClassifier:
         self.label_map = label_map  # Store the label mapping
 
         # Evaluate the model
-        text_predictions = text_pipeline.predict(X_test['cleaned_text'])
-        numerical_predictions = numerical_classifier.predict(X_test.drop(columns=['cleaned_text']))
+        text_predictions = text_pipeline.predict(test_text)
+        numerical_predictions = numerical_classifier.predict(
+            X_test.drop(columns=["cleaned_text"])
+        )
 
         # Get probabilities
-        text_proba = text_pipeline.predict_proba(X_test['cleaned_text'])
-        numerical_proba = numerical_classifier.predict_proba(X_test.drop(columns=['cleaned_text']))
+        text_proba = text_pipeline.predict_proba(test_text)
+        numerical_proba = numerical_classifier.predict_proba(
+            X_test.drop(columns=["cleaned_text"])
+        )
 
         # Combine predictions (simple averaging)
         combined_proba = (text_proba + numerical_proba) / 2
@@ -303,28 +391,39 @@ class EnronEmailClassifier:
 
         # Generate confusion matrix
         if len(np.unique(actual_categories)) > 1:
-            cm = confusion_matrix(actual_categories, predicted_categories, labels=self.categories)
+            cm = confusion_matrix(
+                actual_categories, predicted_categories, labels=self.categories
+            )
             plt.figure(figsize=(10, 8))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=self.categories, yticklabels=self.categories)
-            plt.xlabel('Predicted')
-            plt.ylabel('Actual')
-            plt.title('Confusion Matrix')
+            sns.heatmap(
+                cm,
+                annot=True,
+                fmt="d",
+                cmap="Blues",
+                xticklabels=self.categories,
+                yticklabels=self.categories,
+            )
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+            plt.title("Confusion Matrix")
             plt.tight_layout()
-            plt.savefig('confusion_matrix.png')  # Save plot to file
+            plt.savefig("confusion_matrix.png")  # Save plot to file
             plt.show()
 
         # Feature importance analysis
-        if hasattr(self.numerical_model, 'feature_importances_'):
+        if hasattr(self.numerical_model, "feature_importances_"):
             feature_names = numerical_features.columns
             importances = self.numerical_model.feature_importances_
             indices = np.argsort(importances)[::-1]
 
             plt.figure(figsize=(10, 6))
-            plt.title('Feature Importances')
-            plt.bar(range(len(indices)), importances[indices], align='center')
-            plt.xticks(range(len(indices)), [feature_names[i] for i in indices], rotation=90)
+            plt.title("Feature Importances")
+            plt.bar(range(len(indices)), importances[indices], align="center")
+            plt.xticks(
+                range(len(indices)), [feature_names[i] for i in indices], rotation=90
+            )
             plt.tight_layout()
-            plt.savefig('feature_importances.png')  # Save plot to file
+            plt.savefig("feature_importances.png")  # Save plot to file
             plt.show()
 
     def predict(self, email):
@@ -342,8 +441,12 @@ class EnronEmailClassifier:
         features = self.extract_features(email_df)
 
         # Get predictions from both models
-        text_proba = self.text_model.predict_proba([features['cleaned_text'].iloc[0]])[0]
-        numerical_proba = self.numerical_model.predict_proba(features.drop(columns=['cleaned_text']).iloc[0:1])[0]
+        text_proba = self.text_model.predict_proba([features["cleaned_text"].iloc[0]])[
+            0
+        ]
+        numerical_proba = self.numerical_model.predict_proba(
+            features.drop(columns=["cleaned_text"]).iloc[0:1]
+        )[0]
 
         # Combine predictions
         combined_proba = (text_proba + numerical_proba) / 2
@@ -351,26 +454,29 @@ class EnronEmailClassifier:
 
         # Return category and confidence
         return {
-            'category': self.categories[predicted_class],
-            'confidence': combined_proba[predicted_class],
-            'emotion': {
-                'polarity': features['polarity'].iloc[0],
-                'subjectivity': features['subjectivity'].iloc[0]
-            }
+            "category": self.categories[predicted_class],
+            "confidence": combined_proba[predicted_class],
+            "emotion": {
+                "polarity": features["polarity"].iloc[0],
+                "subjectivity": features["subjectivity"].iloc[0],
+            },
         }
+
 
 # Example usage
 if __name__ == "__main__":
     # Path to the Enron email dataset
     # Download from: https://www.cs.cmu.edu/~enron/
     # or use a smaller subset like: https://www.kaggle.com/datasets/wcukierski/enron-email-dataset
-    enron_dir = "./enron_mail_20150507"  # Update this path to your Enron dataset location
+    enron_dir = "./maildir"
 
     # Check if the directory exists
     if not os.path.exists(enron_dir):
         print(f"Error: Enron dataset directory '{enron_dir}' not found.")
         print("Please download the Enron dataset from https://www.cs.cmu.edu/~enron/")
-        print("or use a subset from https://www.kaggle.com/datasets/wcukierski/enron-email-dataset")
+        print(
+            "or use a subset from https://www.kaggle.com/datasets/wcukierski/enron-email-dataset"
+        )
         exit(1)
 
     # Initialize the classifier
@@ -380,7 +486,7 @@ if __name__ == "__main__":
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
 
     # Save the loaded data to CSV for inspection
-    email_df.to_csv('enron_emails.csv', index=False)
+    email_df.to_csv("enron_emails.csv", index=False)
     print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
 
     # Print information about the loaded data
@@ -392,12 +498,12 @@ if __name__ == "__main__":
 
     # Example new email for testing
     new_email = {
-        'subject': 'Meeting tomorrow at 10 AM',
-        'body': 'We will discuss the upcoming project timeline in the meeting tomorrow.',
-        'sender': 'colleague@enron.com',
-        'has_attachment': True,
-        'num_recipients': 3,
-        'time_sent': pd.Timestamp('2001-01-02 16:45')
+        "subject": "Meeting tomorrow at 10 AM",
+        "body": "We will discuss the upcoming project timeline in the meeting tomorrow.",
+        "sender": "colleague@enron.com",
+        "has_attachment": True,
+        "num_recipients": 3,
+        "time_sent": pd.Timestamp("2001-01-02 16:45"),
     }
 
     # Predict the category
@@ -405,4 +511,6 @@ if __name__ == "__main__":
     print(f"\nPrediction for new email:")
     print(f"Predicted category: {prediction['category']}")
     print(f"Confidence: {prediction['confidence']:.2f}")
-    print(f"Email emotion - Polarity: {prediction['emotion']['polarity']:.2f}, Subjectivity: {prediction['emotion']['subjectivity']:.2f}")
+    print(
+        f"Email emotion - Polarity: {prediction['emotion']['polarity']:.2f}, Subjectivity: {prediction['emotion']['subjectivity']:.2f}"
+    )
