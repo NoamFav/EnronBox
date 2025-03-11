@@ -169,6 +169,7 @@ coverage/
 *.tar
 *.gz
 *.7z
+maildir/
 
 # ================================
 # Environment Variables and Secrets

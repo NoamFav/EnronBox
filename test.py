@@ -484,14 +484,16 @@ if __name__ == "__main__":
 
     # Load the Enron emails (limit to 5000 for faster processing)
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
-
+    for user in os.listdir(enron_dir):
+        print(f"Checking user: {user}")
+        print(os.listdir(os.path.join(enron_dir, user)))
     # Save the loaded data to CSV for inspection
     email_df.to_csv("enron_emails.csv", index=False)
     print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
 
     # Print information about the loaded data
     print(f"Loaded {len(email_df)} emails with {len(np.unique(labels))} unique labels")
-    print(f"Label distribution: {np.bincount(labels)}")
+    print(f"Label distribution: {np.bincount(labels.astype(int))}")
 
     # Train the classifier
     classifier.train(email_df, labels)
