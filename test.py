@@ -4,7 +4,7 @@ import re
 import nltk
 import os
 import email
-from email.parser import Parser  # Keep for compatibility
+from email.parser import Parser
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
@@ -17,9 +17,9 @@ import seaborn as sns
 from textblob import TextBlob
 
 # Download necessary NLTK resources
-nltk.download("punkt")
-nltk.download("stopwords")
-nltk.download("wordnet")
+nltk.download("punkt", quiet=True)
+nltk.download("stopwords", quiet=True)
+nltk.download("wordnet", quiet=True)
 
 
 class EnronEmailClassifier:
@@ -68,169 +68,199 @@ class EnronEmailClassifier:
         return " ".join(cleaned_tokens)
 
     def load_enron_emails(self, enron_dir, max_emails=10000):
-        """Load and process emails from the Enron dataset"""
+        """Load and process emails from the Enron dataset using the standard structure"""
         emails = []
         labels = []
-        label_map = {}
-        current_label = 0
-
-        # Walk through user directories
-        user_count = 0
-        for user in os.listdir(enron_dir):
-            user_dir = os.path.join(enron_dir, user)
-            if not os.path.isdir(user_dir):
+        
+        print(f"Loading emails from: {enron_dir}")
+        
+        # Standard Enron structure has usernames at the top level
+        for username in os.listdir(enron_dir):
+            user_dir = os.path.join(enron_dir, username)
+            
+            # Skip if not a directory or if it's a hidden file
+            if not os.path.isdir(user_dir) or username.startswith('.'):
                 continue
-
-            # Process each user's email folders
-            mail_dir = os.path.join(user_dir, "maildir")
-            if not os.path.exists(mail_dir):
-                continue
-
-            user_count += 1
-            print(f"Processing emails for user {user_count}: {user}")
-
-            # Process folders
-            for folder in os.listdir(mail_dir):
-                folder_path = os.path.join(mail_dir, folder)
+                
+            print(f"Processing user: {username}")
+            
+            # The standard structure has a maildir directory inside each user directory
+            maildir = os.path.join(user_dir, "maildir")
+            if not os.path.exists(maildir) or not os.path.isdir(maildir):
+                # Some datasets might have the folders directly in the user directory
+                maildir = user_dir
+            
+            # Process each folder (these represent categories like "sent", "inbox", etc.)
+            for folder in os.listdir(maildir):
+                folder_path = os.path.join(maildir, folder)
+                
                 if not os.path.isdir(folder_path):
                     continue
-
-                # Map folder names to numeric labels
-                if folder not in label_map:
-                    if folder.lower() in [cat.lower() for cat in self.categories]:
-                        # Use predefined category if folder name matches
-                        for i, cat in enumerate(self.categories):
-                            if folder.lower() == cat.lower():
-                                label_map[folder] = i
-                                break
+                    
+                print(f"  Processing folder: {folder}")
+                
+                # Map folder names to categories
+                category_idx = -1
+                for i, category in enumerate(self.categories):
+                    if category.lower() in folder.lower():
+                        category_idx = i
+                        break
+                
+                # If not matched to predefined categories, use a default
+                if category_idx == -1:
+                    if "sent" in folder.lower():
+                        category_idx = 2  # Business
+                    elif "inbox" in folder.lower():
+                        category_idx = 3  # Personal
+                    elif "deleted" in folder.lower():
+                        category_idx = 5  # External
                     else:
-                        # Otherwise, assign a new label
-                        label_map[folder] = min(current_label, len(self.categories) - 1)
-                        current_label += 1
-
-                # Process emails in the folder
-                for subfolder in ["", "inbox", "sent", "deleted_items"]:
-                    subfolder_path = (
-                        os.path.join(folder_path, subfolder)
-                        if subfolder
-                        else folder_path
-                    )
-                    if not os.path.exists(subfolder_path) or not os.path.isdir(
-                        subfolder_path
-                    ):
-                        continue
-
-                    for filename in os.listdir(subfolder_path):
-                        if len(emails) >= max_emails:
-                            break
-
-                        filepath = os.path.join(subfolder_path, filename)
-                        if not os.path.isfile(filepath):
-                            continue
-
-                        try:
-                            with open(filepath, "r", encoding="latin1") as f:
-                                msg_content = f.read()
-
-                            # Parse the email
-                            msg = email.message_from_string(msg_content)
-
-                            # Extract subject
-                            subject = msg.get("Subject", "")
-
-                            # Extract sender (define outside the if/else block)
-                            sender = msg.get("From", "")
-
-                            # Extract body
-                            body = ""
-                            if msg.is_multipart():
-                                for part in msg.walk():
-                                    content_type = part.get_content_type()
-                                    if content_type == "text/plain":
-                                        payload = part.get_payload(decode=True)
-                                        if isinstance(payload, bytes):
-                                            body += payload.decode(
-                                                "latin1", errors="ignore"
-                                            )
-                                        else:
-                                            body += str(payload)
-                            else:
-                                payload = msg.get_payload(decode=True)
-                                if isinstance(payload, bytes):
-                                    body = payload.decode("latin1", errors="ignore")
-                                else:
-                                    body = str(payload)
-
-                            # Extract CC recipients
-                            cc = msg.get("Cc", "")
-                            num_recipients = 1  # At least one recipient
-                            if cc:
-                                num_recipients += cc.count("@")
-
-                            # Extract date
-                            date_str = msg.get("Date", "")
-                            try:
-                                time_sent = pd.to_datetime(date_str)
-                            except:
-                                time_sent = pd.Timestamp("2000-01-01")
-
-                            # Check for attachments
-                            has_attachment = False
-                            for part in msg.walk():
-                                if (
-                                    part.get_content_maintype() != "multipart"
-                                    and part.get("Content-Disposition")
-                                ):
-                                    has_attachment = True
-                                    break
-
-                            # Add email to dataset
-                            emails.append(
-                                {
-                                    "subject": subject,
-                                    "body": body,
-                                    "sender": sender,
-                                    "has_attachment": has_attachment,
-                                    "num_recipients": num_recipients,
-                                    "time_sent": time_sent,
-                                }
-                            )
-
-                            # Add corresponding label
-                            labels.append(label_map[folder])
-
-                        except Exception as e:
-                            print(f"Error processing {filepath}: {e}")
-
+                        category_idx = 0  # Work
+                
+                # Process emails in this folder and any subfolders
+                self._process_folder(folder_path, category_idx, emails, labels, max_emails)
+                
                 if len(emails) >= max_emails:
                     print(f"Reached maximum number of emails: {max_emails}")
                     break
-
+            
             if len(emails) >= max_emails:
                 break
-
+        
+        if not emails:
+            raise ValueError(f"No emails were loaded from {enron_dir}. Check the directory structure.")
+        
         # Convert to DataFrame
         email_df = pd.DataFrame(emails)
-
-        # Update categories to match the folders we actually found
-        folder_to_category = {}
-        for folder, label in label_map.items():
-            if label < len(self.categories):
-                folder_to_category[folder] = self.categories[label]
-
-        print(f"Loaded {len(emails)} emails with {len(label_map)} different folders")
-        print(f"Folder to category mapping: {folder_to_category}")
-
+        print(f"Loaded {len(emails)} emails with {len(set(labels))} different categories")
+        print(f"Columns in DataFrame: {email_df.columns.tolist()}")
+        print(f"First few rows: {email_df.head()}")
+        
         return email_df, np.array(labels)
+    
+    def _process_folder(self, folder_path, category_idx, emails, labels, max_emails):
+        """Process all emails in a folder and its subfolders"""
+        # Process files in the current folder
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            
+            # If this is a subfolder, process it recursively
+            if os.path.isdir(file_path):
+                self._process_folder(file_path, category_idx, emails, labels, max_emails)
+                continue
+            
+            # Skip if we've reached the max emails
+            if len(emails) >= max_emails:
+                return
+            
+            # Process the email file
+            try:
+                # Parse the email file
+                with open(file_path, 'r', encoding='latin1', errors='ignore') as f:
+                    msg_content = f.read()
+                
+                # Parse using the email module
+                msg = email.message_from_string(msg_content)
+                
+                # Extract basic fields
+                subject = msg.get('Subject', '')
+                sender = msg.get('From', '')
+                date_str = msg.get('Date', '')
+                to = msg.get('To', '')
+                cc = msg.get('Cc', '')
+                
+                # Count recipients
+                num_recipients = 1  # Assume at least one recipient
+                if cc:
+                    num_recipients += cc.count('@')
+                
+                # Convert date string to timestamp
+                try:
+                    time_sent = pd.to_datetime(date_str)
+                except:
+                    time_sent = pd.Timestamp('2000-01-01')
+                
+                # Extract body
+                body = self._extract_email_body(msg)
+                
+                # Check for attachments
+                has_attachment = False
+                for part in msg.walk():
+                    if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition'):
+                        has_attachment = True
+                        break
+                
+                # Add email to dataset
+                emails.append({
+                    'subject': subject,
+                    'body': body,
+                    'sender': sender,
+                    'has_attachment': has_attachment,
+                    'num_recipients': num_recipients,
+                    'time_sent': time_sent
+                })
+                
+                # Add the corresponding label
+                labels.append(category_idx)
+                
+                if len(emails) % 100 == 0:
+                    print(f"Processed {len(emails)} emails...")
+                
+            except Exception as e:
+                print(f"Error processing {file_path}: {e}")
+    
+    def _extract_email_body(self, msg):
+        """Extract the body text from an email message"""
+        body = ""
+        
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                content_disposition = str(part.get('Content-Disposition'))
+                
+                # Skip attachments
+                if 'attachment' in content_disposition:
+                    continue
+                
+                if content_type == 'text/plain':
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        if isinstance(payload, bytes):
+                            body += payload.decode('latin1', errors='ignore')
+                        else:
+                            body += str(payload)
+        else:
+            payload = msg.get_payload(decode=True)
+            if payload:
+                if isinstance(payload, bytes):
+                    body = payload.decode('latin1', errors='ignore')
+                else:
+                    body = str(payload)
+        
+        return body
 
     def extract_features(self, email_data):
         """Extract features from emails including emotion metrics"""
         features = pd.DataFrame()
+        
+        # Check if required columns exist
+        required_columns = ['body', 'subject', 'sender', 'has_attachment', 'num_recipients', 'time_sent']
+        missing_columns = [col for col in required_columns if col not in email_data.columns]
+        
+        if missing_columns:
+            print(f"Warning: Missing columns in email_data: {missing_columns}")
+            for col in missing_columns:
+                if col in ['body', 'subject', 'sender']:
+                    email_data[col] = ""
+                elif col == 'has_attachment':
+                    email_data[col] = False
+                elif col == 'num_recipients':
+                    email_data[col] = 1
+                elif col == 'time_sent':
+                    email_data[col] = pd.Timestamp('2000-01-01')
 
         # Preprocess email body
         features["cleaned_text"] = email_data["body"].apply(self.preprocess_text)
-        assert isinstance(features, pd.DataFrame), "features is not a DataFrame"
-        assert "cleaned_text" in features.columns, "'cleaned_text' column is missing"
 
         # Extract emotional features using TextBlob
         features["polarity"] = email_data["body"].apply(
@@ -314,8 +344,13 @@ class EnronEmailClassifier:
 
     def train(self, email_data, labels):
         """Train the email classifier model"""
+        # Print diagnostic info
+        print("Training model with data shape:", email_data.shape)
+        print("Available columns:", email_data.columns.tolist())
+        
         # Extract features
         features = self.extract_features(email_data)
+        print("Features extracted, shape:", features.shape)
 
         # Make sure labels are integers from 0 to n_classes-1
         unique_labels = np.unique(labels)
@@ -466,8 +501,6 @@ class EnronEmailClassifier:
 # Example usage
 if __name__ == "__main__":
     # Path to the Enron email dataset
-    # Download from: https://www.cs.cmu.edu/~enron/
-    # or use a smaller subset like: https://www.kaggle.com/datasets/wcukierski/enron-email-dataset
     enron_dir = "./maildir"
 
     # Check if the directory exists
@@ -484,9 +517,7 @@ if __name__ == "__main__":
 
     # Load the Enron emails (limit to 5000 for faster processing)
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
-    for user in os.listdir(enron_dir):
-        print(f"Checking user: {user}")
-        print(os.listdir(os.path.join(enron_dir, user)))
+    
     # Save the loaded data to CSV for inspection
     email_df.to_csv("enron_emails.csv", index=False)
     print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
