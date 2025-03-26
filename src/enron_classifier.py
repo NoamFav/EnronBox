@@ -71,41 +71,41 @@ class EnronEmailClassifier:
         """Load and process emails from the Enron dataset using the standard structure"""
         emails = []
         labels = []
-        
+
         print(f"Loading emails from: {enron_dir}")
-        
+
         # Standard Enron structure has usernames at the top level
         for username in os.listdir(enron_dir):
             user_dir = os.path.join(enron_dir, username)
-            
+
             # Skip if not a directory or if it's a hidden file
-            if not os.path.isdir(user_dir) or username.startswith('.'):
+            if not os.path.isdir(user_dir) or username.startswith("."):
                 continue
-                
+
             print(f"Processing user: {username}")
-            
+
             # The standard structure has a maildir directory inside each user directory
             maildir = os.path.join(user_dir, "maildir")
             if not os.path.exists(maildir) or not os.path.isdir(maildir):
                 # Some datasets might have the folders directly in the user directory
                 maildir = user_dir
-            
+
             # Process each folder (these represent categories like "sent", "inbox", etc.)
             for folder in os.listdir(maildir):
                 folder_path = os.path.join(maildir, folder)
-                
+
                 if not os.path.isdir(folder_path):
                     continue
-                    
+
                 print(f"  Processing folder: {folder}")
-                
+
                 # Map folder names to categories
                 category_idx = -1
                 for i, category in enumerate(self.categories):
                     if category.lower() in folder.lower():
                         category_idx = i
                         break
-                
+
                 # If not matched to predefined categories, use a default
                 if category_idx == -1:
                     if "sent" in folder.lower():
@@ -116,148 +116,169 @@ class EnronEmailClassifier:
                         category_idx = 5  # External
                     else:
                         category_idx = 0  # Work
-                
+
                 # Process emails in this folder and any subfolders
-                self._process_folder(folder_path, category_idx, emails, labels, max_emails)
-                
+                self._process_folder(
+                    folder_path, category_idx, emails, labels, max_emails
+                )
+
                 if len(emails) >= max_emails:
                     print(f"Reached maximum number of emails: {max_emails}")
                     break
-            
+
             if len(emails) >= max_emails:
                 break
-        
+
         if not emails:
-            raise ValueError(f"No emails were loaded from {enron_dir}. Check the directory structure.")
-        
+            raise ValueError(
+                f"No emails were loaded from {enron_dir}. Check the directory structure."
+            )
+
         # Convert to DataFrame
         email_df = pd.DataFrame(emails)
-        print(f"Loaded {len(emails)} emails with {len(set(labels))} different categories")
+        print(
+            f"Loaded {len(emails)} emails with {len(set(labels))} different categories"
+        )
         print(f"Columns in DataFrame: {email_df.columns.tolist()}")
         print(f"First few rows: {email_df.head()}")
-        
+
         return email_df, np.array(labels)
-    
+
     def _process_folder(self, folder_path, category_idx, emails, labels, max_emails):
         """Process all emails in a folder and its subfolders"""
         # Process files in the current folder
         for filename in os.listdir(folder_path):
             file_path = os.path.join(folder_path, filename)
-            
+
             # If this is a subfolder, process it recursively
             if os.path.isdir(file_path):
-                self._process_folder(file_path, category_idx, emails, labels, max_emails)
+                self._process_folder(
+                    file_path, category_idx, emails, labels, max_emails
+                )
                 continue
-            
+
             # Skip if we've reached the max emails
             if len(emails) >= max_emails:
                 return
-            
+
             # Process the email file
             try:
                 # Parse the email file
-                with open(file_path, 'r', encoding='latin1', errors='ignore') as f:
+                with open(file_path, "r", encoding="latin1", errors="ignore") as f:
                     msg_content = f.read()
-                
+
                 # Parse using the email module
                 msg = email.message_from_string(msg_content)
-                
+
                 # Extract basic fields
-                subject = msg.get('Subject', '')
-                sender = msg.get('From', '')
-                date_str = msg.get('Date', '')
-                to = msg.get('To', '')
-                cc = msg.get('Cc', '')
-                
+                subject = msg.get("Subject", "")
+                sender = msg.get("From", "")
+                date_str = msg.get("Date", "")
+                to = msg.get("To", "")
+                cc = msg.get("Cc", "")
+
                 # Count recipients
                 num_recipients = 1  # Assume at least one recipient
                 if cc:
-                    num_recipients += cc.count('@')
-                
+                    num_recipients += cc.count("@")
+
                 # Convert date string to timestamp
                 try:
                     time_sent = pd.to_datetime(date_str)
                 except:
-                    time_sent = pd.Timestamp('2000-01-01')
-                
+                    time_sent = pd.Timestamp("2000-01-01")
+
                 # Extract body
                 body = self._extract_email_body(msg)
-                
+
                 # Check for attachments
                 has_attachment = False
                 for part in msg.walk():
-                    if part.get_content_maintype() != 'multipart' and part.get('Content-Disposition'):
+                    if part.get_content_maintype() != "multipart" and part.get(
+                        "Content-Disposition"
+                    ):
                         has_attachment = True
                         break
-                
+
                 # Add email to dataset
-                emails.append({
-                    'subject': subject,
-                    'body': body,
-                    'sender': sender,
-                    'has_attachment': has_attachment,
-                    'num_recipients': num_recipients,
-                    'time_sent': time_sent
-                })
-                
+                emails.append(
+                    {
+                        "subject": subject,
+                        "body": body,
+                        "sender": sender,
+                        "has_attachment": has_attachment,
+                        "num_recipients": num_recipients,
+                        "time_sent": time_sent,
+                    }
+                )
+
                 # Add the corresponding label
                 labels.append(category_idx)
-                
+
                 if len(emails) % 100 == 0:
                     print(f"Processed {len(emails)} emails...")
-                
+
             except Exception as e:
                 print(f"Error processing {file_path}: {e}")
-    
+
     def _extract_email_body(self, msg):
         """Extract the body text from an email message"""
         body = ""
-        
+
         if msg.is_multipart():
             for part in msg.walk():
                 content_type = part.get_content_type()
-                content_disposition = str(part.get('Content-Disposition'))
-                
+                content_disposition = str(part.get("Content-Disposition"))
+
                 # Skip attachments
-                if 'attachment' in content_disposition:
+                if "attachment" in content_disposition:
                     continue
-                
-                if content_type == 'text/plain':
+
+                if content_type == "text/plain":
                     payload = part.get_payload(decode=True)
                     if payload:
                         if isinstance(payload, bytes):
-                            body += payload.decode('latin1', errors='ignore')
+                            body += payload.decode("latin1", errors="ignore")
                         else:
                             body += str(payload)
         else:
             payload = msg.get_payload(decode=True)
             if payload:
                 if isinstance(payload, bytes):
-                    body = payload.decode('latin1', errors='ignore')
+                    body = payload.decode("latin1", errors="ignore")
                 else:
                     body = str(payload)
-        
+
         return body
 
     def extract_features(self, email_data):
         """Extract features from emails including emotion metrics"""
         features = pd.DataFrame()
-        
+
         # Check if required columns exist
-        required_columns = ['body', 'subject', 'sender', 'has_attachment', 'num_recipients', 'time_sent']
-        missing_columns = [col for col in required_columns if col not in email_data.columns]
-        
+        required_columns = [
+            "body",
+            "subject",
+            "sender",
+            "has_attachment",
+            "num_recipients",
+            "time_sent",
+        ]
+        missing_columns = [
+            col for col in required_columns if col not in email_data.columns
+        ]
+
         if missing_columns:
             print(f"Warning: Missing columns in email_data: {missing_columns}")
             for col in missing_columns:
-                if col in ['body', 'subject', 'sender']:
+                if col in ["body", "subject", "sender"]:
                     email_data[col] = ""
-                elif col == 'has_attachment':
+                elif col == "has_attachment":
                     email_data[col] = False
-                elif col == 'num_recipients':
+                elif col == "num_recipients":
                     email_data[col] = 1
-                elif col == 'time_sent':
-                    email_data[col] = pd.Timestamp('2000-01-01')
+                elif col == "time_sent":
+                    email_data[col] = pd.Timestamp("2000-01-01")
 
         # Preprocess email body
         features["cleaned_text"] = email_data["body"].apply(self.preprocess_text)
@@ -347,7 +368,7 @@ class EnronEmailClassifier:
         # Print diagnostic info
         print("Training model with data shape:", email_data.shape)
         print("Available columns:", email_data.columns.tolist())
-        
+
         # Extract features
         features = self.extract_features(email_data)
         print("Features extracted, shape:", features.shape)
@@ -517,9 +538,9 @@ if __name__ == "__main__":
 
     # Load the Enron emails (limit to 5000 for faster processing)
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
-    
+
     # Save the loaded data to CSV for inspection
-    email_df.to_csv("enron_emails.csv", index=False)
+    email_df.to_csv("data/enron_emails.csv", index=False)
     print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
 
     # Print information about the loaded data
