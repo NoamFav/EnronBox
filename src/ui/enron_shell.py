@@ -172,6 +172,83 @@ class EnronMailShell:
             self.console.print(f"[bold red]Error displaying email: {e}[/bold red]")
             return None
 
+    def user_stats(self):
+        """Display email statistics for a selected user"""
+        try:
+            # Step 1: Pick user
+            users = sorted(os.listdir(self.maildir_path))
+            user_cmd = f"echo '{chr(10).join(users)}' | fzf --height 50% --layout=reverse --border"
+            user = subprocess.check_output(user_cmd, shell=True, text=True).strip()
+            if not user:
+                return
+
+            user_path = os.path.join(self.maildir_path, user)
+            if not os.path.isdir(user_path):
+                self.console.print(
+                    Panel.fit(
+                        Text(f"❌ Invalid user folder: {user_path}", style="bold red"),
+                        border_style="red",
+                    )
+                )
+                return
+
+            # Step 2: Traverse folders
+            folder_stats = {}
+            total_emails = 0
+
+            for folder in sorted(os.listdir(user_path)):
+                folder_path = os.path.join(user_path, folder)
+                if not os.path.isdir(folder_path):
+                    continue
+
+                files = [
+                    f
+                    for f in os.listdir(folder_path)
+                    if os.path.isfile(os.path.join(folder_path, f))
+                ]
+                count = len(files)
+                folder_stats[folder] = count
+                total_emails += count
+
+            # Step 3: Display stats
+            table = Table(
+                title=f"📊 Email Stats for [cyan]{user}[/cyan]",
+                show_header=True,
+                header_style="bold magenta",
+            )
+            table.add_column("Folder", style="cyan")
+            table.add_column("Emails", justify="right", style="white")
+
+            for folder, count in folder_stats.items():
+                table.add_row(folder, str(count))
+
+            self.console.print(table)
+
+            summary_text = Text(
+                f"📁 Total Folders: {len(folder_stats)}\n"
+                f"✉️ Total Emails: {total_emails}",
+                style="bold green",
+            )
+
+            self.console.print(
+                Panel(
+                    summary_text,
+                    title="📦 Summary",
+                    border_style="green",
+                )
+            )
+
+        except subprocess.CalledProcessError:
+            # This happens if user cancels fzf selection
+            pass
+        except Exception as e:
+            self.console.print(
+                Panel.fit(
+                    Text(f"❌ Error in :user command: {e}", style="bold red"),
+                    border_style="red",
+                )
+            )
+
     def run(self):
         """Main shell loop"""
         session = PromptSession(style=self.style)
@@ -200,6 +277,9 @@ class EnronMailShell:
                             if email_path:
                                 self.display_email(email_path)
 
+                        case "user":
+                            self.user_stats()
+
                         case "analyze" if self.current_email:
                             prediction = self.classifier.predict(self.current_email)
                             detailed_analysis = f"""
@@ -222,6 +302,7 @@ Emotional Tone:
                             help_text = """
 🌟 Enron Email Intelligence Shell Commands 🌟
 :browse   - Browse and select emails
+:user     - Select a user and show email stats
 :analyze  - Analyze the currently selected email
 :help     - Show this help menu
 :quit     - Exit the shell
