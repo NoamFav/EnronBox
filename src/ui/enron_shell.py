@@ -10,6 +10,7 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import HTML
 from rich.console import Console
 from rich.table import Table
+from rich import box
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
@@ -21,7 +22,7 @@ from src.enron_classifier import EnronEmailClassifier
 
 
 class EnronMailShell:
-    def __init__(self, maildir_path: str = "maildir"):
+    def __init__(self, maildir_path: str = "maildir", max_emails: int = 5000):
         self.maildir_path = maildir_path
         self.current_email: Optional[Dict[str, Any]] = None
         self.classifier = EnronEmailClassifier()
@@ -36,14 +37,14 @@ class EnronMailShell:
         )
 
         # Prepare the shell
-        self._load_classifier()
+        self._load_classifier(max_emails=max_emails)
 
-    def _load_classifier(self):
+    def _load_classifier(self, max_emails: int = 5000):
         """Load and train the email classifier"""
         try:
             # Load emails and train the model
             email_df, labels = self.classifier.load_enron_emails(
-                self.maildir_path, max_emails=5000
+                self.maildir_path, max_emails=max_emails
             )
             self.classifier.train(email_df, labels)
             self.console.print(
@@ -138,23 +139,30 @@ class EnronMailShell:
 
             # Create rich display
             table = Table(
-                title="Email Details", show_header=True, header_style="bold magenta"
+                title="📧 Email Details",
+                title_style="bold green",
+                show_header=True,
+                header_style="bold white on dark_magenta",
+                box=box.ROUNDED,
+                pad_edge=False,
+                expand=False,
+                row_styles=["none", "dim"],
             )
-            table.add_column("Field", style="cyan")
-            table.add_column("Value", style="white")
 
-            table.add_row("From", sender)
-            table.add_row("Subject", subject)
+            table.add_column("🔖 Field", style="cyan", no_wrap=True)
+            table.add_column("📝 Value", style="white")
+
+            table.add_row("📤 From", sender)
+            table.add_row("📝 Subject", subject)
             table.add_row(
-                "Category",
+                "🏷️ Category",
                 f"{prediction['category']} (Confidence: {prediction['confidence']:.2%})",
             )
             table.add_row(
-                "Emotional Tone",
+                "🎭 Emotional Tone",
                 f"Polarity: {prediction['emotion']['polarity']:.2f}, "
                 f"Subjectivity: {prediction['emotion']['subjectivity']:.2f}",
             )
-
             # Body preview
             body_panel = Panel(
                 Syntax(body, "txt", theme="monokai", line_numbers=False),
@@ -213,11 +221,17 @@ class EnronMailShell:
             # Step 3: Display stats
             table = Table(
                 title=f"📊 Email Stats for [cyan]{user}[/cyan]",
+                title_style="bold green",
                 show_header=True,
-                header_style="bold magenta",
+                header_style="bold white on dark_magenta",
+                box=box.ROUNDED,
+                pad_edge=False,
+                expand=False,
+                row_styles=["none", "dim"],
             )
-            table.add_column("Folder", style="cyan")
-            table.add_column("Emails", justify="right", style="white")
+
+            table.add_column("📂 Folder", style="cyan", no_wrap=True)
+            table.add_column("📨 Emails", justify="right", style="white")
 
             for folder, count in folder_stats.items():
                 table.add_row(folder, str(count))
@@ -265,22 +279,22 @@ class EnronMailShell:
             try:
                 user_input = session.prompt(
                     HTML("<ansicyan>📬 EnronAI > </ansicyan>"),
-                    rprompt=HTML("<ansigray>Type :help for options</ansigray>"),
+                    rprompt=HTML("<ansigray>Type :help or :h for options</ansigray>"),
                 )
 
                 if user_input.startswith(":"):
                     cmd = user_input[1:].strip().lower()
 
                     match cmd:
-                        case "browse":
+                        case "browse" | "b":
                             email_path = self.browse_emails()
                             if email_path:
                                 self.display_email(email_path)
 
-                        case "user":
+                        case "user" | "u":
                             self.user_stats()
 
-                        case "analyze" if self.current_email:
+                        case "analyze" | "a" if self.current_email:
                             prediction = self.classifier.predict(self.current_email)
                             detailed_analysis = f"""
 🔍 Detailed Email Analysis:
@@ -298,14 +312,14 @@ Emotional Tone:
                                 )
                             )
 
-                        case "help":
+                        case "help" | "h":
                             help_text = """
 🌟 Enron Email Intelligence Shell Commands 🌟
-:browse   - Browse and select emails
-:user     - Select a user and show email stats
-:analyze  - Analyze the currently selected email
-:help     - Show this help menu
-:quit     - Exit the shell
+:browse/b   - Browse and select emails
+:user/u     - Select a user and show email stats
+:analyze/a  - Analyze the currently selected email
+:help/h     - Show this help menu
+:quit/q     - Exit the shell
 """
                             self.console.print(
                                 Panel(
@@ -315,7 +329,7 @@ Emotional Tone:
                                 )
                             )
 
-                        case "quit":
+                        case "quit" | "q":
                             break
 
                         case _:
@@ -354,13 +368,32 @@ Emotional Tone:
 
 
 def main():
-    maildir_path = "./maildir"  # Update this to your Enron dataset path
+    maildir_path = "./maildir"
+    max_emails = 5000
+
+    # Handle args manually
+    args = sys.argv[1:]
+
+    if "--help" in args:
+        print("Usage: python enron_shell.py [--max_emails N]")
+        sys.exit(0)
+
+    if "--max_emails" in args:
+        try:
+            idx = args.index("--max_emails")
+            max_emails = int(args[idx + 1])
+        except (IndexError, ValueError):
+            print("❌ Invalid usage of --max_emails. Example: --max_emails 10000")
+            sys.exit(1)
+
     if not os.path.exists(maildir_path):
         print(f"Error: Enron dataset directory '{maildir_path}' not found.")
-        print("Please download the Enron dataset from https://www.cs.cmu.edu/~enron/")
+        print(
+            "Please download the Enron dataset by running './scripts/download_enron.sh' or for windows, 'download_enron.cmd'"
+        )
         sys.exit(1)
 
-    shell = EnronMailShell(maildir_path)
+    shell = EnronMailShell(maildir_path, max_emails)
     shell.run()
 
 
