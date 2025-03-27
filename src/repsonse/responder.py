@@ -118,8 +118,8 @@ class EmailResponder:
             print("-" * 50)
 
 if __name__ == "__main__":
-    # This will only run when testing responder.py directly
-    #this is the part i'm confused about, implementing the result of enron_classifier to determine the response given by this class.
+    #this is the part i'm doubting, implementing the result of enron_classifier to determine the response given by this class.
+    #not sure how to do this part
     from src.enron_classifier import EnronEmailClassifier
 
     print("Initializing classifier...")
