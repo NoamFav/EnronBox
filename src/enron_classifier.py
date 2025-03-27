@@ -522,7 +522,7 @@ class EnronEmailClassifier:
 # Example usage
 if __name__ == "__main__":
     # Path to the Enron email dataset
-    enron_dir = "./maildir"
+    enron_dir = "../maildir"
 
     # Check if the directory exists
     if not os.path.exists(enron_dir):
@@ -540,7 +540,7 @@ if __name__ == "__main__":
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
 
     # Save the loaded data to CSV for inspection
-    email_df.to_csv("data/enron_emails.csv", index=False)
+    email_df.to_csv("src/enron_emails.csv", index=False)
     print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
 
     # Print information about the loaded data
