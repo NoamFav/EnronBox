@@ -146,6 +146,10 @@ class EnronEmailClassifier:
                 if not os.path.exists(maildir) or not os.path.isdir(maildir):
                     maildir = user_dir
 
+                # Record the overall processed count before starting this user
+                user_start = processed_count[0]
+
+                # Create a progress task for this user with the estimated total emails
                 user_task = progress.add_task(
                     f"[cyan]Processing user: {username}", total=email_count
                 )
@@ -179,7 +183,7 @@ class EnronEmailClassifier:
                         else:
                             category_idx = 0  # Work
 
-                    # Process the folder; pass the shared counter and overall task
+                    # Process the folder
                     self._process_folder(
                         folder_path,
                         category_idx,
@@ -193,23 +197,29 @@ class EnronEmailClassifier:
                         username=username,
                     )
 
+                    # If max_emails has been reached, break early
                     if len(emails) >= max_emails:
                         break
 
+                # Compute the number of emails processed for this user
+                user_processed = processed_count[0] - user_start
+
+                # Create a descriptive message based on whether we processed all emails from the user
+                if user_processed < email_count:
+                    description_msg = (
+                        f"[green]✅ Done processing {username} emails - max emails reached "
+                        f"({user_processed}/{email_count})"
+                    )
+                else:
+                    description_msg = f"[green]✅ Done processing {username} emails ({user_processed}/{email_count})"
+
                 progress.update(
                     user_task,
-                    completed=email_count,
-                    description=f"[green]✅ Done processing {username} emails",
+                    completed=user_processed,
+                    description=description_msg,
                 )
                 if len(emails) >= max_emails:
                     break
-
-            # Final update based on the counter
-            progress.update(
-                overall_task,
-                completed=processed_count[0],
-                description=f"[bold green]✅ Finished Processing Emails",
-            )
 
         if not emails:
             self._rich_print(
