@@ -94,7 +94,7 @@ class EnronEmailClassifier:
 
         return " ".join(cleaned_tokens)
 
-    def load_enron_emails(self, enron_dir, max_emails=500000):
+    def load_enron_emails(self, enron_dir, max_emails=5000):
         """Load and process emails from the Enron dataset using Rich progress tracking"""
         emails = []
         labels = []
@@ -705,7 +705,7 @@ if __name__ == "__main__":
     classifier = EnronEmailClassifier()
 
     # Load the Enron emails (limit to 50000 for faster processing)
-    email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=500000)
+    email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
 
     # Save the loaded data to CSV for inspection
     email_df.to_csv("data/enron_emails.csv", index=False)
