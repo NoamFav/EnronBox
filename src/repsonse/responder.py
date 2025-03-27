@@ -119,6 +119,7 @@ class EmailResponder:
 
 if __name__ == "__main__":
     # This will only run when testing responder.py directly
+    #this is the part i'm confused about, implementing the result of enron_classifier to determine the response given by this class.
     from src.enron_classifier import EnronEmailClassifier
 
     print("Initializing classifier...")
