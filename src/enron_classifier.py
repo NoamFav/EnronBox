@@ -522,7 +522,7 @@ class EnronEmailClassifier:
 # Example usage
 if __name__ == "__main__":
     # Path to the Enron email dataset
-    enron_dir = "../maildir"
+    enron_dir = "./maildir"
 
     # Check if the directory exists
     if not os.path.exists(enron_dir):

@@ -1,167 +1,128 @@
 """
-responder.py - Automated email reply generator
-
-Generates context-aware email replies based on classification, sentiment, and urgency.
-Uses template-based responses that can be customized for different scenarios.
+responder.py - Integrated with enron_classifier output analysis
 """
 
-# Template database - could be moved to a config file or external template system
-RESPONSE_TEMPLATES = {
-    # Professional/formal responses
-    "professional": {
-        "positive": {
-            "template": "Dear {sender},\n\nThank you for your email regarding {topic}. "
-                        "We're pleased to hear about {positive_aspect} and would be happy to "
-                        "help with this matter.\n\nBest regards,\n{signature}",
-            "placeholders": ["topic", "positive_aspect"]
-        },
-        "neutral": {
-            "template": "Dear {sender},\n\nWe acknowledge receipt of your email about {topic}. "
-                        "One of our team members will review your inquiry and respond "
-                        "shortly.\n\nRegards,\n{signature}",
-            "placeholders": ["topic"]
-        },
-        "negative": {
-            "template": "Dear {sender},\n\nWe appreciate you reaching out about {topic}. "
-                        "We sincerely apologize for {negative_aspect} and are looking into "
-                        "this matter urgently.\n\nSincerely,\n{signature}",
-            "placeholders": ["topic", "negative_aspect"]
+import random
+from typing import Dict, Any
+
+class EmailResponder:
+    def __init__(self, classifier):
+        """Initialize with an EnronEmailClassifier instance"""
+        self.classifier = classifier
+
+        # Configure response templates
+        self.templates = {
+            'work': self._init_work_templates(),
+            'personal': self._init_personal_templates(),
+            'default': self._init_default_templates()
         }
-    },
 
-    # Casual/informal responses
-    "casual": {
-        "positive": {
-            "template": "Hi {sender},\n\nThanks for your note! Great to hear about {topic}. "
-                        "Let me know if you need anything else.\n\nCheers,\n{signature}",
-            "placeholders": ["topic"]
-        },
-        "neutral": {
-            "template": "Hi {sender},\n\nGot your email about {topic}. I'll look into this and "
-                        "get back to you soon.\n\nBest,\n{signature}",
-            "placeholders": ["topic"]
-        },
-        "negative": {
-            "template": "Hi {sender},\n\nThanks for flagging this. Really sorry about {negative_aspect}. "
-                        "We're working on fixing this ASAP.\n\nThanks for your patience,\n{signature}",
-            "placeholders": ["topic", "negative_aspect"]
+    def generate_reply(self, email: Dict[str, Any]) -> str:
+        """
+        Generate response by:
+        1. Getting prediction from enron_classifier
+        2. Analyzing the output
+        3. Selecting appropriate template
+        """
+        # Step 1: Get classifier prediction
+        prediction = self.classifier.predict(email)
+        print("\n=== Classifier Output ===")
+        print(f"Category: {prediction.get('category')}")
+        print(f"Sentiment: {prediction.get('sentiment')}")
+        print(f"Urgency: {prediction.get('urgency')}")
+
+        # Step 2: Analyze prediction
+        category = prediction.get('category', 'default').lower()
+        sentiment = self._analyze_sentiment(prediction.get('sentiment', {}))
+        is_urgent = prediction.get('urgency', False)
+
+        # Step 3: Generate response
+        context = self._prepare_context(email, prediction)
+        template = self._select_template(category, sentiment, is_urgent)
+
+        return template.format(**context)
+
+    # Analysis and template selection methods
+    def _analyze_sentiment(self, sentiment_data: Dict[str, float]) -> str:
+        """Convert polarity score to sentiment category"""
+        polarity = sentiment_data.get('polarity', 0)
+        if polarity > 0.3:
+            return 'positive'
+        elif polarity < -0.3:
+            return 'negative'
+        return 'neutral'
+
+    def _select_template(self, category, sentiment, is_urgent) -> str:
+        """Select template with fallback logic"""
+        # Try category-specific template first
+        templates = self.templates.get(category, self.templates['default'])
+
+        # Handle urgent messages specially
+        if is_urgent:
+            urgent_template = getattr(self, f"_urgent_{category}_template", None)
+            if urgent_template:
+                return urgent_template()
+
+        # Fallback to neutral if no sentiment templates exist
+        return random.choice(templates.get(sentiment, templates['neutral']))
+
+    def _prepare_context(self, email, prediction) -> Dict[str, str]:
+        """Prepare variables for template formatting"""
+        return {
+            'sender': self._extract_name(email.get('sender', '')),
+            'subject': email.get('subject', 'your message'),
+            'signature': "Your Name\nYour Company",
+            'timeframe': 'within 24 hours' if prediction.get('urgency') else 'in 2-3 business days',
+            'positive_phrase': self._extract_phrase(email['body'], ['great', 'excellent', 'thank']),
+            'negative_phrase': self._extract_phrase(email['body'], ['problem', 'issue', 'concern'])
         }
-    },
 
-    # Urgent responses
-    "urgent": {
-        "template": "Dear {sender},\n\nWe've received your urgent message regarding {topic} and "
-                    "are prioritizing this matter. You can expect a response by {timeframe}.\n\n"
-                    "For immediate assistance, please contact {contact}.\n\n"
-                    "Best regards,\n{signature}",
-        "placeholders": ["topic", "timeframe", "contact"]
-    },
+    # Template definitions
+    def _init_work_templates(self):
+        return {
+            'positive': [
+                "Dear {sender},\n\nThank you for your email regarding {subject}.\n"
+                "We're pleased to hear that {positive_phrase}.\n\n"
+                "Best regards,\n{signature}"
+            ],
+            # ... other templates ...
+        }
 
-    # Out of office/automatic responses
-    "out_of_office": {
-        "template": "Dear {sender},\n\nThank you for your email. I'm currently out of the office "
-                    "with limited access to email until {return_date}. For urgent matters, "
-                    "please contact {contact}.\n\nI'll respond to your message about {topic} "
-                    "when I return.\n\nBest regards,\n{signature}",
-        "placeholders": ["return_date", "contact", "topic"]
-    }
-}
+    # ... other template initialization methods ...
 
-# Default signature
-DEFAULT_SIGNATURE = "Your Name\nYour Position\nYour Company"
+    # Demo method using actual classifier
+    @classmethod
+    def demo(cls, classifier):
+        """Run with real classifier output"""
+        print("\n=== Running Responder Demo with Real Classifier ===")
 
-def generate_reply(email: dict, prediction: dict) -> str:
-    """
-    Generates an appropriate reply based on email content and classification.
+        test_emails = [
+            {
+                'sender': 'john.doe@enron.com',
+                'subject': 'Project Update',
+                'body': 'The results look excellent! Great work!'
+            },
+            {
+                'sender': 'sarah.smith@gmail.com',
+                'subject': 'Urgent Issue',
+                'body': 'We have a critical problem with the system!'
+            }
+        ]
 
-    Args:
-        email: Dictionary containing email details with keys:
-            - 'sender': Sender's name/email
-            - 'subject': Email subject
-            - 'body': Email content
-            - 'thread': Thread history (if available)
+        responder = cls(classifier)
+        for email in test_emails:
+            print(f"\nProcessing email: {email['subject']}")
+            reply = responder.generate_reply(email)
+            print("\nGenerated Reply:")
+            print(reply)
+            print("-" * 50)
 
-        prediction: Dictionary containing classification results with keys:
-            - 'category': Primary category (e.g., 'professional', 'casual')
-            - 'sentiment': 'positive', 'neutral', or 'negative'
-            - 'urgency': Boolean indicating urgent message
-            - 'entities': Extracted named entities (optional)
-            - 'summary': Thread summary (optional)
+if __name__ == "__main__":
+    # This will only run when testing responder.py directly
+    from src.enron_classifier import EnronEmailClassifier
 
-    Returns:
-        str: Generated reply text
-    """
-    # Determine which template to use
-    if prediction.get('urgency', False):
-        template_data = RESPONSE_TEMPLATES['urgent']
-        template = template_data['template']
-        placeholders = template_data['placeholders']
-    else:
-        category = prediction.get('category', 'professional')
-        sentiment = prediction.get('sentiment', 'neutral')
+    print("Initializing classifier...")
+    classifier = EnronEmailClassifier()
 
-        # Fallback to professional/neutral if category/sentiment not found
-        category_templates = RESPONSE_TEMPLATES.get(category, RESPONSE_TEMPLATES['professional'])
-        template_data = category_templates.get(sentiment, category_templates['neutral'])
-        template = template_data['template']
-        placeholders = template_data.get('placeholders', [])
-
-    # Prepare template variables
-    template_vars = {
-        'sender': email.get('sender', 'Sir/Madam'),
-        'signature': DEFAULT_SIGNATURE,
-        'topic': email.get('subject', 'this matter'),
-        'positive_aspect': extract_positive_aspect(email.get('body', '')),
-        'negative_aspect': extract_negative_aspect(email.get('body', '')),
-        'timeframe': 'end of day' if prediction.get('urgency') else '48 hours',
-        'contact': 'support@company.com',
-        'return_date': 'next Monday'
-    }
-
-    # Add any extracted entities if available
-    if 'entities' in prediction:
-        template_vars.update(prediction['entities'])
-
-    # Fill the template
-    try:
-        reply = template.format(**template_vars)
-    except KeyError as e:
-        # Fallback if missing some placeholder data
-        for ph in placeholders:
-            if ph not in template_vars:
-                template_vars[ph] = 'this matter'
-        reply = template.format(**template_vars)
-
-    return reply
-
-def extract_positive_aspect(body: str) -> str:
-    """
-    Helper to extract positive aspects from email body for template filling.
-    """
-    # This could be enhanced with more sophisticated NLP
-    positive_phrases = [
-        'great', 'excellent', 'happy', 'pleased', 'thank you',
-        'thanks', 'appreciate', 'wonderful', 'awesome'
-    ]
-
-    for phrase in positive_phrases:
-        if phrase in body.lower():
-            return phrase
-
-    return 'your positive feedback'
-
-def extract_negative_aspect(body: str) -> str:
-    """
-    Helper to extract negative aspects from email body for template filling.
-    """
-    # This could be enhanced with more sophisticated NLP
-    negative_phrases = [
-        'problem', 'issue', 'concern', 'disappointed',
-        'unhappy', 'angry', 'frustrated', 'not working'
-    ]
-
-    for phrase in negative_phrases:
-        if phrase in body.lower():
-            return f'the {phrase}'
-
-    return 'this situation'
+    print("Starting responder demo...")
+    EmailResponder.demo(classifier)
