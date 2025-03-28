@@ -3,6 +3,7 @@ import numpy as np
 import re
 import nltk
 import os
+import json
 import email
 from email.parser import Parser
 from nltk.corpus import stopwords
@@ -12,18 +13,35 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
 from textblob import TextBlob
 
-# Download necessary NLTK resources
-nltk.download("punkt", quiet=True)
-nltk.download("stopwords", quiet=True)
-nltk.download("wordnet", quiet=True)
+# Rich for beautiful console output
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeElapsedColumn,
+)
+from rich.table import Table
+from rich import box
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Suppress NLTK download messages
+import logging
+
+logging.getLogger("nltk").setLevel(logging.ERROR)
 
 
 class EnronEmailClassifier:
     def __init__(self):
+        # Initialize Rich Console
+        self.console = Console()
+
         self.categories = [
             "Work",
             "Urgent",
@@ -37,6 +55,15 @@ class EnronEmailClassifier:
         self.lemmatizer = WordNetLemmatizer()
         self.text_model = None
         self.numerical_model = None
+
+    def _rich_print(self, message, style="bold green"):
+        """Print message with Rich formatting"""
+        self.console.print(
+            Panel(
+                Text(message, style=style),
+                border_style=style.split()[1] if len(style.split()) > 1 else style,
+            )
+        )
 
     def preprocess_text(self, text):
         """Clean and preprocess the email text"""
@@ -67,131 +94,214 @@ class EnronEmailClassifier:
 
         return " ".join(cleaned_tokens)
 
-    def load_enron_emails(self, enron_dir, max_emails=10000):
-        """Load and process emails from the Enron dataset using the standard structure"""
+    def load_enron_emails(self, enron_dir, max_emails=5000):
+        """Load and process emails from the Enron dataset using Rich progress tracking"""
         emails = []
         labels = []
+        processed_count = [0]  # A mutable counter to track processed emails
 
-        print(f"Loading emails from: {enron_dir}")
-
-        # Standard Enron structure has usernames at the top level
-        for username in os.listdir(enron_dir):
-            user_dir = os.path.join(enron_dir, username)
-
-            # Skip if not a directory or if it's a hidden file
-            if not os.path.isdir(user_dir) or username.startswith("."):
-                continue
-
-            print(f"Processing user: {username}")
-
-            # The standard structure has a maildir directory inside each user directory
-            maildir = os.path.join(user_dir, "maildir")
-            if not os.path.exists(maildir) or not os.path.isdir(maildir):
-                # Some datasets might have the folders directly in the user directory
-                maildir = user_dir
-
-            # Process each folder (these represent categories like "sent", "inbox", etc.)
-            for folder in os.listdir(maildir):
-                folder_path = os.path.join(maildir, folder)
-
-                if not os.path.isdir(folder_path):
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("{task.completed}/{task.total}"),
+            TimeElapsedColumn(),
+            console=self.console,
+        ) as progress:
+            # Estimate total emails and gather valid users
+            total_estimated_emails = 0
+            valid_users = []
+            for username in os.listdir(enron_dir):
+                user_dir = os.path.join(enron_dir, username)
+                if not os.path.isdir(user_dir) or username.startswith("."):
                     continue
 
-                print(f"  Processing folder: {folder}")
+                maildir = os.path.join(user_dir, "maildir")
+                if not os.path.exists(maildir) or not os.path.isdir(maildir):
+                    maildir = user_dir
 
-                # Map folder names to categories
-                category_idx = -1
-                for i, category in enumerate(self.categories):
-                    if category.lower() in folder.lower():
-                        category_idx = i
-                        break
-
-                # If not matched to predefined categories, use a default
-                if category_idx == -1:
-                    if "sent" in folder.lower():
-                        category_idx = 2  # Business
-                    elif "inbox" in folder.lower():
-                        category_idx = 3  # Personal
-                    elif "deleted" in folder.lower():
-                        category_idx = 5  # External
-                    else:
-                        category_idx = 0  # Work
-
-                # Process emails in this folder and any subfolders
-                self._process_folder(
-                    folder_path, category_idx, emails, labels, max_emails
+                user_email_count = sum(
+                    len(files)
+                    for root, _, files in os.walk(maildir)
+                    if not root.endswith("attachments")
                 )
+                if user_email_count == 0:
+                    continue
 
-                if len(emails) >= max_emails:
-                    print(f"Reached maximum number of emails: {max_emails}")
-                    break
+                total_estimated_emails += user_email_count
+                valid_users.append((username, maildir, user_email_count))
 
-            if len(emails) >= max_emails:
-                break
-
-        if not emails:
-            raise ValueError(
-                f"No emails were loaded from {enron_dir}. Check the directory structure."
+            total_emails_to_process = min(total_estimated_emails, max_emails)
+            overall_task = progress.add_task(
+                "[bold green]📦 Processing Emails...",
+                total=total_emails_to_process,
             )
 
-        # Convert to DataFrame
-        email_df = pd.DataFrame(emails)
-        print(
-            f"Loaded {len(emails)} emails with {len(set(labels))} different categories"
-        )
-        print(f"Columns in DataFrame: {email_df.columns.tolist()}")
-        print(f"First few rows: {email_df.head()}")
+            # Process each valid user
+            for username, maildir, email_count in valid_users:
+                user_dir = os.path.join(enron_dir, username)
+                if not os.path.isdir(user_dir) or username.startswith("."):
+                    continue
 
+                if not os.path.exists(maildir) or not os.path.isdir(maildir):
+                    maildir = user_dir
+
+                # Record the overall processed count before starting this user
+                user_start = processed_count[0]
+
+                # Create a progress task for this user with the estimated total emails
+                user_task = progress.add_task(
+                    f"[cyan]Processing user: {username}", total=email_count
+                )
+
+                # Use the standard maildir if present
+                user_maildir = os.path.join(user_dir, "maildir")
+                if os.path.exists(user_maildir) and os.path.isdir(user_maildir):
+                    maildir = user_maildir
+                else:
+                    maildir = user_dir
+
+                # Process each folder in the maildir
+                for folder in os.listdir(maildir):
+                    folder_path = os.path.join(maildir, folder)
+                    if not os.path.isdir(folder_path):
+                        continue
+
+                    # Map folder names to categories
+                    category_idx = -1
+                    for i, category in enumerate(self.categories):
+                        if category.lower() in folder.lower():
+                            category_idx = i
+                            break
+                    if category_idx == -1:
+                        if "sent" in folder.lower():
+                            category_idx = 2  # Business
+                        elif "inbox" in folder.lower():
+                            category_idx = 3  # Personal
+                        elif "deleted" in folder.lower():
+                            category_idx = 5  # External
+                        else:
+                            category_idx = 0  # Work
+
+                    # Process the folder
+                    self._process_folder(
+                        folder_path,
+                        category_idx,
+                        emails,
+                        labels,
+                        max_emails,
+                        progress=progress,
+                        task_id=user_task,
+                        overall_task=overall_task,
+                        processed_count=processed_count,
+                        username=username,
+                    )
+
+                    # If max_emails has been reached, break early
+                    if len(emails) >= max_emails:
+                        break
+
+                # Compute the number of emails processed for this user
+                user_processed = processed_count[0] - user_start
+
+                # Create a descriptive message based on whether we processed all emails from the user
+                if user_processed < email_count:
+                    description_msg = (
+                        f"[green]✅ Done processing {username} emails - max emails reached "
+                        f"({user_processed}/{email_count})"
+                    )
+                else:
+                    description_msg = f"[green]✅ Done processing {username} emails ({user_processed}/{email_count})"
+
+                progress.update(
+                    user_task,
+                    completed=user_processed,
+                    description=description_msg,
+                )
+                if len(emails) >= max_emails:
+                    break
+
+        if not emails:
+            self._rich_print(
+                f"No emails were loaded from {enron_dir}. Check the directory structure.",
+                "bold red",
+            )
+            raise ValueError("No emails found in the specified directory.")
+
+        email_df = pd.DataFrame(emails)
+
+        summary_table = Table(
+            title="📬 Email Dataset Summary",
+            title_style="bold green",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold white on dark_blue",
+            pad_edge=False,
+        )
+
+        summary_table.add_column(
+            "📊 Metric", style="cyan", justify="left", no_wrap=True
+        )
+        summary_table.add_column("📈 Value", style="magenta", justify="left")
+
+        summary_table.add_row("Total Emails", str(len(emails)))
+        summary_table.add_row("Unique Categories", str(len(set(labels))))
+        summary_table.add_row("Columns", ", ".join(email_df.columns.tolist()))
+
+        self.console.print(summary_table)
         return email_df, np.array(labels)
 
-    def _process_folder(self, folder_path, category_idx, emails, labels, max_emails):
+    def _process_folder(
+        self,
+        folder_path,
+        category_idx,
+        emails,
+        labels,
+        max_emails,
+        progress=None,
+        task_id=None,
+        overall_task=None,
+        processed_count=None,
+        username=None,
+    ):
         """Process all emails in a folder and its subfolders"""
-        # Process files in the current folder
         for filename in os.listdir(folder_path):
             file_path = os.path.join(folder_path, filename)
-
-            # If this is a subfolder, process it recursively
             if os.path.isdir(file_path):
                 self._process_folder(
-                    file_path, category_idx, emails, labels, max_emails
+                    file_path,
+                    category_idx,
+                    emails,
+                    labels,
+                    max_emails,
+                    progress,
+                    task_id,
+                    overall_task,
+                    processed_count,
+                    username,
                 )
                 continue
 
-            # Skip if we've reached the max emails
             if len(emails) >= max_emails:
                 return
 
-            # Process the email file
             try:
-                # Parse the email file
                 with open(file_path, "r", encoding="latin1", errors="ignore") as f:
                     msg_content = f.read()
-
-                # Parse using the email module
                 msg = email.message_from_string(msg_content)
-
-                # Extract basic fields
                 subject = msg.get("Subject", "")
                 sender = msg.get("From", "")
                 date_str = msg.get("Date", "")
                 to = msg.get("To", "")
                 cc = msg.get("Cc", "")
-
-                # Count recipients
-                num_recipients = 1  # Assume at least one recipient
+                num_recipients = 1
                 if cc:
                     num_recipients += cc.count("@")
-
-                # Convert date string to timestamp
                 try:
                     time_sent = pd.to_datetime(date_str)
                 except:
                     time_sent = pd.Timestamp("2000-01-01")
-
-                # Extract body
                 body = self._extract_email_body(msg)
-
-                # Check for attachments
                 has_attachment = False
                 for part in msg.walk():
                     if part.get_content_maintype() != "multipart" and part.get(
@@ -200,7 +310,6 @@ class EnronEmailClassifier:
                         has_attachment = True
                         break
 
-                # Add email to dataset
                 emails.append(
                     {
                         "subject": subject,
@@ -211,12 +320,16 @@ class EnronEmailClassifier:
                         "time_sent": time_sent,
                     }
                 )
-
-                # Add the corresponding label
                 labels.append(category_idx)
 
-                if len(emails) % 100 == 0:
-                    print(f"Processed {len(emails)} emails...")
+                # Update user task progress
+                if progress and task_id:
+                    progress.update(task_id, advance=1)
+                # Update the overall progress using the shared counter
+                if processed_count is not None and overall_task is not None:
+                    processed_count[0] += 1
+                    assert progress is not None
+                    progress.update(overall_task, completed=processed_count[0])
 
             except Exception as e:
                 print(f"Error processing {file_path}: {e}")
@@ -363,94 +476,174 @@ class EnronEmailClassifier:
 
         return features
 
+    from sklearn.metrics import classification_report
+
+    def display_classification_report(self, actual_categories, predicted_categories):
+        report = classification_report(
+            actual_categories, predicted_categories, output_dict=True
+        )
+
+        table = Table(
+            title="🎯 Classification Report",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold white on dark_blue",
+            title_style="bold green",
+            expand=False,
+        )
+
+        table.add_column("Label", style="cyan", no_wrap=True)
+        table.add_column("Precision", justify="right")
+        table.add_column("Recall", justify="right")
+        table.add_column("F1-Score", justify="right")
+        table.add_column("Support", justify="right")
+
+        for label, metrics in report.items():
+            if isinstance(metrics, dict):
+                table.add_row(
+                    str(label),
+                    f"{metrics['precision']:.2f}",
+                    f"{metrics['recall']:.2f}",
+                    f"{metrics['f1-score']:.2f}",
+                    str(int(metrics["support"])),
+                )
+            elif label == "accuracy":
+                table.add_row(
+                    "accuracy",
+                    "",
+                    "",
+                    f"{metrics:.2f}",
+                    str(int(report["macro avg"]["support"])),
+                )
+
+        self.console.print(table)
+
     def train(self, email_data, labels):
-        """Train the email classifier model"""
-        # Print diagnostic info
-        print("Training model with data shape:", email_data.shape)
-        print("Available columns:", email_data.columns.tolist())
+        """Train the email classifier model with Rich progress and visualization"""
 
-        # Extract features
-        features = self.extract_features(email_data)
-        print("Features extracted, shape:", features.shape)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TimeElapsedColumn(),
+            transient=True,
+            console=self.console,
+        ) as progress:
+            # Define a training task with 6 steps (you can adjust total if you add more)
+            train_task = progress.add_task(
+                "[bold green]Training Email Classifier...", total=6
+            )
 
-        # Make sure labels are integers from 0 to n_classes-1
-        unique_labels = np.unique(labels)
-        n_classes = len(unique_labels)
-        label_map = {label: i for i, label in enumerate(unique_labels)}
-        mapped_labels = np.array([label_map[label] for label in labels])
+            # Step 1: Extract Features
+            progress.update(
+                train_task, description="[bold green]Extracting Features..."
+            )
+            features = self.extract_features(email_data)
+            progress.advance(train_task)
 
-        # Update the categories based on the labels we've seen
-        self.categories = [
-            self.categories[label] if label < len(self.categories) else f"Class_{label}"
-            for label in unique_labels
-        ]
+            # Step 2: Prepare Labels
+            progress.update(train_task, description="[bold green]Preparing Labels...")
+            unique_labels = np.unique(labels)
+            n_classes = len(unique_labels)
+            label_map = {label: i for i, label in enumerate(unique_labels)}
+            mapped_labels = np.array([label_map[label] for label in labels])
+            progress.advance(train_task)
 
-        # Split the dataset
-        X_train, X_test, y_train, y_test = train_test_split(
-            features, mapped_labels, test_size=0.2, random_state=42
-        )
-
-        # Create text processing pipeline for cleaned_text
-        text_pipeline = Pipeline(
-            [
-                ("tfidf", TfidfVectorizer(max_features=5000)),
+            # Step 3: Update Categories
+            progress.update(
+                train_task, description="[bold green]Updating Categories..."
+            )
+            self.categories = [
                 (
-                    "classifier",
-                    RandomForestClassifier(n_estimators=100, random_state=42),
-                ),
+                    self.categories[label]
+                    if label < len(self.categories)
+                    else f"Class_{label}"
+                )
+                for label in unique_labels
             ]
+            progress.advance(train_task)
+
+            # Step 4: Split Dataset
+            progress.update(train_task, description="[bold green]Splitting Dataset...")
+            X_train, X_test, y_train, y_test = train_test_split(
+                features, mapped_labels, test_size=0.2, random_state=42
+            )
+            progress.advance(train_task)
+
+            # Step 5: Train Models (Text and Numerical)
+            progress.update(
+                train_task,
+                description="[bold green]Training Models (Text & Numerical)...",
+            )
+            # Train text model
+            text_pipeline = Pipeline(
+                [
+                    ("tfidf", TfidfVectorizer(max_features=5000)),
+                    (
+                        "classifier",
+                        RandomForestClassifier(n_estimators=100, random_state=42),
+                    ),
+                ]
+            )
+            train_text = X_train["cleaned_text"].values
+            test_text = X_test["cleaned_text"].values
+            text_pipeline.fit(train_text, y_train)
+
+            # Train numerical model
+            numerical_features = X_train.drop(columns=["cleaned_text"])
+            numerical_classifier = RandomForestClassifier(
+                n_estimators=100, random_state=42
+            )
+            numerical_classifier.fit(numerical_features, y_train)
+
+            # Store models
+            self.text_model = text_pipeline
+            self.numerical_model = numerical_classifier
+            self.label_map = label_map
+            progress.advance(train_task)
+
+            # Evaluate Models
+            progress.update(train_task, description="[bold green]Evaluating Models...")
+            text_proba = text_pipeline.predict_proba(test_text)
+            numerical_proba = numerical_classifier.predict_proba(
+                X_test.drop(columns=["cleaned_text"])
+            )
+            combined_proba = (text_proba + numerical_proba) / 2
+            combined_predictions = np.argmax(combined_proba, axis=1)
+            predicted_categories = [self.categories[i] for i in combined_predictions]
+            actual_categories = [self.categories[i] for i in y_test]
+            progress.advance(train_task)
+
+        # After training, show a detailed results table
+        results_table = Table(
+            title="🚀 Model Training Results",
+            title_style="bold green",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold white on dark_blue",
+            expand=False,
+            pad_edge=False,
         )
 
-        # Extract the cleaned_text series for training
-        train_text = X_train["cleaned_text"].values
-        test_text = X_test["cleaned_text"].values
-
-        # Train the model on text
-        text_pipeline.fit(train_text, y_train)
-
-        # Train another model on the numerical features
-        numerical_features = X_train.drop(columns=["cleaned_text"])
-        numerical_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
-        numerical_classifier.fit(numerical_features, y_train)
-
-        # Store the models
-        self.text_model = text_pipeline
-        self.numerical_model = numerical_classifier
-        self.label_map = label_map  # Store the label mapping
-
-        # Evaluate the model
-        text_predictions = text_pipeline.predict(test_text)
-        numerical_predictions = numerical_classifier.predict(
-            X_test.drop(columns=["cleaned_text"])
+        results_table.add_column(
+            "📊 Metric", style="cyan", justify="left", no_wrap=True
         )
+        results_table.add_column("📈 Value", style="magenta", justify="left")
 
-        # Get probabilities
-        text_proba = text_pipeline.predict_proba(test_text)
-        numerical_proba = numerical_classifier.predict_proba(
-            X_test.drop(columns=["cleaned_text"])
-        )
+        results_table.add_row("Classes", ", ".join(self.categories))
+        results_table.add_row("Number of Classes", str(n_classes))
 
-        # Combine predictions (simple averaging)
-        combined_proba = (text_proba + numerical_proba) / 2
-        combined_predictions = np.argmax(combined_proba, axis=1)
+        self.console.print(results_table)
 
-        # Map numeric predictions back to category labels
-        predicted_categories = [self.categories[i] for i in combined_predictions]
-        actual_categories = [self.categories[i] for i in y_test]
+        # Print the classification report
+        self.display_classification_report(actual_categories, predicted_categories)
 
-        print(f"Classes: {self.categories}")
-        print(f"Number of classes: {n_classes}")
-
-        # Print classification report
-        print("\nClassification Report:")
-        print(classification_report(actual_categories, predicted_categories))
-
-        # Generate confusion matrix
+        # Save additional visualizations if more than one class exists
         if len(np.unique(actual_categories)) > 1:
+            plt.figure(figsize=(10, 8))
             cm = confusion_matrix(
                 actual_categories, predicted_categories, labels=self.categories
             )
-            plt.figure(figsize=(10, 8))
             sns.heatmap(
                 cm,
                 annot=True,
@@ -463,24 +656,9 @@ class EnronEmailClassifier:
             plt.ylabel("Actual")
             plt.title("Confusion Matrix")
             plt.tight_layout()
-            plt.savefig("confusion_matrix.png")  # Save plot to file
-            plt.show()
+            plt.savefig("confusion_matrix.png")
 
-        # Feature importance analysis
-        if hasattr(self.numerical_model, "feature_importances_"):
-            feature_names = numerical_features.columns
-            importances = self.numerical_model.feature_importances_
-            indices = np.argsort(importances)[::-1]
-
-            plt.figure(figsize=(10, 6))
-            plt.title("Feature Importances")
-            plt.bar(range(len(indices)), importances[indices], align="center")
-            plt.xticks(
-                range(len(indices)), [feature_names[i] for i in indices], rotation=90
-            )
-            plt.tight_layout()
-            plt.savefig("feature_importances.png")  # Save plot to file
-            plt.show()
+        return self
 
     def predict(self, email):
         """Predict the category of a new email"""
@@ -536,7 +714,7 @@ if __name__ == "__main__":
     # Initialize the classifier
     classifier = EnronEmailClassifier()
 
-    # Load the Enron emails (limit to 5000 for faster processing)
+    # Load the Enron emails (limit to 50000 for faster processing)
     email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
 
     # Save the loaded data to CSV for inspection
