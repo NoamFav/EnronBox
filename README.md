@@ -86,11 +86,11 @@ Each feature will plug into `main.py` and be callable from the shell via dedicat
 ## 🏁 Running the Shell
 
 ```bash
-python3 src/ui/enron_shell.py --max_emails 1000
+python3 src/main.py --max_emails 5000
 ```
 
 - **Note**: Always run from the project root (paths are relative for now)
-- **Tip**: Keep `max_emails` under 5000 for faster startup during dev
+- **Tip**: Keep `max_emails` under 5000 for faster startup during dev -- the full dataset is 500k emails!
 
 ---
 
