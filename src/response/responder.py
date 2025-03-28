@@ -240,75 +240,63 @@ class EmailResponder:
             print(reply)
             print("-" * 50)
 
+    def _extract_name(self, email_address: str) -> str:
+        if not email_address:
+            return "Sir/Madam"
 
-def extract_name(self, email_address: str) -> str:
-    if not email_address:
-        return "Sir/Madam"
+        # Extract username if it's an email
+        username = (
+            email_address.split("@")[0] if "@" in email_address else email_address
+        )
 
-    # Extract username if it's an email
-    username = email_address.split("@")[0] if "@" in email_address else email_address
+        # Remove any domain parts if present (e.g., 'kaminski-v@domain' -> 'kaminski-v')
+        username = username.split("@")[0]
 
-    # Remove any domain parts if present (e.g., 'kaminski-v@domain' -> 'kaminski-v')
-    username = username.split("@")[0]
+        # Common Enron username patterns:
+        # 1. lastname-firstinitial (kaminski-v)
+        # 2. firstname_lastname (jeff.skilling)
+        # 3. firstinitiallastname (jskilling)
 
-    # Common Enron username patterns:
-    # 1. lastname-firstinitial (kaminski-v)
-    # 2. firstname_lastname (jeff.skilling)
-    # 3. firstinitiallastname (jskilling)
+        # Pattern 1: lastname-firstinitial
+        if "-" in username:
+            lastname, firstinitial = username.split("-", 1)
+            return f"{firstinitial.upper()} {lastname.capitalize()}"
 
-    # Pattern 1: lastname-firstinitial
-    if "-" in username:
-        lastname, firstinitial = username.split("-", 1)
-        return f"{firstinitial.upper()} {lastname.capitalize()}"
+        # Pattern 2: firstname.lastname
+        elif "." in username:
+            firstname, lastname = username.split(".", 1)
+            return f"{firstname.capitalize()} {lastname.capitalize()}"
 
-    # Pattern 2: firstname.lastname
-    elif "." in username:
-        firstname, lastname = username.split(".", 1)
-        return f"{firstname.capitalize()} {lastname.capitalize()}"
+        # Pattern 3: firstinitial + lastname (jskilling)
+        elif len(username) > 1 and not username[1].isupper():
+            return f"{username[0].upper()} {username[1:].capitalize()}"
 
-    # Pattern 3: firstinitial + lastname (jskilling)
-    elif len(username) > 1 and not username[1].isupper():
-        return f"{username[0].upper()} {username[1:].capitalize()}"
+        # Fallback for other patterns
+        return username.replace(".", " ").replace("_", " ").title()
 
-    # Fallback for other patterns
-    return username.replace(".", " ").replace("_", " ").title()
+    def _extract_phrase(self, text: str, phrase_list: list) -> str:
+        if not text or not phrase_list:
+            return ""
 
+        text_lower = str(text).lower()
+        found_phrases = []
 
-def extract_phrase(self, text: str, phrase_list: list) -> str:
-    if not text or not phrase_list:
-        return ""
+        # Find all matching phrases
+        for phrase in phrase_list:
+            if phrase.lower() in text_lower:
+                # Find the actual occurrence in original text
+                start = text_lower.find(phrase.lower())
+                end = start + len(phrase)
+                found_phrases.append(text[start:end])
 
-    text_lower = str(text).lower()
-    found_phrases = []
+        # Return the longest matching phrase for better context
+        if found_phrases:
+            return max(found_phrases, key=len)
 
-    # Find all matching phrases
-    for phrase in phrase_list:
-        if phrase.lower() in text_lower:
-            # Find the actual occurrence in original text
-            start = text_lower.find(phrase.lower())
-            end = start + len(phrase)
-            found_phrases.append(text[start:end])
+        # Smart fallbacks based on phrase list type
+        if any(p in ["great", "excellent", "thank"] for p in phrase_list):
+            return "your positive feedback"
+        elif any(p in ["problem", "issue", "concern"] for p in phrase_list):
+            return "this situation"
 
-    # Return the longest matching phrase for better context
-    if found_phrases:
-        return max(found_phrases, key=len)
-
-    # Smart fallbacks based on phrase list type
-    if any(p in ["great", "excellent", "thank"] for p in phrase_list):
-        return "your positive feedback"
-    elif any(p in ["problem", "issue", "concern"] for p in phrase_list):
-        return "this situation"
-
-    return "this matter"  # Ultimate fallback
-
-
-if __name__ == "__main__":
-    # this is the part i'm doubting, implementing the result of enron_classifier to determine the response given by this class.
-    # not sure how to do this part
-    from src.enron_classifier import EnronEmailClassifier
-
-    print("Initializing classifier...")
-    classifier = EnronEmailClassifier()
-
-    print("Starting responder demo...")
-    EmailResponder.demo(classifier)
+        return "this matter"  # Ultimate fallback
