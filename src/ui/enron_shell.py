@@ -18,13 +18,22 @@ from rich.text import Text
 # Import the classifier
 from enron_classifier import EnronEmailClassifier
 from response.responder import EmailResponder
+from summarizer.summarizer import EmailSummarizer
 
 
 class EnronMailShell:
-    def __init__(self, maildir_path: str = "maildir", max_emails: int = 5000):
+    def __init__(self, maildir_path: str, max_emails: int = 5000):
+        # Ensure the path exists and is absolute
         self.maildir_path = os.path.abspath(maildir_path)
+
+        # Validate maildir path
+        if not os.path.exists(self.maildir_path):
+            raise FileNotFoundError(f"Maildir path not found: {self.maildir_path}")
+
         self.current_email: Optional[Dict[str, Any]] = None
         self.classifier = EnronEmailClassifier()
+        self.responder = EmailResponder(self.classifier)
+        self.summarizer = EmailSummarizer()
         self.console = Console()
 
         # Style for prompt toolkit
@@ -72,44 +81,97 @@ class EnronMailShell:
             return msg.get_payload(decode=True).decode("latin1", errors="ignore")
         return ""
 
-    def browse_emails(self) -> Optional[str]:
-        """Browse and select emails using fzf"""
+    def summarize_current_email(self):
+        """
+        Generate a summary of the currently selected email
+        """
+        if self.current_email is None:
+            self.console.print(
+                Panel.fit(
+                    Text("❌ No email selected. Use :browse first.", style="red"),
+                    border_style="red",
+                )
+            )
+            return
+
+        # Reconstruct full email text
+        full_email_text = f"""
+Subject: {self.current_email.get('subject', '')}
+From: {self.current_email.get('sender', '')}
+Body: {self.current_email.get('body', '')}
+        """
+
+        # Generate summary
         try:
-            # First, select user
+            summary = self.summarizer.summarize_email(full_email_text)
+
+            # Display summary
+            self.console.print(
+                Panel(
+                    Text(summary, style="cyan"),
+                    title="📝 Email Summary",
+                    border_style="green",
+                )
+            )
+        except Exception as e:
+            self.console.print(
+                Panel.fit(
+                    Text(f"❌ Error generating summary: {e}", style="red"),
+                    border_style="red",
+                )
+            )
+
+    def _fzf_select(self, options: list[str]) -> Optional[str]:
+        """Use fzf to select from a list of options safely"""
+        try:
+            proc = subprocess.Popen(
+                ["fzf", "--height", "50%", "--layout=reverse", "--border"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            input_data = "\n".join(options)
+            stdout, _ = proc.communicate(input=input_data)
+            return stdout.strip()
+        except Exception as e:
+            self.console.print(f"[bold red]fzf error: {e}[/bold red]")
+            return None
+
+    def browse_emails(self) -> Optional[str]:
+        """Browse and select emails using fzf (cross-platform safe)"""
+        try:
+            # Select user
             users = sorted(os.listdir(self.maildir_path))
-            user_cmd = f"echo '{chr(10).join(users)}' | fzf --height 50% --layout=reverse --border"
-            user = subprocess.check_output(user_cmd, shell=True, text=True).strip()
+            user = self._fzf_select(users)
             if not user:
                 return None
 
             # Select folder
             folders = sorted(os.listdir(os.path.join(self.maildir_path, user)))
-            folder_cmd = f"echo '{chr(10).join(folders)}' | fzf --height 50% --layout=reverse --border"
-            folder = subprocess.check_output(folder_cmd, shell=True, text=True).strip()
+            folder = self._fzf_select(folders)
             if not folder:
                 return None
 
             # Select email
             folder_path = os.path.join(self.maildir_path, user, folder)
             files = sorted(f for f in os.listdir(folder_path) if not f.startswith("."))
-
-            email_cmd = f"echo '{chr(10).join(files)}' | fzf --height 50% --layout=reverse --border"
-            email_file = subprocess.check_output(
-                email_cmd, shell=True, text=True
-            ).strip()
+            email_file = self._fzf_select(files)
             if not email_file:
                 return None
 
-            # Load email
+            # Return full path
             full_path = os.path.join(folder_path, email_file)
             return full_path
 
-        except subprocess.CalledProcessError:
-            # This happens if user cancels fzf selection
-            return None
         except Exception as e:
             self.console.print(f"[bold red]Error browsing emails: {e}[/bold red]")
             return None
+
+    def generate_response(self, email_data: Dict[str, Any]) -> str:
+        """Generate a response to the email"""
+        response = self.responder.generate_reply(email_data)
+        return response
 
     def display_email(self, email_path: str):
         """Display email details with rich formatting"""
@@ -136,6 +198,14 @@ class EnronMailShell:
 
             # AI Classification
             prediction = self.classifier.predict(email_data)
+
+            # Generate Email Summary
+            full_email_text = f"""
+    Subject: {subject}
+    From: {sender}
+    Body: {body}
+            """
+            summary = self.summarizer.summarize_email(full_email_text)
 
             # Create rich display
             table = Table(
@@ -168,6 +238,9 @@ class EnronMailShell:
                 f"Polarity: {prediction['emotion']['polarity']:.2f}, "
                 f"Subjectivity: {prediction['emotion']['subjectivity']:.2f}",
             )
+            # Add summary row
+            table.add_row("📋 Summary", summary)
+
             # Body preview
             body_panel = Panel(
                 Syntax(body, "txt", theme="monokai", line_numbers=False),
@@ -175,8 +248,17 @@ class EnronMailShell:
                 border_style="green",
             )
 
+            response = self.generate_response(email_data)
+
             self.console.print(table)
             self.console.print(body_panel)
+            self.console.print(
+                Panel(
+                    Text(response, style="cyan"),
+                    title="📧 AI Response (Not AI but soon!)",
+                    border_style="green",
+                )
+            )
 
             self.current_email = email_data
             return email_data
@@ -318,16 +400,29 @@ class EnronMailShell:
                                     )
                                 )
                         case "response" | "r":
-                            # Placeholder for response generation
-                            self.console.print(
-                                Panel.fit(
-                                    Text(
-                                        "🚧 Response Generation is a work in progress",
-                                        style="bold yellow",
-                                    ),
-                                    border_style="yellow",
+                            if self.current_email is not None:
+                                response = self.responder.generate_reply(
+                                    self.current_email
                                 )
-                            )
+                                self.console.print(
+                                    Panel(
+                                        Text(response, style="cyan"),
+                                        title="✉️ Generated Response",
+                                        border_style="green",
+                                    )
+                                )
+                            else:
+                                self.console.print(
+                                    Panel.fit(
+                                        Text(
+                                            "❌ No email selected. Use :browse first.",
+                                            style="red",
+                                        ),
+                                        border_style="red",
+                                    )
+                                )
+                        case "summary" | "s":
+                            self.summarize_current_email()
 
                         case "help" | "h":
                             help_text = """
