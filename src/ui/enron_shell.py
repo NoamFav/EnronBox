@@ -244,6 +244,11 @@ Body: {self.current_email.get('body', '')}
             )
 
             table.add_row("🎭 Emotional Tone", emotions_text)
+
+            entities = self.extrator.extract_entities(email_data["body"])
+            entities_str = f"Names: {entities['names']}\nOrgs: {entities['orgs']}\nDates: {entities['dates']}"
+            table.add_row("🏷️ Entities", entities_str)
+
             # Add summary row
             table.add_row("📋 Summary", summary)
 
@@ -359,21 +364,26 @@ Body: {self.current_email.get('body', '')}
         if self.current_email is not None:
             email_body = self.current_email["body"]
             entities = self.extrator.extract_entities(email_body)
-
-        extracted_entities = f"""
-        🏷️ Entities:
-    Names:  {entities['names']}
-    Orgs:   {entities['orgs']}
-    Dates:  {entities['dates']}
+            extracted_entities = f"""
+        👤 Names:  {entities['names']}
+        🏢 Orgs:   {entities['orgs']}
+        📅 Dates:  {entities['dates']}
         """
 
-        self.console.print(
-            Panel(
-                Text(extracted_entities, style="cyan"),
-                title="Entity Extraction Results",
-                border_style="green",
+            self.console.print(
+                Panel(
+                    Text(extracted_entities, style="cyan"),
+                    title="🏷️ Entity Extraction Results",
+                    border_style="green",
+                )
             )
-        )
+        else:
+            self.console.print(
+                Panel.fit(
+                    Text("❌ No email selected. Use :browse first.", style="red"),
+                    border_style="red",
+                )
+            )
 
     def run(self):
         """Main shell loop"""
@@ -464,6 +474,7 @@ Body: {self.current_email.get('body', '')}
 :summary/s  - Generate a summary of the selected email
 :entities/e - Extract named entities from the currently selected email
 :help/h     - Show this help menu
+:clear/c    - Clear the screen
 :quit/q     - Exit the shell
 """
                             self.console.print(
@@ -476,6 +487,9 @@ Body: {self.current_email.get('body', '')}
 
                         case "quit" | "q":
                             break
+
+                        case "clear" | "c":
+                            os.system("cls" if os.name == "nt" else "clear")
 
                         case _:
                             self.console.print(
