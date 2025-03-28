@@ -1,11 +1,8 @@
 import pandas as pd
 import numpy as np
 import re
-import nltk
 import os
-import json
 import email
-from email.parser import Parser
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split

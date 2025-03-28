@@ -131,6 +131,7 @@ class EnronMailShell:
                 "has_attachment": len(msg.get_payload()) > 1,
                 "num_recipients": len(msg.get_all("To", []))
                 + len(msg.get_all("Cc", [])),
+                "recipients": msg.get_all("To", []) + msg.get_all("Cc", []),
                 "time_sent": email.utils.parsedate_to_datetime(msg.get("Date")),
             }
 
@@ -153,6 +154,11 @@ class EnronMailShell:
             table.add_column("📝 Value", style="white")
 
             table.add_row("📤 From", sender)
+            table.add_row(
+                "📥 Recipients",
+                ", ".join(email_data["recipients"]) or "[No recipients]",
+            )
+            table.add_row("📅 Sent", str(email_data["time_sent"]))
             table.add_row("📝 Subject", subject)
             table.add_row(
                 "🏷️ Category",
@@ -294,21 +300,33 @@ class EnronMailShell:
                         case "user" | "u":
                             self.user_stats()
 
-                        case "analyze" | "a" if self.current_email:
-                            prediction = self.classifier.predict(self.current_email)
-                            detailed_analysis = f"""
-🔍 Detailed Email Analysis:
-Category:       {prediction['category']}
-Confidence:     {prediction['confidence']:.2%}
-Emotional Tone:
-  - Polarity:      {prediction['emotion']['polarity']:.2f}
-  - Subjectivity:  {prediction['emotion']['subjectivity']:.2f}
-"""
+                        case "analyze" | "a":
+                            if self.current_email is not None:
+                                prediction = self.classifier.predict(self.current_email)
+                                detailed_analysis = f"""
+    🔍 Detailed Email Analysis:
+    Category:       {prediction['category']}
+    Confidence:     {prediction['confidence']:.2%}
+    Emotional Tone:
+      - Polarity:      {prediction['emotion']['polarity']:.2f}
+      - Subjectivity:  {prediction['emotion']['subjectivity']:.2f}
+    """
+                                self.console.print(
+                                    Panel(
+                                        Text(detailed_analysis, style="cyan"),
+                                        title="📊 AI Insights",
+                                        border_style="green",
+                                    )
+                                )
+                        case "response" | "r":
+                            # Placeholder for response generation
                             self.console.print(
-                                Panel(
-                                    Text(detailed_analysis, style="cyan"),
-                                    title="📊 AI Insights",
-                                    border_style="green",
+                                Panel.fit(
+                                    Text(
+                                        "🚧 Response Generation is a work in progress",
+                                        style="bold yellow",
+                                    ),
+                                    border_style="yellow",
                                 )
                             )
 
