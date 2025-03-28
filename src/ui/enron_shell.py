@@ -15,15 +15,14 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
 # Import the classifier
-from src.enron_classifier import EnronEmailClassifier
+from enron_classifier import EnronEmailClassifier
+from response.responder import EmailResponder
 
 
 class EnronMailShell:
     def __init__(self, maildir_path: str = "maildir", max_emails: int = 5000):
-        self.maildir_path = maildir_path
+        self.maildir_path = os.path.abspath(maildir_path)
         self.current_email: Optional[Dict[str, Any]] = None
         self.classifier = EnronEmailClassifier()
         self.console = Console()
