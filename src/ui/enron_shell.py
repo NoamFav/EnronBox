@@ -19,7 +19,9 @@ from rich.text import Text
 from enron_classifier import EnronEmailClassifier
 from response.responder import EmailResponder
 from summarizer.summarizer import EmailSummarizer
+
 from ner.extractor import Extractor
+
 
 class EnronMailShell:
     def __init__(self, maildir_path: str, max_emails: int = 5000):
@@ -35,7 +37,9 @@ class EnronMailShell:
         self.responder = EmailResponder(self.classifier)
         self.summarizer = EmailSummarizer()
         self.console = Console()
+
         self.extrator = Extractor()
+
 
         # Style for prompt toolkit
         self.style = Style.from_dict(
@@ -350,6 +354,7 @@ Body: {self.current_email.get('body', '')}
                     border_style="red",
                 )
             )
+
     
     def named_entity_recognition(self):
         """Extract named entities from email"""
@@ -371,6 +376,7 @@ Body: {self.current_email.get('body', '')}
             border_style="green",
             )
         )
+
 
     def run(self):
         """Main shell loop"""
@@ -446,8 +452,10 @@ Body: {self.current_email.get('body', '')}
                         case "summary" | "s":
                             self.summarize_current_email()
 
+
                         case "entities" | "e":
                             self.named_entity_recognition()
+
 
                         case "help" | "h":
                             help_text = """
