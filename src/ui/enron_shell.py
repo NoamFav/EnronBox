@@ -19,6 +19,8 @@ from enron_classifier import EnronEmailClassifier
 from response.responder import EmailResponder
 from summarizer.summarizer import EmailSummarizer
 
+from ner.extractor import Extractor
+
 
 class EnronMailShell:
     def __init__(self, maildir_path: str, max_emails: int = 5000):
@@ -34,6 +36,8 @@ class EnronMailShell:
         self.responder = EmailResponder(self.classifier)
         self.summarizer = EmailSummarizer()
         self.console = Console()
+
+        self.extrator = Extractor()
 
         # Style for prompt toolkit
         self.style = Style.from_dict(
@@ -350,6 +354,27 @@ Body: {self.current_email.get('body', '')}
                 )
             )
 
+    def named_entity_recognition(self):
+        """Extract named entities from email"""
+        if self.current_email is not None:
+            email_body = self.current_email["body"]
+            entities = self.extrator.extract_entities(email_body)
+
+        extracted_entities = f"""
+        🏷️ Entities:
+    Names:  {entities['names']}
+    Orgs:   {entities['orgs']}
+    Dates:  {entities['dates']}
+        """
+
+        self.console.print(
+            Panel(
+                Text(extracted_entities, style="cyan"),
+                title="Entity Extraction Results",
+                border_style="green",
+            )
+        )
+
     def run(self):
         """Main shell loop"""
         session = PromptSession(style=self.style)
@@ -426,6 +451,9 @@ Body: {self.current_email.get('body', '')}
                         case "summary" | "s":
                             self.summarize_current_email()
 
+                        case "entities" | "e":
+                            self.named_entity_recognition()
+
                         case "help" | "h":
                             help_text = """
 🌟 Enron Email Intelligence Shell Commands 🌟
@@ -434,6 +462,7 @@ Body: {self.current_email.get('body', '')}
 :analyze/a  - Analyze the currently selected email
 :response/r - Generate a response to the selected email
 :summary/s  - Generate a summary of the selected email
+:entities/e - Extract named entities from the currently selected email
 :help/h     - Show this help menu
 :quit/q     - Exit the shell
 """
