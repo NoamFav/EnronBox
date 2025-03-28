@@ -656,6 +656,35 @@ class EnronEmailClassifier:
             plt.tight_layout()
             save_path = os.path.join("results", "confusion_matrix.png")
             plt.savefig(save_path)
+            self._rich_print(
+                f"📊 Confusion Matrix saved at: {save_path}", style="bold yellow"
+            )
+
+            # Save Feature Importance Plot
+            feature_importances = self.numerical_model.feature_importances_
+            feature_names = X_train.drop(columns=["cleaned_text"]).columns
+
+            # Sort features by importance
+            importance_df = pd.DataFrame(
+                {"feature": feature_names, "importance": feature_importances}
+            ).sort_values(
+                by="importance", ascending=False
+            )  # Ascending for horizontal bar plot
+
+            plt.figure(figsize=(12, 8))
+            sns.barplot(x="feature", y="importance", data=importance_df)
+            plt.title("Feature Importances")
+            plt.xlabel("Importance")
+            plt.ylabel("Feature")
+            plt.tight_layout()
+
+            os.makedirs("results", exist_ok=True)
+            importance_path = os.path.join("results", "feature_importance.png")
+            plt.savefig(importance_path)
+            self._rich_print(
+                f"📸 Feature importance plot saved at: {importance_path}",
+                style="bold yellow",
+            )
 
         return self
 
