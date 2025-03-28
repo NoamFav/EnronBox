@@ -81,14 +81,76 @@ class EmailResponder:
     def _init_work_templates(self):
         return {
             'positive': [
-                "Dear {sender},\n\nThank you for your email regarding {subject}.\n"
-                "We're pleased to hear that {positive_phrase}.\n\n"
-                "Best regards,\n{signature}"
+                "Dear {sender},\n\nThank you for your positive feedback about {subject}.\n"
+                "We're delighted that {positive_phrase} and will continue to maintain\n"
+                "this standard of service.\n\n"
+                "Best regards,\n{signature}",
+
+                "Hello {sender},\n\nWe appreciate your kind words regarding {subject}.\n"
+                "It's rewarding to know that {positive_phrase}. Should you need\n"
+                "anything further, don't hesitate to reach out.\n\n"
+                "Kind regards,\n{signature}"
             ],
-            # ... other templates ...
+            'neutral': [
+                "Dear {sender},\n\nWe acknowledge receipt of your email regarding {subject}.\n"
+                "This matter has been logged (Ref: {reference_number}) and will be\n"
+                "addressed within {timeframe}.\n\n"
+                "Sincerely,\n{signature}",
+
+                "Hello {sender},\n\nYour message about {subject} has been received.\n"
+                "Our team is reviewing your inquiry and will respond by\n"
+                "{timeframe}.\n\n"
+                "Regards,\n{signature}"
+            ],
+            'negative': [
+                "Dear {sender},\n\nWe sincerely apologize for {negative_phrase}.\n"
+                "This is not our standard, and we're taking immediate steps to\n"
+                "{corrective_action}. For direct assistance, contact {contact}.\n\n"
+                "Our apologies,\n{signature}",
+
+                "Hello {sender},\n\nWe regret the inconvenience caused by {negative_phrase}.\n"
+                "A resolution team has been assigned and will update you by\n"
+                "{timeframe}.\n\n"
+                "Sincerely,\n{signature}"
+            ],
+            'urgent': [
+                "URGENT: {subject}\n\nDear {sender},\n\nWe've prioritized your request and\n"
+                "are addressing it urgently. Expect an update by {timeframe}.\n"
+                "For immediate support: {contact}.\n\n"
+                "Best regards,\n{signature}"
+            ]
+        }
+    def _init_personal_templates(self):
+        return {
+            'positive': [
+                "Hi {first_name},\n\nThanks for your lovely message! I'm really glad\n"
+                "you enjoyed {positive_phrase}. Let's {suggestion} soon!\n\n"
+                "Cheers,\n{signature}",
+
+                "Hey {first_name},\n\nGreat to hear from you! I'm thrilled you liked\n"
+                "{positive_phrase}. We should definitely {suggestion} when you're free.\n\n"
+                "Best,\n{signature}"
+            ],
+            'neutral': [
+                "Hi {first_name},\n\nThanks for your note about {subject}.\n"
+                "I'll look into this and get back to you soon.\n\n"
+                "Talk soon,\n{signature}",
+
+                "Hey {first_name},\n\nGot your message about {subject}.\n"
+                "Let me check and I'll circle back to you.\n\n"
+                "Best,\n{signature}"
+            ],
+            'negative': [
+                "Hi {first_name},\n\nI'm really sorry about {negative_phrase}.\n"
+                "Let me know how I can make this right.\n\n"
+                "Take care,\n{signature}",
+
+                "Hey {first_name},\n\nMy apologies for {negative_phrase}.\n"
+                "How about we {makeup_idea} to make up for it?\n\n"
+                "My best,\n{signature}"
+            ]
         }
 
-    # ... other template initialization methods ...
 
     # Demo method using actual classifier
     @classmethod
