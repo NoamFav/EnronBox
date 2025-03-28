@@ -443,7 +443,7 @@ class EnronEmailClassifier:
             .astype(int)
         )  # Convert boolean to int
 
-        # Check for excessive punctuation (common in spam)
+        # Check for excessive punctuation
         features["exclamation_count"] = email_data["subject"].apply(
             lambda x: str(x).count("!") if not pd.isna(x) else 0
         )
@@ -475,8 +475,6 @@ class EnronEmailClassifier:
         )
 
         return features
-
-    from sklearn.metrics import classification_report
 
     def display_classification_report(self, actual_categories, predicted_categories):
         report = classification_report(
@@ -534,14 +532,14 @@ class EnronEmailClassifier:
                 "[bold green]Training Email Classifier...", total=6
             )
 
-            # Step 1: Extract Features
+            # Extract Features
             progress.update(
                 train_task, description="[bold green]Extracting Features..."
             )
             features = self.extract_features(email_data)
             progress.advance(train_task)
 
-            # Step 2: Prepare Labels
+            # Prepare Labels
             progress.update(train_task, description="[bold green]Preparing Labels...")
             unique_labels = np.unique(labels)
             n_classes = len(unique_labels)
@@ -549,7 +547,7 @@ class EnronEmailClassifier:
             mapped_labels = np.array([label_map[label] for label in labels])
             progress.advance(train_task)
 
-            # Step 3: Update Categories
+            # Update Categories
             progress.update(
                 train_task, description="[bold green]Updating Categories..."
             )
@@ -563,14 +561,14 @@ class EnronEmailClassifier:
             ]
             progress.advance(train_task)
 
-            # Step 4: Split Dataset
+            # Split Dataset
             progress.update(train_task, description="[bold green]Splitting Dataset...")
             X_train, X_test, y_train, y_test = train_test_split(
                 features, mapped_labels, test_size=0.2, random_state=42
             )
             progress.advance(train_task)
 
-            # Step 5: Train Models (Text and Numerical)
+            # Train Models (Text and Numerical)
             progress.update(
                 train_task,
                 description="[bold green]Training Models (Text & Numerical)...",
@@ -656,7 +654,8 @@ class EnronEmailClassifier:
             plt.ylabel("Actual")
             plt.title("Confusion Matrix")
             plt.tight_layout()
-            plt.savefig("confusion_matrix.png")
+            save_path = os.path.join("results", "confusion_matrix.png")
+            plt.savefig(save_path)
 
         return self
 
@@ -695,54 +694,3 @@ class EnronEmailClassifier:
                 "subjectivity": features["subjectivity"].iloc[0],
             },
         }
-
-
-# Example usage
-if __name__ == "__main__":
-    # Path to the Enron email dataset
-    enron_dir = "./maildir"
-
-    # Check if the directory exists
-    if not os.path.exists(enron_dir):
-        print(f"Error: Enron dataset directory '{enron_dir}' not found.")
-        print("Please download the Enron dataset from https://www.cs.cmu.edu/~enron/")
-        print(
-            "or use a subset from https://www.kaggle.com/datasets/wcukierski/enron-email-dataset"
-        )
-        exit(1)
-
-    # Initialize the classifier
-    classifier = EnronEmailClassifier()
-
-    # Load the Enron emails (limit to 50000 for faster processing)
-    email_df, labels = classifier.load_enron_emails(enron_dir, max_emails=5000)
-
-    # Save the loaded data to CSV for inspection
-    email_df.to_csv("data/enron_emails.csv", index=False)
-    print(f"Saved {len(email_df)} emails to 'enron_emails.csv'")
-
-    # Print information about the loaded data
-    print(f"Loaded {len(email_df)} emails with {len(np.unique(labels))} unique labels")
-    print(f"Label distribution: {np.bincount(labels.astype(int))}")
-
-    # Train the classifier
-    classifier.train(email_df, labels)
-
-    # Example new email for testing
-    new_email = {
-        "subject": "Meeting tomorrow at 10 AM",
-        "body": "We will discuss the upcoming project timeline in the meeting tomorrow.",
-        "sender": "colleague@enron.com",
-        "has_attachment": True,
-        "num_recipients": 3,
-        "time_sent": pd.Timestamp("2001-01-02 16:45"),
-    }
-
-    # Predict the category
-    prediction = classifier.predict(new_email)
-    print(f"\nPrediction for new email:")
-    print(f"Predicted category: {prediction['category']}")
-    print(f"Confidence: {prediction['confidence']:.2f}")
-    print(
-        f"Email emotion - Polarity: {prediction['emotion']['polarity']:.2f}, Subjectivity: {prediction['emotion']['subjectivity']:.2f}"
-    )
