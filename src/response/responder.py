@@ -20,28 +20,46 @@ class EmailResponder:
 
     def generate_reply(self, email: Dict[str, Any]) -> str:
         """
-        Generate response by:
-        1. Getting prediction from enron_classifier
-        2. Analyzing the output
-        3. Selecting appropriate template
+        Ensure all required keys are present in the email dictionary
+
+        Expected keys from enron_shell:
+        - subject
+        - body
+        - sender
+        - has_attachment
+        - num_recipients
+        - recipients
+        - time_sent
         """
-        # Step 1: Get classifier prediction
-        prediction = self.classifier.predict(email)
-        print("\n=== Classifier Output ===")
-        print(f"Category: {prediction.get('category')}")
-        print(f"Sentiment: {prediction.get('sentiment')}")
-        print(f"Urgency: {prediction.get('urgency')}")
+        try:
+            # Prepare a complete email dictionary with fallback values
+            complete_email = {
+                "subject": email.get("subject", "No Subject"),
+                "body": email.get("body", ""),
+                "sender": email.get("sender", "Unknown Sender"),
+                "has_attachment": email.get("has_attachment", False),
+                "num_recipients": email.get("num_recipients", 1),
+                "recipients": email.get("recipients", []),
+                "time_sent": email.get("time_sent", None),
+            }
 
-        # Step 2: Analyze prediction
-        category = prediction.get("category", "default").lower()
-        sentiment = self._analyze_sentiment(prediction.get("sentiment", {}))
-        is_urgent = prediction.get("urgency", False)
+            # Use the original prediction logic
+            prediction = self.classifier.predict(complete_email)
 
-        # Step 3: Generate response
-        context = self._prepare_context(email, prediction)
-        template = self._select_template(category, sentiment, is_urgent)
+            # Rest of the method remains the same
+            category = prediction.get("category", "default").lower()
+            sentiment = self._analyze_sentiment(prediction.get("sentiment", {}))
+            is_urgent = prediction.get("urgency", False)
 
-        return template.format(**context)
+            context = self._prepare_context(complete_email, prediction)
+            template = self._select_template(category, sentiment, is_urgent)
+
+            # Ensure we return the formatted template
+            return template.format(**context)
+
+        except Exception as e:
+            error_msg = f"Error generating response: {e}"
+            return error_msg
 
     # Analysis and template selection methods
     def _analyze_sentiment(self, sentiment_data: Dict[str, float]) -> str:
@@ -69,21 +87,31 @@ class EmailResponder:
 
     def _prepare_context(self, email, prediction) -> Dict[str, str]:
         """Prepare variables for template formatting"""
+        # Extract first name or use a fallback
+        first_name = self._extract_name(email.get("sender", "")).split()[0]
+
         return {
             "sender": self._extract_name(email.get("sender", "")),
             "subject": email.get("subject", "your message"),
-            "signature": "Your Name\nYour Company",
+            "signature": "Best regards,\nEnron Team",
             "timeframe": (
                 "within 24 hours"
                 if prediction.get("urgency")
                 else "in 2-3 business days"
             ),
             "positive_phrase": self._extract_phrase(
-                email["body"], ["great", "excellent", "thank"]
+                email.get("body", ""), ["great", "excellent", "thank"]
             ),
             "negative_phrase": self._extract_phrase(
-                email["body"], ["problem", "issue", "concern"]
+                email.get("body", ""), ["problem", "issue", "concern"]
             ),
+            # Add fallback keys for templates
+            "first_name": first_name,
+            "reference_number": f"REF-{random.randint(10000, 99999)}",
+            "contact": "support@enron.com",
+            "suggestion": "catch up",
+            "makeup_idea": "grab coffee",
+            "corrective_action": "resolve the issue",
         }
 
     # Template definitions
