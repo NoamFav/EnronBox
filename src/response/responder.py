@@ -241,33 +241,6 @@ class EmailResponder:
             ],
         }
 
-    # Demo method using actual classifier
-    @classmethod
-    def demo(cls, classifier):
-        """Run with real classifier output"""
-        print("\n=== Running Responder Demo with Real Classifier ===")
-
-        test_emails = [
-            {
-                "sender": "john.doe@enron.com",
-                "subject": "Project Update",
-                "body": "The results look excellent! Great work!",
-            },
-            {
-                "sender": "sarah.smith@gmail.com",
-                "subject": "Urgent Issue",
-                "body": "We have a critical problem with the system!",
-            },
-        ]
-
-        responder = cls(classifier)
-        for email in test_emails:
-            print(f"\nProcessing email: {email['subject']}")
-            reply = responder.generate_reply(email)
-            print("\nGenerated Reply:")
-            print(reply)
-            print("-" * 50)
-
     def _extract_name(self, email_address: str) -> str:
         if not email_address:
             return "Sir/Madam"
@@ -285,17 +258,17 @@ class EmailResponder:
         # 2. firstname_lastname (jeff.skilling)
         # 3. firstinitiallastname (jskilling)
 
-        # Pattern 1: lastname-firstinitial
+        # lastname-firstinitial
         if "-" in username:
             lastname, firstinitial = username.split("-", 1)
             return f"{firstinitial.upper()} {lastname.capitalize()}"
 
-        # Pattern 2: firstname.lastname
+        # firstname.lastname
         elif "." in username:
             firstname, lastname = username.split(".", 1)
             return f"{firstname.capitalize()} {lastname.capitalize()}"
 
-        # Pattern 3: firstinitial + lastname (jskilling)
+        # firstinitial + lastname (jskilling)
         elif len(username) > 1 and not username[1].isupper():
             return f"{username[0].upper()} {username[1:].capitalize()}"
 

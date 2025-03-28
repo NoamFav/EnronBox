@@ -22,7 +22,6 @@ def download_nltk_resources():
             nltk.download(resource, quiet=True)
 
 
-# Call this function before using NLTK
 download_nltk_resources()
 
 

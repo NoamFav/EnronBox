@@ -1,8 +1,7 @@
 import os
 import subprocess
 import email
-import sys
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 
 # Prompt toolkit for advanced CLI
 from prompt_toolkit import PromptSession
@@ -122,7 +121,7 @@ Body: {self.current_email.get('body', '')}
             )
 
     def _fzf_select(self, options: list[str]) -> Optional[str]:
-        """Use fzf to select from a list of options safely"""
+        """Use fzf to select from a list of options"""
         try:
             proc = subprocess.Popen(
                 ["fzf", "--height", "50%", "--layout=reverse", "--border"],
@@ -233,11 +232,14 @@ Body: {self.current_email.get('body', '')}
                 "🏷️ Category",
                 f"{prediction['category']} (Confidence: {prediction['confidence']:.2%})",
             )
-            table.add_row(
-                "🎭 Emotional Tone",
+            emotions_text = (
                 f"Polarity: {prediction['emotion']['polarity']:.2f}, "
-                f"Subjectivity: {prediction['emotion']['subjectivity']:.2f}",
+                f"Subjectivity: {prediction['emotion']['subjectivity']:.2f}, "
+                f"Stress: {prediction['emotion']['stress_score']:.2f}, "
+                f"Relaxation: {prediction['emotion']['relaxation_score']:.2f}"
             )
+
+            table.add_row("🎭 Emotional Tone", emotions_text)
             # Add summary row
             table.add_row("📋 Summary", summary)
 
@@ -270,10 +272,9 @@ Body: {self.current_email.get('body', '')}
     def user_stats(self):
         """Display email statistics for a selected user"""
         try:
-            # Step 1: Pick user
+            # Pick user safely
             users = sorted(os.listdir(self.maildir_path))
-            user_cmd = f"echo '{chr(10).join(users)}' | fzf --height 50% --layout=reverse --border"
-            user = subprocess.check_output(user_cmd, shell=True, text=True).strip()
+            user = self._fzf_select(users)
             if not user:
                 return
 
@@ -287,7 +288,7 @@ Body: {self.current_email.get('body', '')}
                 )
                 return
 
-            # Step 2: Traverse folders
+            # Traverse folders
             folder_stats = {}
             total_emails = 0
 
@@ -305,7 +306,7 @@ Body: {self.current_email.get('body', '')}
                 folder_stats[folder] = count
                 total_emails += count
 
-            # Step 3: Display stats
+            # Display stats
             table = Table(
                 title=f"📊 Email Stats for [cyan]{user}[/cyan]",
                 title_style="bold green",
@@ -340,7 +341,6 @@ Body: {self.current_email.get('body', '')}
             )
 
         except subprocess.CalledProcessError:
-            # This happens if user cancels fzf selection
             pass
         except Exception as e:
             self.console.print(
@@ -391,6 +391,8 @@ Body: {self.current_email.get('body', '')}
     Emotional Tone:
       - Polarity:      {prediction['emotion']['polarity']:.2f}
       - Subjectivity:  {prediction['emotion']['subjectivity']:.2f}
+      - Stress Score:  {prediction['emotion']['stress_score']:.2f}
+      - Relaxation Score:  {prediction['emotion']['relaxation_score']:.2f}
     """
                                 self.console.print(
                                     Panel(
@@ -430,6 +432,8 @@ Body: {self.current_email.get('body', '')}
 :browse/b   - Browse and select emails
 :user/u     - Select a user and show email stats
 :analyze/a  - Analyze the currently selected email
+:response/r - Generate a response to the selected email
+:summary/s  - Generate a summary of the selected email
 :help/h     - Show this help menu
 :quit/q     - Exit the shell
 """

@@ -10,7 +10,6 @@ def main():
     maildir_path = "./maildir"
     max_emails = 5000
 
-    # Handle args manually
     args = sys.argv[1:]
 
     if "--help" in args:
