@@ -150,6 +150,65 @@ class EmailResponder:
                 "My best,\n{signature}"
             ]
         }
+    def _init_default_templates(self):
+        return {
+            'positive': [
+                """Dear {sender},
+
+    Thank you for your message regarding {subject}. We're pleased to hear about
+    {positive_phrase} and appreciate you taking the time to share this feedback.
+
+    Should you require any further assistance, please don't hesitate to contact us.
+
+    Best regards,
+    {signature}""",
+
+                """Hello {sender},
+
+    We acknowledge your positive comments about {subject}. It's rewarding to know that
+    {positive_phrase}.
+
+    We value your input and will share this with the relevant team.
+
+    Kind regards,
+    {signature}"""
+            ],
+            'neutral': [
+                """Dear {sender},
+
+    We confirm receipt of your communication concerning {subject}. This matter has been
+    forwarded to the appropriate department and will receive attention within
+    {timeframe}.
+
+    For reference, your case number is: {reference_number}
+
+    Sincerely,
+    {signature}""",
+
+                """Hello {sender},
+
+    Thank you for your email about {subject}. We're currently reviewing your inquiry
+    and will provide a response by {timeframe}.
+
+    If you need immediate assistance, please contact {contact}.
+
+    Regards,
+    {signature}"""
+            ],
+            'negative': [
+                """Dear {sender},
+
+    We sincerely regret to hear about your experience with {negative_phrase}. Please
+    accept our apologies for any inconvenience caused.
+
+    Our team is looking into this matter and will update you by {timeframe}.
+
+    For direct assistance, you may reach us at {contact}.
+
+    With apologies,
+    {signature}""",
+            ]
+        }
 
 
     # Demo method using actual classifier
@@ -178,6 +237,49 @@ class EmailResponder:
             print("\nGenerated Reply:")
             print(reply)
             print("-" * 50)
+
+def extract_name(self, email_address: str) -> str:
+    if not email_address or "@" not in email_address:
+        return "Sir/Madam"
+
+    # Extract the part before @
+    username = email_address.split("@")[0]
+
+    # Replace common separators with spaces
+    for sep in [".", "_", "-"]:
+        username = username.replace(sep, " ")
+
+    # Capitalize each part and join
+    name_parts = [part.capitalize() for part in username.split()]
+
+    return " ".join(name_parts) if name_parts else "Sir/Madam"
+
+def extract_phrase(self, text: str, phrase_list: list) -> str:
+    if not text or not phrase_list:
+        return ""
+
+    text_lower = str(text).lower()
+    found_phrases = []
+
+    # Find all matching phrases
+    for phrase in phrase_list:
+        if phrase.lower() in text_lower:
+            # Find the actual occurrence in original text
+            start = text_lower.find(phrase.lower())
+            end = start + len(phrase)
+            found_phrases.append(text[start:end])
+
+    # Return the longest matching phrase for better context
+    if found_phrases:
+        return max(found_phrases, key=len)
+
+    # Smart fallbacks based on phrase list type
+    if any(p in ['great', 'excellent', 'thank'] for p in phrase_list):
+        return "your positive feedback"
+    elif any(p in ['problem', 'issue', 'concern'] for p in phrase_list):
+        return "this situation"
+
+    return "this matter"  # Ultimate fallback
 
 if __name__ == "__main__":
     #this is the part i'm doubting, implementing the result of enron_classifier to determine the response given by this class.
