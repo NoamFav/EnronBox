@@ -33,6 +33,8 @@ import logging
 
 logging.getLogger("nltk").setLevel(logging.ERROR)
 
+from emotion_enhancer import EmotionEnhancer
+
 
 class EnronEmailClassifier:
     def __init__(self):
@@ -52,6 +54,7 @@ class EnronEmailClassifier:
         self.lemmatizer = WordNetLemmatizer()
         self.text_model = None
         self.numerical_model = None
+        self.emotion_enhancer = EmotionEnhancer()
 
     def _rich_print(self, message, style="bold green"):
         """Print message with Rich formatting"""
@@ -362,7 +365,7 @@ class EnronEmailClassifier:
         return body
 
     def extract_features(self, email_data):
-        """Extract features from emails including emotion metrics"""
+        """Extract features from emails including enhanced emotion metrics"""
         features = pd.DataFrame()
 
         # Check if required columns exist
@@ -393,20 +396,17 @@ class EnronEmailClassifier:
         # Preprocess email body
         features["cleaned_text"] = email_data["body"].apply(self.preprocess_text)
 
-        # Extract emotional features using TextBlob
-        features["polarity"] = email_data["body"].apply(
-            lambda text: (
-                TextBlob(str(text)).sentiment.polarity
-                if not isinstance(text, float)
-                else 0
-            )
+        # Apply the EmotionEnhancer to each email body
+        emotion_results = email_data["body"].apply(
+            lambda text: self.emotion_enhancer.enhance_emotion_analysis(text)
         )
-        features["subjectivity"] = email_data["body"].apply(
-            lambda text: (
-                TextBlob(str(text)).sentiment.subjectivity
-                if not isinstance(text, float)
-                else 0
-            )
+
+        # Extract emotion metrics directly into separate columns
+        features["polarity"] = emotion_results.apply(lambda x: x["polarity"])
+        features["subjectivity"] = emotion_results.apply(lambda x: x["subjectivity"])
+        features["stress_score"] = emotion_results.apply(lambda x: x["stress_score"])
+        features["relaxation_score"] = emotion_results.apply(
+            lambda x: x["relaxation_score"]
         )
 
         # Extract email metadata features
@@ -703,20 +703,25 @@ class EnronEmailClassifier:
         text_proba = self.text_model.predict_proba([features["cleaned_text"].iloc[0]])[
             0
         ]
+
+        # Make sure to only include numerical features (exclude the text column)
+        numerical_features = features.drop(columns=["cleaned_text"])
         numerical_proba = self.numerical_model.predict_proba(
-            features.drop(columns=["cleaned_text"]).iloc[0:1]
+            numerical_features.iloc[0:1]
         )[0]
 
         # Combine predictions
         combined_proba = (text_proba + numerical_proba) / 2
         predicted_class = np.argmax(combined_proba)
 
-        # Return category and confidence
+        # Return category, confidence, and emotion analysis
         return {
             "category": self.categories[predicted_class],
             "confidence": combined_proba[predicted_class],
             "emotion": {
                 "polarity": features["polarity"].iloc[0],
                 "subjectivity": features["subjectivity"].iloc[0],
+                "stress_score": features["stress_score"].iloc[0],
+                "relaxation_score": features["relaxation_score"].iloc[0],
             },
         }
