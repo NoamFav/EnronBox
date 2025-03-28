@@ -4,14 +4,8 @@ setlocal enabledelayedexpansion
 :: Set the Enron dataset URL
 set "ENRON_URL=https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz"
 set "OUTPUT_FILE=enron_maildir.tar.gz"
-set "EXTRACT_DIR=enron_maildir"
 
 echo 🚀 Starting Enron dataset download...
-
-:: Create the extraction directory if it doesn't exist
-if not exist "%EXTRACT_DIR%" (
-    mkdir "%EXTRACT_DIR%"
-)
 
 :: Download the dataset using PowerShell (since curl is limited in Windows CMD)
 echo 📥 Downloading Enron email dataset...
@@ -25,13 +19,19 @@ if not exist "%OUTPUT_FILE%" (
 
 echo ✅ Download complete: %OUTPUT_FILE%
 
-:: Extract the dataset using tar (Windows 10+ includes tar)
+:: Extract directly into current directory
 echo 📂 Extracting dataset...
-tar -xvzf "%OUTPUT_FILE%" -C "%EXTRACT_DIR%"
+tar -xvzf "%OUTPUT_FILE%"
+
+:: Check if maildir folder was extracted
+if not exist "maildir" (
+    echo ❌ Extraction failed or 'maildir' not found!
+    exit /b 1
+)
 
 :: Cleanup
 echo 🧹 Cleaning up...
 del "%OUTPUT_FILE%"
 
-echo 🎉 Enron dataset is ready in "%EXTRACT_DIR%"
+echo 🎉 Enron dataset is ready in "maildir\"
 exit /b 0
