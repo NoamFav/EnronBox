@@ -239,20 +239,36 @@ class EmailResponder:
             print("-" * 50)
 
 def extract_name(self, email_address: str) -> str:
-    if not email_address or "@" not in email_address:
+    if not email_address:
         return "Sir/Madam"
 
-    # Extract the part before @
-    username = email_address.split("@")[0]
+    # Extract username if it's an email
+    username = email_address.split('@')[0] if '@' in email_address else email_address
 
-    # Replace common separators with spaces
-    for sep in [".", "_", "-"]:
-        username = username.replace(sep, " ")
+    # Remove any domain parts if present (e.g., 'kaminski-v@domain' -> 'kaminski-v')
+    username = username.split('@')[0]
 
-    # Capitalize each part and join
-    name_parts = [part.capitalize() for part in username.split()]
+    # Common Enron username patterns:
+    # 1. lastname-firstinitial (kaminski-v)
+    # 2. firstname_lastname (jeff.skilling)
+    # 3. firstinitiallastname (jskilling)
 
-    return " ".join(name_parts) if name_parts else "Sir/Madam"
+    # Pattern 1: lastname-firstinitial
+    if '-' in username:
+        lastname, firstinitial = username.split('-', 1)
+        return f"{firstinitial.upper()} {lastname.capitalize()}"
+
+    # Pattern 2: firstname.lastname
+    elif '.' in username:
+        firstname, lastname = username.split('.', 1)
+        return f"{firstname.capitalize()} {lastname.capitalize()}"
+
+    # Pattern 3: firstinitial + lastname (jskilling)
+    elif len(username) > 1 and not username[1].isupper():
+        return f"{username[0].upper()} {username[1:].capitalize()}"
+
+    # Fallback for other patterns
+    return username.replace('.', ' ').replace('_', ' ').title()
 
 def extract_phrase(self, text: str, phrase_list: list) -> str:
     if not text or not phrase_list:
