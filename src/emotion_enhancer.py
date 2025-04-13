@@ -3,10 +3,11 @@ emotion_enhancer.py - Adds stress/relaxation detection to email analysis
 """
 
 import numpy as np
-from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 class EmotionEnhancer:
     def __init__(self):
+        self.analyzer = SentimentIntensityAnalyzer()
         # Stress indicators
         self.stress_keywords = [
             'urgent', 'immediately', 'deadline', 'pressure', 'stress',
@@ -23,12 +24,12 @@ class EmotionEnhancer:
 
     def enhance_emotion_analysis(self, text):
         """
-        Extended emotion analysis adding stress and relaxation detection
-        Returns dict with:
-        - polarity (existing)
-        - subjectivity (existing)
-        - stress_score (new)
-        - relaxation_score (new)
+        Extended emotion analysis using VADER + stress/relaxation keywords
+        Returns:
+        - polarity (compound score)
+        - subjectivity (not provided by VADER, set to 0.5 placeholder)
+        - stress_score
+        - relaxation_score
         """
         if isinstance(text, float) and np.isnan(text):
             return {
@@ -40,18 +41,18 @@ class EmotionEnhancer:
 
         text = str(text).lower()
 
-        # Existing TextBlob analysis
-        blob = TextBlob(text)
-        polarity = blob.sentiment.polarity
-        subjectivity = blob.sentiment.subjectivity
+        # VADER sentiment analysis
+        sentiment = self.analyzer.polarity_scores(text)
+        polarity = sentiment["compound"]
+        subjectivity = 0.5  # VADER doesn't provide this, you could remove it if unused
 
         # Stress detection
         stress_count = sum(text.count(word) for word in self.stress_keywords)
-        stress_score = min(stress_count / 5, 1.0)  # Normalized to 0-1 range
+        stress_score = min(stress_count / 5, 1.0)
 
         # Relaxation detection
         relaxation_count = sum(text.count(word) for word in self.relaxation_keywords)
-        relaxation_score = min(relaxation_count / 5, 1.0)  # Normalized to 0-1 range
+        relaxation_score = min(relaxation_count / 5, 1.0)
 
         return {
             "polarity": polarity,

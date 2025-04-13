@@ -1,0 +1,16 @@
+This solved my issue of it notfinding the subfolder files. (e.g.  files like 1.  )
+type this command int the terminal or powershell.
+this will rename every file in the maidir that ends with a .   so it becomes a file witout that dot at the end of it.
+
+Get-ChildItem -Path "C:YOURpathTOtheData\maildir" -Recurse |
+    Where-Object { $_.Name -match '[\.\s]$' } |
+    ForEach-Object {
+        $originalPath = "\\?\$($_.FullName)"
+        $newName = $_.Name.TrimEnd('.').TrimEnd()
+        $newPath = "\\?\$(Join-Path $_.DirectoryName $newName)"
+        
+        # Check if the file exists
+        if (Test-Path -Path $originalPath) {
+            Rename-Item -Path $originalPath -NewName $newPath
+        }
+    }
