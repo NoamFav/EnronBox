@@ -408,6 +408,9 @@ class EnronEmailClassifier:
         features["relaxation_score"] = emotion_results.apply(
             lambda x: x["relaxation_score"]
         )
+        features["casual_score"] = emotion_results.apply(lambda x: x["casual_score"])
+        features["formal_score"] = emotion_results.apply(lambda x: x["formal_score"])
+        features["sarcasm_score"] = emotion_results.apply(lambda x: x["sarcasm_score"])
 
         # Extract email metadata features
         features["subject_length"] = email_data["subject"].apply(
@@ -723,5 +726,8 @@ class EnronEmailClassifier:
                 "subjectivity": features["subjectivity"].iloc[0],
                 "stress_score": features["stress_score"].iloc[0],
                 "relaxation_score": features["relaxation_score"].iloc[0],
+                "casual_score": features["casual_score"].iloc[0],
+                "formal_score": features["formal_score"].iloc[0],
+                "sarcasm_score": features["sarcasm_score"].iloc[0],
             },
         }

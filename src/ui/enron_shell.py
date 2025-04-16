@@ -236,13 +236,20 @@ Body: {self.current_email.get('body', '')}
                 "🏷️ Category",
                 f"{prediction['category']} (Confidence: {prediction['confidence']:.2%})",
             )
+            # Determine dominant tone
+            tone_scores = {
+                "casual": prediction["emotion"]["casual_score"],
+                "formal": prediction["emotion"]["formal_score"],
+                "sarcasm": prediction["emotion"]["sarcasm_score"],
+            }
+            dominant_tone = max(tone_scores, key=tone_scores.get)
             emotions_text = (
                 f"Polarity: {prediction['emotion']['polarity']:.2f}, "
                 f"Subjectivity: {prediction['emotion']['subjectivity']:.2f}, "
                 f"Stress: {prediction['emotion']['stress_score']:.2f}, "
-                f"Relaxation: {prediction['emotion']['relaxation_score']:.2f}"
+                f"Relaxation: {prediction['emotion']['relaxation_score']:.2f}, "
+                f"Tone: {dominant_tone}"
             )
-
             table.add_row("🎭 Emotional Tone", emotions_text)
 
             entities = self.extrator.extract_entities(email_data["body"])
@@ -419,16 +426,26 @@ Body: {self.current_email.get('body', '')}
                         case "analyze" | "a":
                             if self.current_email is not None:
                                 prediction = self.classifier.predict(self.current_email)
+
+                                tone_scores = {
+                                    "casual": prediction["emotion"]["casual_score"],
+                                    "formal": prediction["emotion"]["formal_score"],
+                                    "sarcasm": prediction["emotion"]["sarcasm_score"],
+                                }
+                                dominant_tone = max(tone_scores, key=tone_scores.get)
+
                                 detailed_analysis = f"""
-    🔍 Detailed Email Analysis:
-    Category:       {prediction['category']}
-    Confidence:     {prediction['confidence']:.2%}
-    Emotional Tone:
-      - Polarity:      {prediction['emotion']['polarity']:.2f}
-      - Subjectivity:  {prediction['emotion']['subjectivity']:.2f}
-      - Stress Score:  {prediction['emotion']['stress_score']:.2f}
-      - Relaxation Score:  {prediction['emotion']['relaxation_score']:.2f}
-    """
+                        🔍 Detailed Email Analysis:
+                        Category:           {prediction['category']}
+                        Confidence:         {prediction['confidence']:.2%}
+                        Emotional Tone:
+                        - Polarity:       {prediction['emotion']['polarity']:.2f}
+                        - Subjectivity:   {prediction['emotion']['subjectivity']:.2f}
+                        - Stress Score:   {prediction['emotion']['stress_score']:.2f}
+                        - Relaxation:     {prediction['emotion']['relaxation_score']:.2f}
+                        - Tone:           {dominant_tone}
+                        """
+
                                 self.console.print(
                                     Panel(
                                         Text(detailed_analysis, style="cyan"),
@@ -436,6 +453,7 @@ Body: {self.current_email.get('body', '')}
                                         border_style="green",
                                     )
                                 )
+
                         case "response" | "r":
                             if self.current_email is not None:
                                 response = self.responder.generate_reply(
