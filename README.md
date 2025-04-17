@@ -96,7 +96,7 @@ Follow these simple steps to set up the application:
 ```bash
 # Clone the repository (if using git)
 git clone https://github.com/NoamFav/NLP_project.git
-cd enron-email-intelligence
+cd NLP_project
 
 # Install dependencies
 make install
@@ -107,7 +107,7 @@ make install
 ```cmd
 # Clone the repository (if using git)
 git clone https://github.com/NoamFav/NLP_project.git
-cd enron-email-intelligence
+cd NLP_project
 
 # Install dependencies
 install.bat
