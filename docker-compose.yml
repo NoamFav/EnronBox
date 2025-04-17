@@ -5,11 +5,13 @@ services:
     build:
       context: .
       dockerfile: apps/flask_api/Dockerfile
-    container_name: flask_api
+    container_name: flask-api
     ports:
-      - '5050-5050'
+      - '5050:5050'
     working_dir: /app
     volumes:
-      - './apps/flask_api:/app'
+      - ./apps/flask_api:/app
+      - ./apps/SQLite_db/enron.db:/app/data/enron.db
     environment:
       - PYTHONUNBUFFERED=1
+      - DB_PATH=/app/data/enron.db
