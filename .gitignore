@@ -184,13 +184,3 @@ maildir/
 *.pfx
 *.p12
 *.cer
-
-# ================================
-# Generated Documentation / Reports
-# ================================
-*.pdf
-*.docx
-*.pptx
-*.csv
-*.json
-*.xml
