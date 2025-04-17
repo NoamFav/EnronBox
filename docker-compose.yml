@@ -15,3 +15,12 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - DB_PATH=/app/data/enron.db
+
+  agent-daemon:
+    build:
+      context: ./apps/go_agents/agent-daemon
+    container_name: agent-daemon
+    volumes:
+      - ./apps/SQLite_db:/app/data
+    depends_on:
+      - flask-api
