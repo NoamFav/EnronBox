@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  flask-api:
+    build:
+      context: .
+      dockerfile: apps/flask_api/Dockerfile
+    container_name: flask_api
+    ports:
+      - '5050-5050'
+    working_dir: /app
+    volumes:
+      - './apps/flask_api:/app'
+    environment:
+      - PYTHONUNBUFFERED=1
