@@ -1,0 +1,104 @@
+[
+  {
+    "title": "Database Schema & Initial Setup Complete",
+    "state": "open",
+    "description": "M1: Complete the core SQLite schema, C++ bindings, and basic dataset processing functionality",
+    "due_on": "2025-04-11T23:59:59Z"
+  },
+  {
+    "title": "Core ML Models Integrated",
+    "state": "open",
+    "description": "M2: Integrate the main NLP models (BERT/RoBERTa) and implement summarization engine",
+    "due_on": "2025-04-22T23:59:59Z"
+  },
+  {
+    "title": "NLP Pipeline Working",
+    "state": "open",
+    "description": "M3: Complete the full NLP pipeline with classification, serialization, and summarization",
+    "due_on": "2025-04-29T23:59:59Z"
+  },
+  {
+    "title": "Backend API & Processing Complete",
+    "state": "open",
+    "description": "M4: Finish async processing queue and create REST API endpoints",
+    "due_on": "2025-05-06T23:59:59Z"
+  },
+  {
+    "title": "Complete System Integration & Testing",
+    "state": "open",
+    "description": "M5: Integrate all components, implement final UI features, and complete system testing",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "1.1 Finalize and Implement the Email Database",
+    "state": "open",
+    "description": "Complete all tasks related to the email database implementation",
+    "due_on": "2025-04-18T23:59:59Z"
+  },
+  {
+    "title": "1.2 Dataset Processing System",
+    "state": "open",
+    "description": "Complete all dataset processing functionality including Enron preprocessing and anonymization",
+    "due_on": "2025-04-25T23:59:59Z"
+  },
+  {
+    "title": "2.1 Email Category Classification System",
+    "state": "open",
+    "description": "Implement and optimize BERT-based classification with confidence thresholds",
+    "due_on": "2025-04-29T23:59:59Z"
+  },
+  {
+    "title": "2.2 Named Entity Recognition Integration",
+    "state": "open",
+    "description": "Integrate NER pipeline, implement entity storage and visualization",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "2.3 Emotion & Tone Detection",
+    "state": "open",
+    "description": "Implement VADER/FinBERT for sentiment analysis and add tone classification",
+    "due_on": "2025-05-06T23:59:59Z"
+  },
+  {
+    "title": "3.1 Summarization Engine",
+    "state": "open",
+    "description": "Build extractive summarization functionality with method selection based on email length",
+    "due_on": "2025-04-29T23:59:59Z"
+  },
+  {
+    "title": "3.2 Smart Reply Generator",
+    "state": "open",
+    "description": "Implement smart reply system with urgency awareness and thread-based context",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "4.1 Modular Pipeline & Logic System",
+    "state": "open",
+    "description": "Create modular pipeline architecture with configuration system and async processing",
+    "due_on": "2025-05-06T23:59:59Z"
+  },
+  {
+    "title": "4.2 REST API for Predictions",
+    "state": "open",
+    "description": "Implement REST API with endpoints for predictions and metadata search",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "5.1 Interface Design & Tagging",
+    "state": "open",
+    "description": "Design and implement the core UI layout and tagging system",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "5.2 GUI Logic & Integration",
+    "state": "open",
+    "description": "Connect GUI with backend predictions and implement model output visualization",
+    "due_on": "2025-05-13T23:59:59Z"
+  },
+  {
+    "title": "5.3 Smart User Interactions",
+    "state": "open",
+    "description": "Implement smart reply UI, analytics view, and advanced search functionality",
+    "due_on": "2025-05-13T23:59:59Z"
+  }
+]
