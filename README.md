@@ -1,98 +1,149 @@
+<div align="center">
+
 # 📬 Enron Email Intelligence
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-Latest-orange.svg)](https://scikit-learn.org/)
+[![Rich](https://img.shields.io/badge/Rich-Latest-purple.svg)](https://github.com/Textualize/rich)
+[![TextBlob](https://img.shields.io/badge/TextBlob-Latest-green.svg)](https://textblob.readthedocs.io/)
+[![spaCy](https://img.shields.io/badge/spaCy-Latest-teal.svg)](https://spacy.io/)
+
+<img src="src/ui/assets/logo.png" width="250" alt="Enron Email Intelligence Logo"/>
+
 A powerful terminal-based email classification and analysis tool powered by machine learning and NLP, built on the Enron email dataset. The application offers a rich terminal UI using the `rich` library, featuring category classification, emotion analysis, keyword extraction, and smart commands.
+
+[Installation](#-setup-instructions) • 
+[Features](#-features) • 
+[Running the Shell](#-running-the-shell) • 
+[Project Structure](#-project-structure)
+
+</div>
+
+---
+
+## 📋 Overview
+
+Welcome to **Enron Email Intelligence**, a sophisticated email analysis toolkit! Built with advanced machine learning and NLP techniques, it provides comprehensive email classification, sentiment analysis, and intelligent processing capabilities through an elegant terminal interface. Whether you're a data scientist, email administrator, or NLP enthusiast, this tool offers powerful insights into email communications!
+
+<div align="center">
+  <img src="docs/images/terminal_ui_screenshot.png" width="600" alt="Enron Email Intelligence Terminal UI"/>
+</div>
 
 ---
 
 ## 🚀 Features
 
-### 🧠 AI-Powered Email Classification (`enron_classifier.py`)
+<div style="display: flex; flex-wrap: wrap;">
 
-- **Hybrid Classifier**:
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🧠 AI-Powered Classification</h3>
+<p>Advanced hybrid classifier combining TF-IDF with Random Forest and custom numerical features for highly accurate email categorization.</p>
+</div>
 
-  - Combines a TF-IDF + Random Forest pipeline with a numerical model using handcrafted features.
-  - Final prediction made via probabilistic fusion of both models for higher accuracy.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🖥️ Rich Terminal UI</h3>
+<p>Elegant, interactive terminal interface with custom prompts, colors, and emoji-enhanced output for a delightful user experience.</p>
+</div>
 
-- **Category Detection**:
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>📄 Smart Summarization</h3>
+<p>Extract key information from lengthy emails using advanced algorithms that preserve context and meaning.</p>
+</div>
 
-  - Classifies emails into categories such as `Work`, `Personal`, `Spam`, `Travel`, `Social`, etc.
-  - Labels inferred from folder structure and intelligently expanded using heuristics.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🧍 Entity Recognition</h3>
+<p>Automatically identify and extract people, organizations, dates, and locations from email content to enhance context understanding.</p>
+</div>
 
-- **Advanced Feature Engineering**:
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>✉️ Auto-Reply Generation</h3>
+<p>Create contextually appropriate email responses based on sentiment, urgency, and category predictions.</p>
+</div>
 
-  - Text length features for subject and body.
-  - Sentiment analysis using TextBlob (polarity & subjectivity).
-  - Urgency scoring based on keywords like “urgent”, “immediately”, etc.
-  - Email metadata extraction: attachment presence, number of recipients, CCs, BCCs.
-  - Business language and external sender detection.
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🧠 Emotion Analysis</h3>
+<p>Advanced sentiment and emotion detection to identify stress, urgency, and tone in communications.</p>
+</div>
 
-- **Model Evaluation**:
-  - Confusion matrix, accuracy score, and a full classification report using scikit-learn.
-
----
-
-### 🖥️ Terminal UI Shell (`ui/enron_shell.py`)
-
-- Built with `PromptToolkit` and `rich` for a clean, interactive shell experience.
-- Custom prompt, colors, and emoji-enhanced output.
-- Keyboard-friendly Vim-style commands prefixed with `:`:
-  - `:browse` — browse and load emails via `fzf`
-  - `:analyze` — run classification, sentiment, emotion, urgency prediction
-  - `:response` — generate an auto-response
-  - `:user` — view email statistics for any user via `fzf`
-  - `:entities` — extract named entities (people 👤, orgs 🏢, dates 📅)
-  - `:summary` — generate an extractive summary
-  - `:clear` — reset the screen
-  - `:help` — list all commands
-  - `:quit` — exit the shell
+</div>
 
 ---
 
-### 📄 Summarization Module (`summarizer/summarizer.py`)
+## 📦 Setup Instructions
 
-- Generates short, extractive summaries from long email bodies.
-- Uses the `Sumy` library and various algorithms like LSA to preserve meaning.
-- Integrated into `:summarize` command and auto-used on long emails.
+<details open>
+<summary><b>Installation Requirements</b></summary>
 
----
+Before diving into the email analysis, ensure your system meets these requirements:
 
-### 🧍 Entity Extraction (`ner/extractor.py`)
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| **Python** | 3.8+ | [Download Python](https://www.python.org/downloads/) |
+| **pip** | Latest | Included with Python |
+| **Memory** | 4GB+ RAM | 8GB+ recommended for full dataset |
+| **Storage** | 1GB | For dataset and dependencies |
+| **OS** | Cross-platform | Windows, macOS, Linux compatible |
 
-- Performs Named Entity Recognition using spaCy.
-- Extracts key elements such as:
-  - 👤 Person names
-  - 🏢 Organizations
-  - 📅 Dates and temporal expressions
-- Displayed automatically after classification to enhance context understanding.
+</details>
 
----
+<details open>
+<summary><b>Quick Installation</b></summary>
 
-### ✉️ Auto Reply Generator (`response/responder.py`)
+Follow these simple steps to set up the application:
 
-- Uses sentiment, urgency, and category predictions to generate templated responses.
-- Context-aware formatting (e.g. "Thanks for your positive feedback about..." vs "We regret the inconvenience caused...").
-- Supports categories: `Work`, `Personal`, `Default`, and has special formatting for urgent emails.
+### **Linux/macOS**:
 
----
+```bash
+# Clone the repository (if using git)
+git clone https://github.com/yourname/enron-email-intelligence.git
+cd enron-email-intelligence
 
-### 🧠 Emotion & Urgency Enhancer (`emotion_enhancer.py`)
+# Install dependencies
+make install
+```
 
-- Augments TextBlob with additional emotion metrics:
-  - Stress vs Relaxation heuristics
-  - Improved tone detection for edge cases
-- Better guides the auto-reply module and helps highlight emotionally charged content.
+### **Windows**:
 
----
+```cmd
+# Clone the repository (if using git)
+git clone https://github.com/yourname/enron-email-intelligence.git
+cd enron-email-intelligence
 
-### 🎛️ CLI Input Mode (Under Development)
+# Install dependencies
+install.bat
+```
 
-- Allows entering custom emails directly into the shell.
-- Useful for testing classifier, reply system, or NER without loading Enron data.
-- Will support JSON or free-text entry formats.
+The installer automatically handles all dependencies and downloads required NLP models.
+
+</details>
+
+<details>
+<summary><b>Dataset Download</b></summary>
+
+Use the platform-specific scripts to download and extract the Enron email dataset:
+
+**macOS/Linux**:
+```bash
+bash bin/download_enron.sh
+```
+
+**Windows**:
+```cmd
+bin\download_enron.cmd
+```
+
+This will download, extract, and prepare the dataset for analysis.
+
+</details>
 
 ---
 
 ## 🏁 Running the Shell
+
+<details open>
+<summary><b>Launch Instructions</b></summary>
+
+Start the interactive shell with these commands:
 
 ```bash
 # Unix/macOS
@@ -102,61 +153,95 @@ A powerful terminal-based email classification and analysis tool powered by mach
 run.bat --max_emails 5000
 ```
 
-- **Note**: Always run from the project root (paths are relative for now)
-- **Tip**: Keep `max_emails` under 5000 for faster startup during dev — the full dataset is over 500k emails!
+**Tips for Optimal Performance**:
+- Keep `max_emails` under 5000 for faster startup during development
+- Always run from the project root directory
+- For production use, increase the email limit for more comprehensive analysis
+
+</details>
+
+<details>
+<summary><b>Shell Commands</b></summary>
+
+Navigate the application using these Vim-style commands:
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `:browse` | Browse and load emails | `:browse [folder]` |
+| `:analyze` | Run full analysis on current email | `:analyze` |
+| `:response` | Generate auto-response | `:response` |
+| `:user` | View email statistics for any user | `:user [email/name]` |
+| `:entities` | Extract named entities | `:entities` |
+| `:summary` | Generate email summary | `:summary` |
+| `:clear` | Reset the screen | `:clear` |
+| `:help` | List all commands | `:help` |
+| `:quit` | Exit the shell | `:quit` |
+
+</details>
+
+<div align="center">
+  <img src="docs/images/command_showcase.png" width="600" alt="Terminal Command Showcase"/>
+</div>
 
 ---
 
-## 📦 Setup Instructions
+## 🛠️ Technical Details
 
-### ▶️ Installation (Cross-platform)
+<details>
+<summary><b>Classification Details</b></summary>
 
-- Use the Makefile (Linux/macOS) or `install.bat` (Windows) to install dependencies and download models.
+The email classifier employs a sophisticated hybrid approach:
 
-#### **Linux/macOS**:
+- **Text Pipeline**:
+  - TF-IDF vectorization with n-gram features
+  - Random Forest classifier with optimized hyperparameters
+  - Stop word removal and lemmatization
 
-```bash
-make install
-```
+- **Numerical Features**:
+  - Text length metrics (subject, body)
+  - Sentiment analysis (polarity, subjectivity)
+  - Urgency scoring based on keyword frequency
+  - Email metadata extraction (recipients, CCs, attachments)
+  - Business language detection
 
-#### **Windows**:
+- **Fusion Strategy**:
+  - Probabilistic combination of text and numerical predictions
+  - Confidence thresholds for improved precision
 
-```cmd
-install.bat
-```
+</details>
 
-- This installs dependencies from `requirements.txt` and runs:
-  - `python -m nltk.downloader punkt`
-  - `python -m textblob.download_corpora`
-  - `python -m spacy download en_core_web_sm`
+<details>
+<summary><b>Entity Extraction Process</b></summary>
 
----
+Named Entity Recognition is performed using spaCy:
 
-## 📥 Dataset Download
+1. Pre-processing to clean and normalize text
+2. Entity detection for:
+   - People (👤 names, positions)
+   - Organizations (🏢 companies, departments)
+   - Dates and times (📅 scheduling information)
+   - Locations (🌎 places, addresses)
+3. Post-processing to remove duplicates and improve accuracy
+4. Rich visualization in the terminal interface
 
-Use the platform-specific scripts in `bin/`:
-
-```bash
-# macOS/Linux
-bash bin/download_enron.sh
-
-# Windows
-bin\download_enron.cmd
-```
+</details>
 
 ---
 
 ## 📁 Project Structure
 
 ```
+enron-email-intelligence/
 ├── bin/                 # Scripts: dataset download (sh/cmd)
 ├── data/                # Preprocessed data (optional)
 ├── docs/                # Documentation and diagrams
+│   └── images/          # Screenshots and visual aids
 ├── maildir/             # Enron dataset folder (after extraction)
 ├── results/             # Output files and evaluations
 ├── scripts/             # Postinstall and misc helpers
 ├── src/                 # Source code
 │   ├── ui/              # Terminal shell UI
+│   │   └── assets/      # UI resources and icons
 │   ├── ner/             # Named Entity Recognition
 │   ├── response/        # Auto-response engine
 │   ├── summarizer/      # Email summarizer
@@ -172,14 +257,77 @@ bin\download_enron.cmd
 
 ---
 
+## 🎯 Planned Features
+
+<table>
+<tr>
+<td width="33%">
+<h3>🌐 Web Interface</h3>
+<p>Browser-based UI for easier access and visualization capabilities.</p>
+</td>
+<td width="33%">
+<h3>📊 Advanced Analytics</h3>
+<p>Statistical insights and communication pattern discovery across emails.</p>
+</td>
+<td width="33%">
+<h3>🔄 Custom Email Input</h3>
+<p>Analyze your own emails beyond the Enron dataset.</p>
+</td>
+</tr>
+<tr>
+<td width="33%">
+<h3>🧪 Improved Models</h3>
+<p>Enhanced classification using transformer-based approaches.</p>
+</td>
+<td width="33%">
+<h3>📱 Export Capabilities</h3>
+<p>Save analyses in various formats (PDF, CSV, JSON).</p>
+</td>
+<td width="33%">
+<h3>🔌 API Integration</h3>
+<p>Connect with email services for real-time analysis.</p>
+</td>
+</tr>
+</table>
+
+---
+
 ## 👤 Contributors
 
-- **Noam Favier** – Project Lead, UI Integration, ML Core
-- **Remi** – Email Summarization
-- **Jiang** – Named Entity Recognition
-- **Giorgos** – Auto-Reply Templates
-- **David** – Sentiment Enhancer
-- **Esteban** – Dataset Cleanup / Metadata
-- **Octavian** – Manual Tester / Custom Email Input
+<div align="center">
+
+| Contributor | Role | Focus Area |
+|-------------|------|------------|
+| **Noam Favier** | Project Lead | UI Integration, ML Core |
+| **Remi** | Developer | Email Summarization |
+| **Jiang** | Developer | Named Entity Recognition |
+| **Giorgos** | Developer | Auto-Reply Templates |
+| **David** | Developer | Sentiment Enhancer |
+| **Esteban** | Data Scientist | Dataset Cleanup / Metadata |
+| **Octavian** | Tester | Manual Testing / Custom Email Input |
+
+</div>
 
 > 💌 Special thanks to the Enron corpus and the open NLP community for the foundational tools.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to make Enron Email Intelligence even better! Whether it's adding new features, fixing bugs, or improving documentation, your help is appreciated.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please make sure to update tests as appropriate and adhere to the code style guidelines.
+
+---
+
+<div align="center">
+
+### 📧 Happy Email Analysis! 📧
+
+</div>
