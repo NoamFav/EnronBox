@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-
+print("DB_PATH:", os.getenv("DB_PATH"))
 DB_PATH = os.getenv("DB_PATH", "/app/data/enron.db")
 
 
