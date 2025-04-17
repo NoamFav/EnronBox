@@ -40,4 +40,4 @@ pip install -r requirements.txt >/dev/null
 
 # Launch the shell
 echo -e "${GREEN}🚀 Launching Enron Email Intelligence Shell...${NC}"
-python3 src/main.py --max_emails "$MAX_EMAILS"
+python3 apps/flask_api/app/main.py --max_emails "$MAX_EMAILS"
