@@ -33,7 +33,7 @@ import logging
 
 logging.getLogger("nltk").setLevel(logging.ERROR)
 
-from emotion_enhancer import EmotionEnhancer
+from services.emotion_enhancer import EmotionEnhancer
 
 
 class EnronEmailClassifier:

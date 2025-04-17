@@ -15,11 +15,11 @@ from rich.syntax import Syntax
 from rich.text import Text
 
 # Import the classifier
-from enron_classifier import EnronEmailClassifier
-from response.responder import EmailResponder
-from summarizer.summarizer import EmailSummarizer
+from services.enron_classifier import EnronEmailClassifier
+from services.responder import EmailResponder
+from services.summarizer import EmailSummarizer
 
-from ner.extractor import Extractor
+from services.ner_engine import Extractor
 
 
 class EnronMailShell:
