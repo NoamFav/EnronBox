@@ -5,20 +5,45 @@ emotion_enhancer.py - Adds stress/relaxation detection to email analysis
 import numpy as np
 from textblob import TextBlob
 
+
 class EmotionEnhancer:
     def __init__(self):
         # Stress indicators
         self.stress_keywords = [
-            'urgent', 'immediately', 'deadline', 'pressure', 'stress',
-            'critical', 'emergency', 'asap', 'rush', 'overwhelm',
-            'late', 'missed', 'failure', 'problem', 'issue'
+            "urgent",
+            "immediately",
+            "deadline",
+            "pressure",
+            "stress",
+            "critical",
+            "emergency",
+            "asap",
+            "rush",
+            "overwhelm",
+            "late",
+            "missed",
+            "failure",
+            "problem",
+            "issue",
         ]
 
         # Relaxation indicators
         self.relaxation_keywords = [
-            'relax', 'calm', 'peaceful', 'comfortable', 'easy',
-            'smooth', 'flexible', 'convenient', 'happy', 'pleasure',
-            'thanks', 'appreciate', 'good job', 'well done', 'casual'
+            "relax",
+            "calm",
+            "peaceful",
+            "comfortable",
+            "easy",
+            "smooth",
+            "flexible",
+            "convenient",
+            "happy",
+            "pleasure",
+            "thanks",
+            "appreciate",
+            "good job",
+            "well done",
+            "casual",
         ]
 
     def enhance_emotion_analysis(self, text):
@@ -35,7 +60,7 @@ class EmotionEnhancer:
                 "polarity": 0,
                 "subjectivity": 0,
                 "stress_score": 0,
-                "relaxation_score": 0
+                "relaxation_score": 0,
             }
 
         text = str(text).lower()
@@ -57,5 +82,5 @@ class EmotionEnhancer:
             "polarity": polarity,
             "subjectivity": subjectivity,
             "stress_score": stress_score,
-            "relaxation_score": relaxation_score
+            "relaxation_score": relaxation_score,
         }

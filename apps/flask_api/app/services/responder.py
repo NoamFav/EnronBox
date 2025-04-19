@@ -1,7 +1,3 @@
-"""
-responder.py - Integrated with enron_classifier output analysis
-"""
-
 import random
 from typing import Dict, Any
 
@@ -57,8 +53,9 @@ class EmailResponder:
             # Ensure we return the formatted template
             return template.format(**context)
 
-        except Exception as e:
-            error_msg = f"Error generating response: {e}"
+        except (KeyError, ValueError, TypeError, AttributeError) as e:
+            # Handle expected exceptions related to data processing
+            error_msg = f"Error processing email data: {e}"
             return error_msg
 
     # Analysis and template selection methods
@@ -78,9 +75,14 @@ class EmailResponder:
 
         # Handle urgent messages specially
         if is_urgent:
+            # Retrieve the template dynamically
             urgent_template = getattr(self, f"_urgent_{category}_template", None)
+
+            # Check if the template is callable (i.e., a function)
             if urgent_template:
-                return urgent_template()
+                return str(urgent_template)
+            else:
+                return "No urgent template available."
 
         # Fallback to neutral if no sentiment templates exist
         return random.choice(templates.get(sentiment, templates["neutral"]))
@@ -118,37 +120,44 @@ class EmailResponder:
     def _init_work_templates(self):
         return {
             "positive": [
-                "Dear {sender},\n\nThank you for your positive feedback about {subject}.\n"
+                "Dear {sender},\n\n"
+                "Thank you for your positive feedback about {subject}.\n"
                 "We're delighted that {positive_phrase} and will continue to maintain\n"
                 "this standard of service.\n\n"
                 "Best regards,\n{signature}",
-                "Hello {sender},\n\nWe appreciate your kind words regarding {subject}.\n"
+                "Hello {sender},\n\n"
+                "We appreciate your kind words regarding {subject}.\n"
                 "It's rewarding to know that {positive_phrase}. Should you need\n"
                 "anything further, don't hesitate to reach out.\n\n"
                 "Kind regards,\n{signature}",
             ],
             "neutral": [
-                "Dear {sender},\n\nWe acknowledge receipt of your email regarding {subject}.\n"
+                "Dear {sender},\n\n"
+                "We acknowledge receipt of your email regarding {subject}.\n"
                 "This matter has been logged (Ref: {reference_number}) and will be\n"
                 "addressed within {timeframe}.\n\n"
                 "Sincerely,\n{signature}",
-                "Hello {sender},\n\nYour message about {subject} has been received.\n"
+                "Hello {sender},\n\n"
+                "Your message about {subject} has been received.\n"
                 "Our team is reviewing your inquiry and will respond by\n"
                 "{timeframe}.\n\n"
                 "Regards,\n{signature}",
             ],
             "negative": [
-                "Dear {sender},\n\nWe sincerely apologize for {negative_phrase}.\n"
+                "Dear {sender},\n\n"
+                "We sincerely apologize for {negative_phrase}.\n"
                 "This is not our standard, and we're taking immediate steps to\n"
                 "{corrective_action}. For direct assistance, contact {contact}.\n\n"
                 "Our apologies,\n{signature}",
-                "Hello {sender},\n\nWe regret the inconvenience caused by {negative_phrase}.\n"
+                "Hello {sender},\n\n"
+                "We regret the inconvenience caused by {negative_phrase}.\n"
                 "A resolution team has been assigned and will update you by\n"
                 "{timeframe}.\n\n"
                 "Sincerely,\n{signature}",
             ],
             "urgent": [
-                "URGENT: {subject}\n\nDear {sender},\n\nWe've prioritized your request and\n"
+                "URGENT: {subject}\n\n"
+                "Dear {sender},\n\nWe've prioritized your request and\n"
                 "are addressing it urgently. Expect an update by {timeframe}.\n"
                 "For immediate support: {contact}.\n\n"
                 "Best regards,\n{signature}"
@@ -158,11 +167,13 @@ class EmailResponder:
     def _init_personal_templates(self):
         return {
             "positive": [
-                "Hi {first_name},\n\nThanks for your lovely message! I'm really glad\n"
+                "Hi {first_name},\n\n"
+                "Thanks for your lovely message! I'm really glad\n"
                 "you enjoyed {positive_phrase}. Let's {suggestion} soon!\n\n"
                 "Cheers,\n{signature}",
                 "Hey {first_name},\n\nGreat to hear from you! I'm thrilled you liked\n"
-                "{positive_phrase}. We should definitely {suggestion} when you're free.\n\n"
+                "{positive_phrase}."
+                "We should definitely {suggestion} when you're free.\n\n"
                 "Best,\n{signature}",
             ],
             "neutral": [

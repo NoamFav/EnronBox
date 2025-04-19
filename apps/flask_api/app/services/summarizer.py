@@ -3,7 +3,6 @@ from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
 import nltk
-import os
 
 
 def download_nltk_resources():
@@ -32,11 +31,14 @@ class EmailSummarizer:
 
     def extract_email_body(self, email_text):
         """
-        Extracts only the actual email message and removes metadata like headers, CC/BCC, and signatures.
+        Extracts only the actual email message
+        and removes metadata like headers,
+        CC/BCC, and signatures.
         """
         # Remove common email headers
         email_text = re.sub(
-            r"^(Message-ID|From|To|Subject|Date|Cc|Bcc|Mime-Version|Content-Type|Content-Transfer-Encoding|X-[\w-]+):.*$",
+            r"^(Message-ID|From|To|Subject|Date|Cc|Bcc|Mime-Version|Content-Type|"
+            r"Content-Transfer-Encoding|X-[\w-]+):.*$",
             "",
             email_text,
             flags=re.MULTILINE,
@@ -69,7 +71,8 @@ class EmailSummarizer:
 
         Args:
             email_text (str): Full email text
-            num_sentences (int, optional): Number of sentences in summary. Defaults to 3.
+            num_sentences (int, optional):
+                Number of sentences in summary. Defaults to 3.
 
         Returns:
             str: Summarized email text
@@ -84,6 +87,13 @@ class EmailSummarizer:
             summary = summarizer(parser.document, num_sentences)
 
             return "\n".join(str(sentence) for sentence in summary)
-        except Exception as e:
+
+        except (ValueError, AttributeError, TypeError) as e:
+            # Handle common issues with input data or processing
             print(f"Summarization error: {e}")
+            return "Unable to generate summary."
+
+        except RuntimeError as e:
+            # Handle issues during the summarization process
+            print(f"Runtime error during summarization: {e}")
             return "Unable to generate summary."

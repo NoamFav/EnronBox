@@ -15,11 +15,11 @@ from rich.syntax import Syntax
 from rich.text import Text
 
 # Import the classifier
-from services.enron_classifier import EnronEmailClassifier
-from services.responder import EmailResponder
-from services.summarizer import EmailSummarizer
+from app.services.enron_classifier import EnronEmailClassifier
+from app.services.responder import EmailResponder
+from app.services.summarizer import EmailSummarizer
 
-from services.ner_engine import Extractor
+from app.services.ner_engine import Extractor
 
 
 class EnronMailShell:
@@ -64,7 +64,7 @@ class EnronMailShell:
                     border_style="green",
                 )
             )
-        except Exception as e:
+        except (FileNotFoundError, ValueError) as e:
             self.console.print(
                 Panel.fit(
                     Text(f"❌ Failed to load classifier: {e}", style="bold red"),
@@ -116,7 +116,7 @@ Body: {self.current_email.get('body', '')}
                     border_style="green",
                 )
             )
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             self.console.print(
                 Panel.fit(
                     Text(f"❌ Error generating summary: {e}", style="red"),
@@ -137,7 +137,7 @@ Body: {self.current_email.get('body', '')}
             input_data = "\n".join(options)
             stdout, _ = proc.communicate(input=input_data)
             return stdout.strip()
-        except Exception as e:
+        except (OSError, ValueError, subprocess.CalledProcessError) as e:
             self.console.print(f"[bold red]fzf error: {e}[/bold red]")
             return None
 
@@ -167,8 +167,11 @@ Body: {self.current_email.get('body', '')}
             full_path = os.path.join(folder_path, email_file)
             return full_path
 
-        except Exception as e:
-            self.console.print(f"[bold red]Error browsing emails: {e}[/bold red]")
+        except (FileNotFoundError, OSError) as e:
+            self.console.print(f"[bold red]Error accessing file system: {e}[/bold red]")
+            return None
+        except ValueError as e:
+            self.console.print(f"[bold red]Value error: {e}[/bold red]")
             return None
 
     def generate_response(self, email_data: Dict[str, Any]) -> str:
@@ -234,7 +237,8 @@ Body: {self.current_email.get('body', '')}
             table.add_row("📝 Subject", subject)
             table.add_row(
                 "🏷️ Category",
-                f"{prediction['category']} (Confidence: {prediction['confidence']:.2%})",
+                f"{prediction['category']}"
+                "(Confidence: {prediction['confidence']:.2%})",
             )
             emotions_text = (
                 f"Polarity: {prediction['emotion']['polarity']:.2f}, "
@@ -246,7 +250,10 @@ Body: {self.current_email.get('body', '')}
             table.add_row("🎭 Emotional Tone", emotions_text)
 
             entities = self.extrator.extract_entities(email_data["body"])
-            entities_str = f"Names: {entities['names']}\nOrgs: {entities['orgs']}\nDates: {entities['dates']}"
+            entities_str = (
+                f"Names: {entities['names']}\nOrgs:"
+                "{entities['orgs']}\nDates: {entities['dates']}"
+            )
             table.add_row("🏷️ Entities", entities_str)
 
             # Add summary row
@@ -274,8 +281,13 @@ Body: {self.current_email.get('body', '')}
             self.current_email = email_data
             return email_data
 
-        except Exception as e:
-            self.console.print(f"[bold red]Error displaying email: {e}[/bold red]")
+        except (FileNotFoundError, OSError, email.errors.MessageParseError) as e:
+            # Handle specific exceptions related to file reading and email parsing
+            self.console.print(f"[bold red]Error reading email: {e}[/bold red]")
+            return None
+        except (KeyError, ValueError) as e:
+            # Handle specific exceptions for missing keys or invalid values
+            self.console.print(f"[bold red]Error processing email data: {e}[/bold red]")
             return None
 
     def user_stats(self):
@@ -349,12 +361,38 @@ Body: {self.current_email.get('body', '')}
                 )
             )
 
-        except subprocess.CalledProcessError:
-            pass
-        except Exception as e:
+        except FileNotFoundError as e:
+            # Handle file or folder not found
             self.console.print(
                 Panel.fit(
-                    Text(f"❌ Error in :user command: {e}", style="bold red"),
+                    Text(f"❌ File or folder not found: {e}", style="bold red"),
+                    border_style="red",
+                )
+            )
+
+        except OSError as e:
+            # Handle OS-related errors (e.g., permissions issues)
+            self.console.print(
+                Panel.fit(
+                    Text(f"❌ OS error: {e}", style="bold red"),
+                    border_style="red",
+                )
+            )
+
+        except subprocess.CalledProcessError as e:
+            # Handle subprocess-related errors
+            self.console.print(
+                Panel.fit(
+                    Text(f"❌ Subprocess error: {e}", style="bold red"),
+                    border_style="red",
+                )
+            )
+
+        except ValueError as e:
+            # Handle invalid values (e.g., if a value isn't what you expect)
+            self.console.print(
+                Panel.fit(
+                    Text(f"❌ Value error: {e}", style="bold red"),
                     border_style="red",
                 )
             )

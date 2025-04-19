@@ -1,9 +1,9 @@
+from app.ui.enron_shell import EnronMailShell
+
 import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
-from ui.enron_shell import EnronMailShell
 
 
 def main():
@@ -27,7 +27,8 @@ def main():
     if not os.path.exists(maildir_path):
         print(f"❌ Error: Enron dataset directory '{maildir_path}' not found.")
         print(
-            "Please download the Enron dataset by running './scripts/download_enron.sh' "
+            "Please download the Enron dataset by running:"
+            "'./scripts/download_enron.sh' "
             "or for Windows, 'download_enron.cmd'"
         )
         sys.exit(1)

@@ -1,3 +1,5 @@
+from app.services.emotion_enhancer import EmotionEnhancer
+
 import pandas as pd
 import numpy as np
 import re
@@ -10,7 +12,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report, confusion_matrix
-from textblob import TextBlob
 
 # Rich for beautiful console output
 from rich.console import Console
@@ -27,13 +28,9 @@ from rich.table import Table
 from rich import box
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-# Suppress NLTK download messages
 import logging
 
 logging.getLogger("nltk").setLevel(logging.ERROR)
-
-from app.services.emotion_enhancer import EmotionEnhancer
 
 
 class EnronEmailClassifier:
@@ -55,6 +52,7 @@ class EnronEmailClassifier:
         self.text_model = None
         self.numerical_model = None
         self.emotion_enhancer = EmotionEnhancer()
+        self.label_map = None
 
     def _rich_print(self, message, style="bold green"):
         """Print message with Rich formatting"""
@@ -95,10 +93,13 @@ class EnronEmailClassifier:
         return " ".join(cleaned_tokens)
 
     def load_enron_emails(self, enron_dir, max_emails=5000):
-        """Load and process emails from the Enron dataset using Rich progress tracking"""
+        """
+        Load and process emails from the Enron dataset,
+        using Rich progress tracking
+        """
         emails = []
         labels = []
-        processed_count = [0]  # A mutable counter to track processed emails
+        processed_count = [0]
 
         with Progress(
             SpinnerColumn(),
@@ -204,14 +205,17 @@ class EnronEmailClassifier:
                 # Compute the number of emails processed for this user
                 user_processed = processed_count[0] - user_start
 
-                # Create a descriptive message based on whether we processed all emails from the user
+                # Create a descriptive message
                 if user_processed < email_count:
                     description_msg = (
-                        f"[green]✅ Done processing {username} emails - max emails reached "
-                        f"({user_processed}/{email_count})"
+                        f"[green]✅ Done processing {username} emails - "
+                        f"max emails reached ({user_processed}/{email_count})"
                     )
                 else:
-                    description_msg = f"[green]✅ Done processing {username} emails ({user_processed}/{email_count})"
+                    description_msg = (
+                        f"[green]✅ Done processing {username}"
+                        "emails ({user_processed}/{email_count})"
+                    )
 
                 progress.update(
                     user_task,
@@ -223,7 +227,8 @@ class EnronEmailClassifier:
 
         if not emails:
             self._rich_print(
-                f"No emails were loaded from {enron_dir}. Check the directory structure.",
+                f"No emails were loaded from {enron_dir}."
+                "Check the directory structure.",
                 "bold red",
             )
             raise ValueError("No emails found in the specified directory.")
@@ -292,14 +297,13 @@ class EnronEmailClassifier:
                 subject = msg.get("Subject", "")
                 sender = msg.get("From", "")
                 date_str = msg.get("Date", "")
-                to = msg.get("To", "")
                 cc = msg.get("Cc", "")
                 num_recipients = 1
                 if cc:
                     num_recipients += cc.count("@")
                 try:
                     time_sent = pd.to_datetime(date_str)
-                except:
+                except ValueError:
                     time_sent = pd.Timestamp("2000-01-01")
                 body = self._extract_email_body(msg)
                 has_attachment = False
@@ -331,8 +335,14 @@ class EnronEmailClassifier:
                     assert progress is not None
                     progress.update(overall_task, completed=processed_count[0])
 
-            except Exception as e:
-                print(f"Error processing {file_path}: {e}")
+            except FileNotFoundError as e:
+                print(f"File not found: {file_path}. Error: {e}")
+            except ValueError as e:
+                print(f"Invalid value encountered in {file_path}. Error: {e}")
+            except TypeError as e:
+                print(f"Type error in processing {file_path}. Error: {e}")
+            except AttributeError as e:
+                print(f"Missing attribute in email from {file_path}. Error: {e}")
 
     def _extract_email_body(self, msg):
         """Extract the body text from an email message"""
@@ -381,24 +391,28 @@ class EnronEmailClassifier:
             col for col in required_columns if col not in email_data.columns
         ]
 
+        default_values = {
+            "body": "",
+            "subject": "",
+            "sender": "",
+            "has_attachment": False,
+            "num_recipients": 1,
+            "time_sent": pd.Timestamp("2000-01-01"),
+        }
+
         if missing_columns:
             print(f"Warning: Missing columns in email_data: {missing_columns}")
             for col in missing_columns:
-                if col in ["body", "subject", "sender"]:
-                    email_data[col] = ""
-                elif col == "has_attachment":
-                    email_data[col] = False
-                elif col == "num_recipients":
-                    email_data[col] = 1
-                elif col == "time_sent":
-                    email_data[col] = pd.Timestamp("2000-01-01")
+                # Set the column to its default value
+                if col in default_values:
+                    email_data[col] = default_values[col]
 
         # Preprocess email body
         features["cleaned_text"] = email_data["body"].apply(self.preprocess_text)
 
         # Apply the EmotionEnhancer to each email body
         emotion_results = email_data["body"].apply(
-            lambda text: self.emotion_enhancer.enhance_emotion_analysis(text)
+            self.emotion_enhancer.enhance_emotion_analysis
         )
 
         # Extract emotion metrics directly into separate columns
@@ -540,8 +554,8 @@ class EnronEmailClassifier:
             progress.update(train_task, description="[bold green]Preparing Labels...")
             unique_labels = np.unique(labels)
             n_classes = len(unique_labels)
-            label_map = {label: i for i, label in enumerate(unique_labels)}
-            mapped_labels = np.array([label_map[label] for label in labels])
+            train_label_map = {label: i for i, label in enumerate(unique_labels)}
+            mapped_labels = np.array([train_label_map[label] for label in labels])
             progress.advance(train_task)
 
             # Update Categories
@@ -594,7 +608,7 @@ class EnronEmailClassifier:
             # Store models
             self.text_model = text_pipeline
             self.numerical_model = numerical_classifier
-            self.label_map = label_map
+            self.label_map = train_label_map
             progress.advance(train_task)
 
             # Evaluate Models
@@ -685,16 +699,18 @@ class EnronEmailClassifier:
 
         return self
 
-    def predict(self, email):
+    def predict(self, message):
         """Predict the category of a new email"""
         if self.text_model is None or self.numerical_model is None:
-            raise Exception("Model not trained yet. Please train the model first.")
-
+            raise ValueError(
+                "Model not trained yet."
+                "Please train both the text and numerical models before use."
+            )
         # Convert single email to DataFrame format
-        if isinstance(email, dict):
-            email_df = pd.DataFrame([email])
+        if isinstance(message, dict):
+            email_df = pd.DataFrame([message])
         else:
-            email_df = email
+            email_df = message
 
         # Extract features
         features = self.extract_features(email_df)
