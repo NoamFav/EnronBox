@@ -47,7 +47,7 @@ class EmailSummarizer:
             r"X-Folder:.*|X-Origin:.*|X-FileName:.*", "", email_text, flags=re.MULTILINE
         )
 
-        # Remove email forwarding/reply metadata (quoted text, "---Original Message---", etc.)
+        # Remove email forwarding/reply metadata
         email_text = re.sub(
             r"(-{2,}|={2,})\s*(Original Message|Forwarded by).*",
             "",

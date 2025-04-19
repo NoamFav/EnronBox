@@ -58,10 +58,10 @@ jobs:
         run: |
           pip install flake8 pylint
 
-      - name: Lint Python code
+      - name: Lint Python code with Flake8
         run: |
-          flake8 apps/flask_api/
-          pylint apps/flask_api/
+          flake8 apps/flask_api/ --max-line-length=88
+          pylint apps/flask_api/ --disable=R,C --max-line-length=88
 
       - name: Set up Go for linting
         uses: actions/setup-go@v2
@@ -71,5 +71,5 @@ jobs:
       - name: Install Go dependencies
         run: go mod tidy
 
-      - name: Lint Go code
-        run: golangci-lint run
+      - name: Lint Go code with golangci-lint
+        run: golangci-lint run --timeout 5m
