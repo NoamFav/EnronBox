@@ -2,6 +2,7 @@ import spacy
 
 nlp = spacy.load("en_core_web_sm")
 
+
 class Extractor:
     def extract_entities(self, body: str) -> dict:
         email = nlp(body)
@@ -18,8 +19,4 @@ class Extractor:
             elif ent.label_ == "DATE":
                 dates.append(ent.text)
 
-        return {
-            "names": names,
-            "orgs": orgs,
-            "dates": dates
-        }
+        return {"names": names, "orgs": orgs, "dates": dates}
