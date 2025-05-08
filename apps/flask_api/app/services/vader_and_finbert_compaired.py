@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from emotion_enhancer import EmotionEnhancer  # Your existing enhancement module
-
+import time
 # Initialize Emotion Enhancer and VADER
 enhancer = EmotionEnhancer()
 vader = SentimentIntensityAnalyzer()
@@ -142,8 +142,32 @@ def analyze_results():
     plt.tight_layout()
     plt.show()
 
+def benchmark_models(texts):
+    print("\n=== Timing Benchmark ===")
+
+    # Time VADER
+    start_vader = time.time()
+    for text in texts:
+        vader.polarity_scores(text)  # only base VADER
+    end_vader = time.time()
+    vader_time = end_vader - start_vader
+    print(f"VADER total time for {len(texts)} texts: {vader_time:.4f} seconds")
+
+    # Time FinBERT
+    start_finbert = time.time()
+    for text in texts:
+        finbert_sentiment(text)
+    end_finbert = time.time()
+    finbert_time = end_finbert - start_finbert
+    print(f"FinBERT total time for {len(texts)} texts: {finbert_time:.4f} seconds")
+
+    # Summary
+    print(f"\nAverage time per text:")
+    print(f"  - VADER:   {vader_time / len(texts):.4f} seconds/text")
+    print(f"  - FinBERT: {finbert_time / len(texts):.4f} seconds/text")
 
 # Run comparison and analysis
 if __name__ == "__main__":
     compare_models(texts)
     analyze_results()
+    benchmark_models(texts)
