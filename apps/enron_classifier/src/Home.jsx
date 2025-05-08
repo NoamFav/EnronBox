@@ -27,14 +27,13 @@ import {
   Calendar,
   RefreshCcw,
   Folder,
-  Check,
-  ExternalLink,
   Eye,
   Printer,
-  Pin,
   Download,
   Mail,
   AlertTriangle,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import UserSelector from './UserSelector';
 
@@ -73,6 +72,23 @@ const Home = () => {
     { id: 1, name: 'Projects', icon: 'Folder' },
     { id: 2, name: 'Newsletters', icon: 'Mail' },
   ]);
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode === 'true' || false;
+  });
+
+  // Apply dark mode when it changes
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('darkMode', darkMode);
+  }, [darkMode]);
+
+  // Toggle dark mode function
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    displayToast(darkMode ? 'Light mode enabled' : 'Dark mode enabled');
+  };
 
   // Fetch folders when user changes
   useEffect(() => {
@@ -345,7 +361,7 @@ const Home = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className={`flex h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
       {/* Toast Notification */}
       {showToast && (
         <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50 animate-fade-in-down">
@@ -358,11 +374,17 @@ const Home = () => {
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
-          <div className="p-4 flex items-center justify-between border-b border-gray-200">
-            <h1 className="text-xl font-bold text-blue-600">EnronBox</h1>
+        <div
+          className={`w-64 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm`}
+        >
+          <div
+            className={`p-4 flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
+          >
+            <h1 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+              EnronBox
+            </h1>
             <button
-              className="text-gray-500 hover:text-gray-700"
+              className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
               onClick={() => setShowSidebar(false)}
             >
               <ChevronRight size={20} />
@@ -370,12 +392,16 @@ const Home = () => {
           </div>
 
           {/* User Selector */}
-          <div className="px-4 py-3 bg-blue-50">
-            <UserSelector onSelectUser={handleSelectUser} currentUser={currentUser} />
+          <div className={`px-4 py-3 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
+            <UserSelector
+              onSelectUser={handleSelectUser}
+              currentUser={currentUser}
+              darkMode={darkMode}
+            />
           </div>
 
           <button
-            className="mx-4 my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150"
+            className={`mx-4 my-3 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150`}
             onClick={composeNewEmail}
           >
             <Mail size={16} className="mr-2" />
@@ -383,16 +409,20 @@ const Home = () => {
           </button>
 
           <nav className="mt-2 flex-1 overflow-y-auto">
-            <p className="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <p
+              className={`px-4 py-1 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+            >
               Main
             </p>
             <ul>
               {folders.map((folder) => (
                 <li
                   key={folder}
-                  className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors ${
-                    activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
-                  }`}
+                  className={`flex items-center px-4 py-2 cursor-pointer ${
+                    darkMode
+                      ? `hover:bg-gray-700 ${activeFolder === folder ? 'bg-gray-700 text-blue-400' : 'text-gray-300'}`
+                      : `hover:bg-gray-100 ${activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`
+                  } transition-colors`}
                   onClick={() => handleSelectFolder(folder)}
                 >
                   {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
@@ -415,10 +445,14 @@ const Home = () => {
             </ul>
 
             <div
-              className="flex items-center justify-between px-4 py-1 mt-3 cursor-pointer hover:bg-gray-100"
+              className={`flex items-center justify-between px-4 py-1 mt-3 cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
               onClick={() => setShowLabels(!showLabels)}
             >
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Labels</p>
+              <p
+                className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+              >
+                Labels
+              </p>
               {showLabels ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </div>
 
@@ -427,51 +461,65 @@ const Home = () => {
                 {labels.map((label) => (
                   <li
                     key={label.id}
-                    className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-gray-700"
+                    className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
                   >
                     <div className={`w-3 h-3 rounded-full bg-${label.color}-500 mr-3`}></div>
                     <span className="text-sm">{label.name}</span>
                   </li>
                 ))}
-                <li className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-blue-500">
+                <li
+                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'}`}
+                >
                   <Tag size={14} className="mr-3" />
                   <span className="text-sm">Manage labels</span>
                 </li>
               </ul>
             )}
 
-            <p className="px-4 py-1 mt-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <p
+              className={`px-4 py-1 mt-3 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+            >
               Folders
             </p>
             <ul>
               {customFolders.map((folder) => (
                 <li
                   key={folder.id}
-                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-gray-700"
+                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
                 >
                   <Folder size={18} className="mr-3" />
                   <span className="text-sm">{folder.name}</span>
                 </li>
               ))}
-              <li className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-blue-500">
+              <li
+                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'}`}
+              >
                 <Folder size={14} className="mr-3" />
                 <span className="text-sm">Create new folder</span>
               </li>
             </ul>
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
+          <div
+            className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-t`}
+          >
             <div className="flex items-center">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
                 <User size={16} />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium">{currentUser?.username || 'No User'}</p>
-                <p className="text-xs text-gray-500">
+                <p
+                  className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}
+                >
+                  {currentUser?.username || 'No User'}
+                </p>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {currentUser ? `${currentUser.username}@enron.com` : ''}
                 </p>
               </div>
-              <button className="ml-auto text-gray-500 hover:text-gray-700">
+              <button
+                className={`ml-auto ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+              >
                 <Settings size={16} />
               </button>
             </div>
@@ -481,43 +529,65 @@ const Home = () => {
 
       {/* Collapsed sidebar toggle */}
       {!showSidebar && (
-        <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+        <div
+          className={`w-12 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col items-center py-4`}
+        >
           <button
-            className="w-8 h-8 mb-4 flex items-center justify-center text-gray-600 hover:text-blue-500"
+            className={`w-8 h-8 mb-4 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
             onClick={() => setShowSidebar(true)}
           >
             <Menu size={20} />
           </button>
-          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+          <button
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+          >
             <Inbox size={20} />
           </button>
-          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+          <button
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+          >
             <Send size={20} />
           </button>
-          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+          <button
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+          >
             <Star size={20} />
           </button>
-          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+          <button
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+          >
             <Trash size={20} />
           </button>
         </div>
       )}
 
       {/* Email List */}
-      <div className="w-1/3 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
+      <div
+        className={`w-1/3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r overflow-hidden flex flex-col`}
+      >
+        <div
+          className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-b flex items-center justify-between`}
+        >
           <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search emails..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full pl-10 pr-4 py-2 ${
+                darkMode
+                  ? 'bg-gray-700 border-gray-600 text-gray-200 focus:ring-blue-400 placeholder-gray-400'
+                  : 'bg-white border-gray-300 focus:ring-blue-500'
+              } border rounded-lg focus:outline-none focus:ring-2`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           </div>
           <button
-            className="ml-2 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full"
+            className={`ml-2 p-2 ${
+              darkMode
+                ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
+                : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
+            } rounded-full`}
             onClick={refreshEmails}
           >
             <RefreshCcw size={18} />
@@ -525,27 +595,49 @@ const Home = () => {
         </div>
 
         {/* Filter bar */}
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center text-sm">
+        <div
+          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b flex items-center text-sm`}
+        >
           <div className="flex items-center">
-            <Filter size={14} className="text-gray-500 mr-2" />
-            <span className="mr-4">Filter:</span>
+            <Filter size={14} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+            <span className={`mr-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filter:</span>
           </div>
           <button
-            className={`mr-3 px-2 py-0.5 rounded ${filterOptions.unreadOnly ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+            className={`mr-3 px-2 py-0.5 rounded ${
+              filterOptions.unreadOnly
+                ? darkMode
+                  ? 'bg-blue-800 text-blue-200'
+                  : 'bg-blue-100 text-blue-600'
+                : darkMode
+                  ? 'text-gray-300'
+                  : 'text-gray-600'
+            }`}
             onClick={() => toggleFilterOption('unreadOnly')}
           >
             Unread
           </button>
           <button
-            className={`mr-3 px-2 py-0.5 rounded ${filterOptions.hasAttachments ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+            className={`mr-3 px-2 py-0.5 rounded ${
+              filterOptions.hasAttachments
+                ? darkMode
+                  ? 'bg-blue-800 text-blue-200'
+                  : 'bg-blue-100 text-blue-600'
+                : darkMode
+                  ? 'text-gray-300'
+                  : 'text-gray-600'
+            }`}
             onClick={() => toggleFilterOption('hasAttachments')}
           >
             Attachments
           </button>
           <div className="ml-auto flex items-center">
-            <span className="mr-1">Sort:</span>
+            <span className={darkMode ? 'text-gray-300 mr-1' : 'text-gray-600 mr-1'}>Sort:</span>
             <select
-              className="bg-transparent border-none text-gray-600 focus:outline-none text-sm"
+              className={`${
+                darkMode
+                  ? 'bg-transparent border-none text-gray-300'
+                  : 'bg-transparent border-none text-gray-600'
+              } focus:outline-none text-sm`}
               value={filterOptions.sortBy}
               onChange={(e) => setSort(e.target.value)}
             >
@@ -560,14 +652,18 @@ const Home = () => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div
+                className={`animate-spin rounded-full h-8 w-8 border-b-2 ${darkMode ? 'border-blue-400' : 'border-blue-500'}`}
+              ></div>
             </div>
           ) : emails.length === 0 ? (
             <div className="flex flex-col justify-center items-center p-8 h-full">
-              <Mail size={48} className="text-gray-300" />
-              <p className="text-gray-500 mt-4">No emails in this folder</p>
+              <Mail size={48} className={darkMode ? 'text-gray-600' : 'text-gray-300'} />
+              <p className={darkMode ? 'text-gray-400 mt-4' : 'text-gray-500 mt-4'}>
+                No emails in this folder
+              </p>
               <button
-                className="mt-2 text-blue-500 text-sm hover:underline"
+                className={`mt-2 text-sm hover:underline ${darkMode ? 'text-blue-400' : 'text-blue-500'}`}
                 onClick={refreshEmails}
               >
                 Refresh
@@ -578,9 +674,16 @@ const Home = () => {
               {emails.map((email) => (
                 <div
                   key={email.id}
-                  className={`px-4 py-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors relative
-                    ${!email.read ? 'bg-blue-50' : ''} 
-                    ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`}
+                  className={`px-4 py-3 cursor-pointer transition-colors relative
+                ${
+                  darkMode
+                    ? `border-b border-gray-700 hover:bg-gray-700 
+                     ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''} 
+                     ${selectedEmail?.id === email.id ? 'bg-gray-700' : ''}`
+                    : `border-b border-gray-200 hover:bg-gray-50
+                     ${!email.read ? 'bg-blue-50' : ''} 
+                     ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`
+                }`}
                   onClick={() => handleEmailClick(email)}
                 >
                   {/* Priority indicator */}
@@ -591,24 +694,28 @@ const Home = () => {
                   <div className="flex items-center mb-1.5">
                     <div className="flex space-x-2 items-center">
                       <button
-                        className={`text-gray-400 hover:text-yellow-400 transition-colors ${email.starred ? 'text-yellow-400' : ''}`}
+                        className={`hover:text-yellow-400 transition-colors ${email.starred ? 'text-yellow-400' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                         onClick={(e) => toggleStarred(email.id, e)}
                       >
                         <Star size={16} fill={email.starred ? 'currentColor' : 'none'} />
                       </button>
                       <button
-                        className={`text-gray-400 hover:text-red-500 transition-colors ${email.flagged ? 'text-red-500' : ''}`}
+                        className={`hover:text-red-500 transition-colors ${email.flagged ? 'text-red-500' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                         onClick={(e) => toggleFlag(email.id, e)}
                       >
                         <Flag size={16} fill={email.flagged ? 'currentColor' : 'none'} />
                       </button>
                     </div>
 
-                    <span className={`ml-2 font-medium ${!email.read ? 'font-semibold' : ''}`}>
+                    <span
+                      className={`ml-2 font-medium ${darkMode ? 'text-gray-200' : ''} ${!email.read ? 'font-semibold' : ''}`}
+                    >
                       {email.sender || 'Unknown'}
                     </span>
 
-                    <span className="ml-auto text-xs text-gray-500 flex items-center">
+                    <span
+                      className={`ml-auto text-xs flex items-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                    >
                       {email.time}
                       {email.priority === 'high' && (
                         <AlertCircle size={12} className="ml-1 text-red-500" />
@@ -617,14 +724,20 @@ const Home = () => {
                   </div>
 
                   <div className="flex items-center">
-                    <h3 className={`text-sm ${!email.read ? 'font-semibold' : ''}`}>
+                    <h3
+                      className={`text-sm ${darkMode ? 'text-gray-300' : ''} ${!email.read ? 'font-semibold' : ''}`}
+                    >
                       {email.subject}
                     </h3>
                   </div>
 
                   {/* Email preview */}
                   <div className="flex items-start mt-1">
-                    <p className="text-xs text-gray-500 truncate flex-1">{email.content}</p>
+                    <p
+                      className={`text-xs truncate flex-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                    >
+                      {email.content}
+                    </p>
 
                     <div className="flex items-center space-x-1 ml-2">
                       {/* Label indicators */}
@@ -640,28 +753,51 @@ const Home = () => {
                       })}
 
                       {/* Attachment indicator */}
-                      {email.hasAttachments && <Paperclip size={14} className="text-gray-400" />}
+                      {email.hasAttachments && (
+                        <Paperclip
+                          size={14}
+                          className={darkMode ? 'text-gray-500' : 'text-gray-400'}
+                        />
+                      )}
                     </div>
                   </div>
 
                   {/* Email actions - visible on hover */}
-                  <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end px-2 bg-gradient-to-l from-white via-white to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                  <div
+                    className={`absolute right-0 top-0 bottom-0 flex items-center justify-end px-2 opacity-0 hover:opacity-100 transition-opacity ${
+                      darkMode
+                        ? 'bg-gradient-to-l from-gray-800 via-gray-800 to-transparent'
+                        : 'bg-gradient-to-l from-white via-white to-transparent'
+                    }`}
+                  >
                     <button
-                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      className={`p-1.5 rounded ${
+                        darkMode
+                          ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
+                          : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
+                      }`}
                       onClick={(e) => archiveEmail(email.id, e)}
                       title="Archive"
                     >
                       <Archive size={14} />
                     </button>
                     <button
-                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      className={`p-1.5 rounded ${
+                        darkMode
+                          ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
+                          : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
+                      }`}
                       onClick={(e) => deleteEmail(email.id, e)}
                       title="Delete"
                     >
                       <Trash size={14} />
                     </button>
                     <button
-                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      className={`p-1.5 rounded ${
+                        darkMode
+                          ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
+                          : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
+                      }`}
                       onClick={(e) => markAsUnread(email.id, e)}
                       title="Mark as unread"
                     >
@@ -675,14 +811,16 @@ const Home = () => {
         </div>
 
         {/* Status bar */}
-        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center">
+        <div
+          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-500'} border-t text-xs flex items-center`}
+        >
           <span>
             {emails.length} email{emails.length !== 1 ? 's' : ''}
           </span>
           <span className="mx-2">•</span>
           <span>{unreadCount} unread</span>
           <button
-            className="ml-auto flex items-center text-gray-500 hover:text-blue-500"
+            className={`ml-auto flex items-center ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-500'}`}
             onClick={refreshEmails}
           >
             <RefreshCcw size={12} className="mr-1" />
@@ -692,20 +830,28 @@ const Home = () => {
       </div>
 
       {/* Email Content */}
-      <div className="flex-1 bg-white flex flex-col">
+      <div className={`flex-1 ${darkMode ? 'bg-gray-800' : 'bg-white'} flex flex-col`}>
         {selectedEmail ? (
           <>
             {/* Email header */}
-            <div className="p-6 border-b border-gray-200 bg-white">
+            <div
+              className={`p-6 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}
+            >
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xl font-bold">{selectedEmail.subject}</h2>
+                <h2 className={`text-xl font-bold ${darkMode ? 'text-gray-100' : ''}`}>
+                  {selectedEmail.subject}
+                </h2>
                 <div className="flex items-center space-x-1">
                   {selectedEmail.labels.map((labelId) => {
                     const label = getLabelById(labelId);
                     return label ? (
                       <span
                         key={labelId}
-                        className={`px-2 py-0.5 text-xs font-medium rounded bg-${label.color}-100 text-${label.color}-800`}
+                        className={`px-2 py-0.5 text-xs font-medium rounded ${
+                          darkMode
+                            ? `bg-${label.color}-900 text-${label.color}-200`
+                            : `bg-${label.color}-100 text-${label.color}-800`
+                        }`}
                       >
                         {label.name}
                       </span>
@@ -714,33 +860,57 @@ const Home = () => {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                <div
+                  className={`w-10 h-10 ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded-full flex items-center justify-center font-semibold`}
+                >
                   {(selectedEmail.sender || 'U')[0].toUpperCase()}
                 </div>
                 <div className="ml-3">
                   <div className="flex items-center">
-                    <p className="font-medium">{selectedEmail.sender || 'Unknown'}</p>
-                    <span className="mx-2 text-gray-400">•</span>
-                    <p className="text-sm text-gray-500">{selectedEmail.time}</p>
+                    <p className={`font-medium ${darkMode ? 'text-gray-200' : ''}`}>
+                      {selectedEmail.sender || 'Unknown'}
+                    </p>
+                    <span className={`mx-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      •
+                    </span>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {selectedEmail.time}
+                    </p>
                     {selectedEmail.priority === 'high' && (
-                      <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-full flex items-center">
+                      <span
+                        className={`ml-2 px-2 py-0.5 ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'} text-xs font-medium rounded-full flex items-center`}
+                      >
                         <AlertCircle size={12} className="mr-1" />
                         High Priority
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">to me</p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
+                    to me
+                  </p>
                 </div>
                 <div className="ml-auto flex items-center space-x-1">
                   <button
-                    className={`p-1.5 rounded-full ${selectedEmail.starred ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
+                    className={`p-1.5 rounded-full ${
+                      selectedEmail.starred
+                        ? 'text-yellow-400'
+                        : darkMode
+                          ? 'text-gray-500 hover:text-yellow-400'
+                          : 'text-gray-400 hover:text-yellow-400'
+                    }`}
                     onClick={(e) => toggleStarred(selectedEmail.id, e)}
                     title={selectedEmail.starred ? 'Unstar' : 'Star'}
                   >
                     <Star size={18} fill={selectedEmail.starred ? 'currentColor' : 'none'} />
                   </button>
                   <button
-                    className={`p-1.5 rounded-full ${selectedEmail.flagged ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                    className={`p-1.5 rounded-full ${
+                      selectedEmail.flagged
+                        ? 'text-red-500'
+                        : darkMode
+                          ? 'text-gray-500 hover:text-red-500'
+                          : 'text-gray-400 hover:text-red-500'
+                    }`}
                     onClick={(e) => toggleFlag(selectedEmail.id, e)}
                     title={selectedEmail.flagged ? 'Remove flag' : 'Flag'}
                   >
@@ -754,38 +924,67 @@ const Home = () => {
             <div className="flex-1 overflow-y-auto p-6">
               {/* Email body */}
               <div className="py-4 whitespace-pre-line mb-4">
-                <p className="text-gray-800">{selectedEmail.content}</p>
-                <p className="mt-6 text-gray-800">Best regards,</p>
-                <p className="text-gray-800">{selectedEmail.sender || 'Unknown'}</p>
+                <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>
+                  {selectedEmail.content}
+                </p>
+                <p className={`mt-6 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                  Best regards,
+                </p>
+                <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>
+                  {selectedEmail.sender || 'Unknown'}
+                </p>
               </div>
 
               {/* Attachments section */}
               {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
-                <div className="mt-6 border-t border-gray-200 pt-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                <div
+                  className={`mt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}
+                >
+                  <h3
+                    className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}
+                  >
                     Attachments ({selectedEmail.attachments.length})
                   </h3>
                   <div className="flex flex-wrap gap-3">
                     {selectedEmail.attachments.map((attachment, index) => (
                       <div
                         key={index}
-                        className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className={`flex items-center p-3 border rounded-lg ${
+                          darkMode
+                            ? 'border-gray-700 bg-gray-700 hover:bg-gray-600'
+                            : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                        } transition-colors`}
                       >
                         {attachment.type === 'pdf' && (
-                          <div className="w-8 h-8 bg-red-100 text-red-500 rounded flex items-center justify-center mr-3">
+                          <div
+                            className={`w-8 h-8 rounded flex items-center justify-center mr-3 ${
+                              darkMode ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-500'
+                            }`}
+                          >
                             <File size={16} />
                           </div>
                         )}
                         {attachment.type === 'image' && (
-                          <div className="w-8 h-8 bg-blue-100 text-blue-500 rounded flex items-center justify-center mr-3">
+                          <div
+                            className={`w-8 h-8 rounded flex items-center justify-center mr-3 ${
+                              darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-500'
+                            }`}
+                          >
                             <File size={16} />
                           </div>
                         )}
                         <div>
-                          <p className="text-sm font-medium">{attachment.name}</p>
-                          <p className="text-xs text-gray-500">{attachment.size}</p>
+                          <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : ''}`}>
+                            {attachment.name}
+                          </p>
+                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {attachment.size}
+                          </p>
                         </div>
-                        <button className="ml-4 text-gray-500 hover:text-blue-500" title="Download">
+                        <button
+                          className={`ml-4 ${darkMode ? 'text-gray-400 hover:text-blue-300' : 'text-gray-500 hover:text-blue-500'}`}
+                          title="Download"
+                        >
                           <Download size={14} />
                         </button>
                       </div>
@@ -796,7 +995,9 @@ const Home = () => {
             </div>
 
             {/* Email actions footer */}
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex">
+            <div
+              className={`p-4 border-t ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-gray-50'} flex`}
+            >
               <div className="flex space-x-2">
                 <button
                   className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center shadow-sm transition-colors"
@@ -806,14 +1007,22 @@ const Home = () => {
                   Reply
                 </button>
                 <button
-                  className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg flex items-center transition-colors"
+                  className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+                    darkMode
+                      ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
+                      : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                  }`}
                   onClick={forwardEmail}
                 >
                   <Forward size={16} className="mr-2" />
                   Forward
                 </button>
                 <button
-                  className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg flex items-center transition-colors"
+                  className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+                    darkMode
+                      ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
+                      : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                  }`}
                   onClick={() => deleteEmail(selectedEmail.id, {})}
                 >
                   <Trash size={16} className="mr-2" />
@@ -823,14 +1032,22 @@ const Home = () => {
 
               <div className="ml-auto flex items-center space-x-2">
                 <button
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+                  className={`p-2 rounded ${
+                    darkMode
+                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                  }`}
                   onClick={printEmail}
                   title="Print"
                 >
                   <Printer size={16} />
                 </button>
                 <button
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+                  className={`p-2 rounded ${
+                    darkMode
+                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                  }`}
                   title="More actions"
                 >
                   <MoreHorizontal size={16} />
@@ -839,10 +1056,14 @@ const Home = () => {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <div
+            className={`flex flex-col items-center justify-center h-full ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+          >
             <Mail size={64} strokeWidth={1} />
-            <p className="mt-4 text-lg">Select an email to read</p>
-            <p className="text-sm text-gray-400 mt-2">
+            <p className={`mt-4 text-lg ${darkMode ? 'text-gray-300' : ''}`}>
+              Select an email to read
+            </p>
+            <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-2`}>
               {activeFolder === 'inbox'
                 ? 'Your inbox is organized and ready for you'
                 : `Viewing your ${activeFolder} folder`}
@@ -852,7 +1073,9 @@ const Home = () => {
       </div>
 
       {/* Notification Panel */}
-      <div className="w-16 bg-gray-800 flex flex-col items-center py-6">
+      <div
+        className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6`}
+      >
         <div className="relative">
           <button
             className="w-10 h-10 mb-6 text-gray-400 hover:text-white flex items-center justify-center"
@@ -875,6 +1098,13 @@ const Home = () => {
         <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
           <Bookmark size={20} />
         </button>
+        <button
+          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center"
+          onClick={toggleDarkMode}
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
         <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center">
           <Settings size={20} />
         </button>
@@ -888,18 +1118,22 @@ const Home = () => {
 
       {/* Notifications panel */}
       {showNotifications && (
-        <div className="absolute right-16 top-0 w-72 bg-white shadow-lg rounded-lg mt-4 mr-4 z-10 border border-gray-200">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-medium">Notifications</h3>
+        <div
+          className={`absolute right-16 top-0 w-72 ${darkMode ? 'bg-gray-800 shadow-xl border-gray-700' : 'bg-white shadow-lg border-gray-200'} rounded-lg mt-4 mr-4 z-10 border`}
+        >
+          <div
+            className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}
+          >
+            <h3 className={`font-medium ${darkMode ? 'text-gray-200' : ''}`}>Notifications</h3>
             <div className="flex items-center">
               <button
-                className="text-sm text-blue-500 hover:text-blue-700"
+                className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'}`}
                 onClick={markAllNotificationsRead}
               >
                 Mark all read
               </button>
               <button
-                className="ml-2 text-gray-400 hover:text-gray-600"
+                className={`ml-2 ${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                 onClick={() => setShowNotifications(false)}
               >
                 <X size={16} />
@@ -908,34 +1142,60 @@ const Home = () => {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <p>No notifications</p>
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}
+                  className={`p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'} ${
+                    darkMode
+                      ? !notification.read
+                        ? 'bg-blue-900 bg-opacity-20 hover:bg-gray-700'
+                        : 'hover:bg-gray-700'
+                      : !notification.read
+                        ? 'bg-blue-50 hover:bg-gray-50'
+                        : 'hover:bg-gray-50'
+                  }`}
                 >
                   <div className="flex">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${!notification.read ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 text-gray-500'}`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        !notification.read
+                          ? darkMode
+                            ? 'bg-blue-900 text-blue-300'
+                            : 'bg-blue-100 text-blue-500'
+                          : darkMode
+                            ? 'bg-gray-700 text-gray-400'
+                            : 'bg-gray-100 text-gray-500'
+                      }`}
                     >
                       <AlertTriangle size={16} />
                     </div>
                     <div className="ml-3">
-                      <p className={`text-sm ${!notification.read ? 'font-medium' : ''}`}>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? 'text-gray-300' : ''
+                        } ${!notification.read ? 'font-medium' : ''}`}
+                      >
                         {notification.text}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+                      <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
+                        2 hours ago
+                      </p>
                     </div>
                   </div>
                 </div>
               ))
             )}
           </div>
-          <div className="p-3 border-t border-gray-200 text-center">
-            <button className="text-sm text-blue-500 hover:text-blue-700">
+          <div
+            className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} text-center`}
+          >
+            <button
+              className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'}`}
+            >
               View all notifications
             </button>
           </div>
@@ -944,5 +1204,4 @@ const Home = () => {
     </div>
   );
 };
-
 export default Home;
