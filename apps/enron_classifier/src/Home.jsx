@@ -1,5 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Inbox, Send, Star, Trash, File, Menu, Search, Settings, Bell, User } from 'lucide-react';
+import {
+  Inbox,
+  Send,
+  Star,
+  Trash,
+  File,
+  Menu,
+  Search,
+  Settings,
+  Bell,
+  User,
+  Archive,
+  Clock,
+  Tag,
+  Bookmark,
+  Filter,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Reply,
+  Forward,
+  Flag,
+  AlertCircle,
+  Paperclip,
+  MoreHorizontal,
+  Calendar,
+  RefreshCcw,
+  Folder,
+  Check,
+  ExternalLink,
+  Eye,
+  Printer,
+  Pin,
+  Download,
+  Mail,
+  AlertTriangle,
+} from 'lucide-react';
 import UserSelector from './UserSelector';
 
 const Home = () => {
@@ -10,12 +46,40 @@ const Home = () => {
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [activeFolder, setActiveFolder] = useState('inbox');
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: 'New settings update available', read: false },
+    { id: 2, text: 'Storage limit reached 80%', read: false },
+    { id: 3, text: '2 new email drafts saved', read: true },
+  ]);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [viewMode, setViewMode] = useState('default');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showLabels, setShowLabels] = useState(false);
+  const [labels, setLabels] = useState([
+    { id: 1, name: 'Important', color: 'red' },
+    { id: 2, name: 'Work', color: 'blue' },
+    { id: 3, name: 'Personal', color: 'green' },
+    { id: 4, name: 'Finance', color: 'purple' },
+  ]);
+  const [filterOptions, setFilterOptions] = useState({
+    unreadOnly: false,
+    hasAttachments: false,
+    sortBy: 'date', // 'date', 'sender', 'subject'
+  });
+  const [customFolders, setCustomFolders] = useState([
+    { id: 1, name: 'Projects', icon: 'Folder' },
+    { id: 2, name: 'Newsletters', icon: 'Mail' },
+  ]);
 
   // Fetch folders when user changes
   useEffect(() => {
     if (currentUser) {
       fetchFolders(currentUser.username);
       setSelectedEmail(null);
+      displayToast(`Loaded mailbox for ${currentUser.username}`);
     }
   }, [currentUser]);
 
@@ -24,7 +88,7 @@ const Home = () => {
     if (currentUser && activeFolder) {
       fetchEmails(currentUser.username, activeFolder);
     }
-  }, [currentUser, activeFolder]);
+  }, [currentUser, activeFolder, filterOptions]);
 
   const fetchFolders = async (username) => {
     try {
@@ -39,6 +103,7 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching folders:', error);
+      displayToast('Failed to load folders', 'error');
     }
   };
 
@@ -59,13 +124,59 @@ const Home = () => {
           read: Math.random() > 0.5, // Mock read status since it's not in the DB
           starred: Math.random() > 0.7, // Mock starred status
           time: formatDate(email.date),
+          hasAttachments: Math.random() > 0.7, // Mock attachment status
+          priority: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'normal',
+          labels: Math.random() > 0.7 ? [Math.floor(Math.random() * 4) + 1] : [],
+          flagged: Math.random() > 0.85,
+          attachments:
+            Math.random() > 0.7
+              ? [
+                  { name: 'document.pdf', size: '2.4 MB', type: 'pdf' },
+                  { name: 'image.jpg', size: '1.1 MB', type: 'image' },
+                ]
+              : [],
         }));
-        setEmails(formattedEmails);
+
+        // Apply filters
+        let filteredEmails = formattedEmails;
+
+        if (filterOptions.unreadOnly) {
+          filteredEmails = filteredEmails.filter((email) => !email.read);
+        }
+
+        if (filterOptions.hasAttachments) {
+          filteredEmails = filteredEmails.filter((email) => email.hasAttachments);
+        }
+
+        // Apply sorting
+        switch (filterOptions.sortBy) {
+          case 'sender':
+            filteredEmails.sort((a, b) => a.sender.localeCompare(b.sender));
+            break;
+          case 'subject':
+            filteredEmails.sort((a, b) => a.subject.localeCompare(b.subject));
+            break;
+          case 'date':
+          default:
+            // Assume already sorted by date from API
+            break;
+        }
+
+        setEmails(filteredEmails);
       }
     } catch (error) {
       console.error('Error fetching emails:', error);
+      displayToast('Failed to load emails', 'error');
     }
     setLoading(false);
+  };
+
+  const displayToast = (message, type = 'info') => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
   };
 
   // Format date for display
@@ -99,8 +210,58 @@ const Home = () => {
   const toggleStarred = (id, e) => {
     e.stopPropagation();
     setEmails(
-      emails.map((email) => (email.id === id ? { ...email, starred: !email.starred } : email))
+      emails.map((email) => {
+        if (email.id === id) {
+          displayToast(`Email ${!email.starred ? 'starred' : 'unstarred'}`);
+          return { ...email, starred: !email.starred };
+        }
+        return email;
+      })
     );
+  };
+
+  const toggleFlag = (id, e) => {
+    e.stopPropagation();
+    setEmails(
+      emails.map((email) => {
+        if (email.id === id) {
+          displayToast(`Email ${!email.flagged ? 'flagged' : 'unflagged'}`);
+          return { ...email, flagged: !email.flagged };
+        }
+        return email;
+      })
+    );
+  };
+
+  const markAsUnread = (id, e) => {
+    e.stopPropagation();
+    setEmails(
+      emails.map((email) => {
+        if (email.id === id) {
+          displayToast('Email marked as unread');
+          return { ...email, read: false };
+        }
+        return email;
+      })
+    );
+  };
+
+  const deleteEmail = (id, e) => {
+    e.stopPropagation();
+    setEmails(emails.filter((email) => email.id !== id));
+    if (selectedEmail && selectedEmail.id === id) {
+      setSelectedEmail(null);
+    }
+    displayToast('Email moved to trash');
+  };
+
+  const archiveEmail = (id, e) => {
+    e.stopPropagation();
+    setEmails(emails.filter((email) => email.id !== id));
+    if (selectedEmail && selectedEmail.id === id) {
+      setSelectedEmail(null);
+    }
+    displayToast('Email archived');
   };
 
   const handleSelectUser = (user) => {
@@ -113,209 +274,673 @@ const Home = () => {
     setSelectedEmail(null);
   };
 
+  const toggleFilterOption = (option) => {
+    setFilterOptions({
+      ...filterOptions,
+      [option]: !filterOptions[option],
+    });
+  };
+
+  const setSort = (sortOption) => {
+    setFilterOptions({
+      ...filterOptions,
+      sortBy: sortOption,
+    });
+  };
+
+  const addLabelToEmail = (emailId, labelId) => {
+    setEmails(
+      emails.map((email) => {
+        if (email.id === emailId) {
+          const newLabels = email.labels.includes(labelId)
+            ? email.labels.filter((id) => id !== labelId)
+            : [...email.labels, labelId];
+
+          const labelName = labels.find((l) => l.id === labelId)?.name;
+          displayToast(
+            `Label "${labelName}" ${email.labels.includes(labelId) ? 'removed' : 'added'}`
+          );
+
+          return { ...email, labels: newLabels };
+        }
+        return email;
+      })
+    );
+  };
+
+  // Helper to get label details by id
+  const getLabelById = (id) => {
+    return labels.find((label) => label.id === id) || null;
+  };
+
   // Count unread emails
   const unreadCount = emails.filter((email) => !email.read).length;
 
+  // Count unread notifications
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
+
+  const markAllNotificationsRead = () => {
+    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  };
+
+  const replyToEmail = () => {
+    displayToast('Reply window opened');
+  };
+
+  const forwardEmail = () => {
+    displayToast('Forward window opened');
+  };
+
+  const printEmail = () => {
+    displayToast('Preparing to print');
+  };
+
+  const refreshEmails = () => {
+    fetchEmails(currentUser.username, activeFolder);
+    displayToast('Refreshing emails');
+  };
+
+  const composeNewEmail = () => {
+    displayToast('New email composition window opened');
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-blue-600">EnronBox</h1>
-          <button className="text-gray-500">
-            <Menu size={20} />
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50 animate-fade-in-down">
+          <p>{toastMessage}</p>
+          <button className="ml-2" onClick={() => setShowToast(false)}>
+            <X size={14} />
           </button>
         </div>
+      )}
 
-        {/* User Selector */}
-        <div className="px-4 mb-4">
-          <UserSelector onSelectUser={handleSelectUser} currentUser={currentUser} />
-        </div>
-
-        <button className="mx-4 my-2 bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center justify-center">
-          <span>Compose</span>
-        </button>
-
-        <nav className="mt-6 flex-1 overflow-y-auto">
-          <ul>
-            {folders.map((folder) => (
-              <li
-                key={folder}
-                className={`flex items-center px-4 py-2 cursor-pointer ${
-                  activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
-                }`}
-                onClick={() => handleSelectFolder(folder)}
-              >
-                {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'sent' && <Send size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'starred' && <Star size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'drafts' && <File size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'trash' && <Trash size={18} className="mr-3" />}
-                {!['inbox', 'sent', 'starred', 'drafts', 'trash'].includes(
-                  folder.toLowerCase()
-                ) && <File size={18} className="mr-3" />}
-                <span>{folder}</span>
-                {folder.toLowerCase() === 'inbox' && unreadCount > 0 && (
-                  <span className="ml-auto bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-              <User size={16} />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{currentUser?.username || 'No User'}</p>
-              <p className="text-xs text-gray-500">
-                {currentUser ? `${currentUser.username}@enron.com` : ''}
-              </p>
-            </div>
-            <button className="ml-auto text-gray-500">
-              <Settings size={16} />
+      {/* Sidebar */}
+      {showSidebar && (
+        <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+          <div className="p-4 flex items-center justify-between border-b border-gray-200">
+            <h1 className="text-xl font-bold text-blue-600">EnronBox</h1>
+            <button
+              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setShowSidebar(false)}
+            >
+              <ChevronRight size={20} />
             </button>
           </div>
+
+          {/* User Selector */}
+          <div className="px-4 py-3 bg-blue-50">
+            <UserSelector onSelectUser={handleSelectUser} currentUser={currentUser} />
+          </div>
+
+          <button
+            className="mx-4 my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150"
+            onClick={composeNewEmail}
+          >
+            <Mail size={16} className="mr-2" />
+            <span>Compose</span>
+          </button>
+
+          <nav className="mt-2 flex-1 overflow-y-auto">
+            <p className="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Main
+            </p>
+            <ul>
+              {folders.map((folder) => (
+                <li
+                  key={folder}
+                  className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 transition-colors ${
+                    activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                  }`}
+                  onClick={() => handleSelectFolder(folder)}
+                >
+                  {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
+                  {folder.toLowerCase() === 'sent' && <Send size={18} className="mr-3" />}
+                  {folder.toLowerCase() === 'starred' && <Star size={18} className="mr-3" />}
+                  {folder.toLowerCase() === 'drafts' && <File size={18} className="mr-3" />}
+                  {folder.toLowerCase() === 'trash' && <Trash size={18} className="mr-3" />}
+                  {folder.toLowerCase() === 'archive' && <Archive size={18} className="mr-3" />}
+                  {!['inbox', 'sent', 'starred', 'drafts', 'trash', 'archive'].includes(
+                    folder.toLowerCase()
+                  ) && <File size={18} className="mr-3" />}
+                  <span className="text-sm">{folder}</span>
+                  {folder.toLowerCase() === 'inbox' && unreadCount > 0 && (
+                    <span className="ml-auto bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <div
+              className="flex items-center justify-between px-4 py-1 mt-3 cursor-pointer hover:bg-gray-100"
+              onClick={() => setShowLabels(!showLabels)}
+            >
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Labels</p>
+              {showLabels ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+
+            {showLabels && (
+              <ul className="ml-2">
+                {labels.map((label) => (
+                  <li
+                    key={label.id}
+                    className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-gray-700"
+                  >
+                    <div className={`w-3 h-3 rounded-full bg-${label.color}-500 mr-3`}></div>
+                    <span className="text-sm">{label.name}</span>
+                  </li>
+                ))}
+                <li className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-blue-500">
+                  <Tag size={14} className="mr-3" />
+                  <span className="text-sm">Manage labels</span>
+                </li>
+              </ul>
+            )}
+
+            <p className="px-4 py-1 mt-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Folders
+            </p>
+            <ul>
+              {customFolders.map((folder) => (
+                <li
+                  key={folder.id}
+                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-gray-700"
+                >
+                  <Folder size={18} className="mr-3" />
+                  <span className="text-sm">{folder.name}</span>
+                </li>
+              ))}
+              <li className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 text-blue-500">
+                <Folder size={14} className="mr-3" />
+                <span className="text-sm">Create new folder</span>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                <User size={16} />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium">{currentUser?.username || 'No User'}</p>
+                <p className="text-xs text-gray-500">
+                  {currentUser ? `${currentUser.username}@enron.com` : ''}
+                </p>
+              </div>
+              <button className="ml-auto text-gray-500 hover:text-gray-700">
+                <Settings size={16} />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Collapsed sidebar toggle */}
+      {!showSidebar && (
+        <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+          <button
+            className="w-8 h-8 mb-4 flex items-center justify-center text-gray-600 hover:text-blue-500"
+            onClick={() => setShowSidebar(true)}
+          >
+            <Menu size={20} />
+          </button>
+          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+            <Inbox size={20} />
+          </button>
+          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+            <Send size={20} />
+          </button>
+          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+            <Star size={20} />
+          </button>
+          <button className="w-8 h-8 mb-3 flex items-center justify-center text-gray-600 hover:text-blue-500">
+            <Trash size={20} />
+          </button>
+        </div>
+      )}
 
       {/* Email List */}
-      <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
+      <div className="w-1/3 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search emails..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           </div>
+          <button
+            className="ml-2 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full"
+            onClick={refreshEmails}
+          >
+            <RefreshCcw size={18} />
+          </button>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center p-8">
-            <p className="text-gray-500">Loading emails...</p>
+        {/* Filter bar */}
+        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center text-sm">
+          <div className="flex items-center">
+            <Filter size={14} className="text-gray-500 mr-2" />
+            <span className="mr-4">Filter:</span>
           </div>
-        ) : emails.length === 0 ? (
-          <div className="flex justify-center items-center p-8">
-            <p className="text-gray-500">No emails in this folder</p>
+          <button
+            className={`mr-3 px-2 py-0.5 rounded ${filterOptions.unreadOnly ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+            onClick={() => toggleFilterOption('unreadOnly')}
+          >
+            Unread
+          </button>
+          <button
+            className={`mr-3 px-2 py-0.5 rounded ${filterOptions.hasAttachments ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+            onClick={() => toggleFilterOption('hasAttachments')}
+          >
+            Attachments
+          </button>
+          <div className="ml-auto flex items-center">
+            <span className="mr-1">Sort:</span>
+            <select
+              className="bg-transparent border-none text-gray-600 focus:outline-none text-sm"
+              value={filterOptions.sortBy}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="date">Date</option>
+              <option value="sender">Sender</option>
+              <option value="subject">Subject</option>
+            </select>
           </div>
-        ) : (
-          <div>
-            {emails.map((email) => (
-              <div
-                key={email.id}
-                className={`p-4 border-b border-gray-200 cursor-pointer ${!email.read ? 'bg-blue-50' : ''} ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`}
-                onClick={() => handleEmailClick(email)}
+        </div>
+
+        {/* Email list container with overflow */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : emails.length === 0 ? (
+            <div className="flex flex-col justify-center items-center p-8 h-full">
+              <Mail size={48} className="text-gray-300" />
+              <p className="text-gray-500 mt-4">No emails in this folder</p>
+              <button
+                className="mt-2 text-blue-500 text-sm hover:underline"
+                onClick={refreshEmails}
               >
-                <div className="flex items-center mb-1">
-                  <span className={`font-medium ${!email.read ? 'font-semibold' : ''}`}>
-                    {email.sender || 'Unknown'}
-                  </span>
-                  <span className="ml-auto text-xs text-gray-500">{email.time}</span>
+                Refresh
+              </button>
+            </div>
+          ) : (
+            <div>
+              {emails.map((email) => (
+                <div
+                  key={email.id}
+                  className={`px-4 py-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors relative
+                    ${!email.read ? 'bg-blue-50' : ''} 
+                    ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`}
+                  onClick={() => handleEmailClick(email)}
+                >
+                  {/* Priority indicator */}
+                  {email.priority === 'high' && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                  )}
+
+                  <div className="flex items-center mb-1.5">
+                    <div className="flex space-x-2 items-center">
+                      <button
+                        className={`text-gray-400 hover:text-yellow-400 transition-colors ${email.starred ? 'text-yellow-400' : ''}`}
+                        onClick={(e) => toggleStarred(email.id, e)}
+                      >
+                        <Star size={16} fill={email.starred ? 'currentColor' : 'none'} />
+                      </button>
+                      <button
+                        className={`text-gray-400 hover:text-red-500 transition-colors ${email.flagged ? 'text-red-500' : ''}`}
+                        onClick={(e) => toggleFlag(email.id, e)}
+                      >
+                        <Flag size={16} fill={email.flagged ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+
+                    <span className={`ml-2 font-medium ${!email.read ? 'font-semibold' : ''}`}>
+                      {email.sender || 'Unknown'}
+                    </span>
+
+                    <span className="ml-auto text-xs text-gray-500 flex items-center">
+                      {email.time}
+                      {email.priority === 'high' && (
+                        <AlertCircle size={12} className="ml-1 text-red-500" />
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center">
+                    <h3 className={`text-sm ${!email.read ? 'font-semibold' : ''}`}>
+                      {email.subject}
+                    </h3>
+                  </div>
+
+                  {/* Email preview */}
+                  <div className="flex items-start mt-1">
+                    <p className="text-xs text-gray-500 truncate flex-1">{email.content}</p>
+
+                    <div className="flex items-center space-x-1 ml-2">
+                      {/* Label indicators */}
+                      {email.labels.map((labelId) => {
+                        const label = getLabelById(labelId);
+                        return label ? (
+                          <div
+                            key={labelId}
+                            className={`w-2 h-2 rounded-full bg-${label.color}-500`}
+                            title={label.name}
+                          ></div>
+                        ) : null;
+                      })}
+
+                      {/* Attachment indicator */}
+                      {email.hasAttachments && <Paperclip size={14} className="text-gray-400" />}
+                    </div>
+                  </div>
+
+                  {/* Email actions - visible on hover */}
+                  <div className="absolute right-0 top-0 bottom-0 flex items-center justify-end px-2 bg-gradient-to-l from-white via-white to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                    <button
+                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      onClick={(e) => archiveEmail(email.id, e)}
+                      title="Archive"
+                    >
+                      <Archive size={14} />
+                    </button>
+                    <button
+                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      onClick={(e) => deleteEmail(email.id, e)}
+                      title="Delete"
+                    >
+                      <Trash size={14} />
+                    </button>
+                    <button
+                      className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded"
+                      onClick={(e) => markAsUnread(email.id, e)}
+                      title="Mark as unread"
+                    >
+                      <Eye size={14} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <h3 className={`text-sm ${!email.read ? 'font-semibold' : ''}`}>
-                    {email.subject}
-                  </h3>
-                  <button
-                    className={`ml-auto ${email.starred ? 'text-yellow-400' : 'text-gray-400'}`}
-                    onClick={(e) => toggleStarred(email.id, e)}
-                  >
-                    <Star size={16} fill={email.starred ? 'currentColor' : 'none'} />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 truncate mt-1">{email.content}</p>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Status bar */}
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center">
+          <span>
+            {emails.length} email{emails.length !== 1 ? 's' : ''}
+          </span>
+          <span className="mx-2">•</span>
+          <span>{unreadCount} unread</span>
+          <button
+            className="ml-auto flex items-center text-gray-500 hover:text-blue-500"
+            onClick={refreshEmails}
+          >
+            <RefreshCcw size={12} className="mr-1" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Email Content */}
-      <div className="flex-1 bg-white p-6 overflow-y-auto">
+      <div className="flex-1 bg-white flex flex-col">
         {selectedEmail ? (
           <>
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">{selectedEmail.subject}</h2>
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            {/* Email header */}
+            <div className="p-6 border-b border-gray-200 bg-white">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-bold">{selectedEmail.subject}</h2>
+                <div className="flex items-center space-x-1">
+                  {selectedEmail.labels.map((labelId) => {
+                    const label = getLabelById(labelId);
+                    return label ? (
+                      <span
+                        key={labelId}
+                        className={`px-2 py-0.5 text-xs font-medium rounded bg-${label.color}-100 text-${label.color}-800`}
+                      >
+                        {label.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
                   {(selectedEmail.sender || 'U')[0].toUpperCase()}
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">{selectedEmail.sender || 'Unknown'}</p>
-                  <p className="text-xs text-gray-500">to me</p>
+                  <div className="flex items-center">
+                    <p className="font-medium">{selectedEmail.sender || 'Unknown'}</p>
+                    <span className="mx-2 text-gray-400">•</span>
+                    <p className="text-sm text-gray-500">{selectedEmail.time}</p>
+                    {selectedEmail.priority === 'high' && (
+                      <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-full flex items-center">
+                        <AlertCircle size={12} className="mr-1" />
+                        High Priority
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">to me</p>
                 </div>
-                <p className="ml-auto text-sm text-gray-500">{selectedEmail.time}</p>
+                <div className="ml-auto flex items-center space-x-1">
+                  <button
+                    className={`p-1.5 rounded-full ${selectedEmail.starred ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
+                    onClick={(e) => toggleStarred(selectedEmail.id, e)}
+                    title={selectedEmail.starred ? 'Unstar' : 'Star'}
+                  >
+                    <Star size={18} fill={selectedEmail.starred ? 'currentColor' : 'none'} />
+                  </button>
+                  <button
+                    className={`p-1.5 rounded-full ${selectedEmail.flagged ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                    onClick={(e) => toggleFlag(selectedEmail.id, e)}
+                    title={selectedEmail.flagged ? 'Remove flag' : 'Flag'}
+                  >
+                    <Flag size={18} fill={selectedEmail.flagged ? 'currentColor' : 'none'} />
+                  </button>
+                </div>
               </div>
-              <div className="py-4 border-t border-b border-gray-200 whitespace-pre-line">
+            </div>
+
+            {/* Email content area with scrollable container */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Email body */}
+              <div className="py-4 whitespace-pre-line mb-4">
                 <p className="text-gray-800">{selectedEmail.content}</p>
-                <p className="mt-4 text-gray-800">Best regards,</p>
+                <p className="mt-6 text-gray-800">Best regards,</p>
                 <p className="text-gray-800">{selectedEmail.sender || 'Unknown'}</p>
               </div>
-              <div className="mt-4 flex space-x-3">
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                    />
-                  </svg>
+
+              {/* Attachments section */}
+              {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    Attachments ({selectedEmail.attachments.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {selectedEmail.attachments.map((attachment, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        {attachment.type === 'pdf' && (
+                          <div className="w-8 h-8 bg-red-100 text-red-500 rounded flex items-center justify-center mr-3">
+                            <File size={16} />
+                          </div>
+                        )}
+                        {attachment.type === 'image' && (
+                          <div className="w-8 h-8 bg-blue-100 text-blue-500 rounded flex items-center justify-center mr-3">
+                            <File size={16} />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">{attachment.name}</p>
+                          <p className="text-xs text-gray-500">{attachment.size}</p>
+                        </div>
+                        <button className="ml-4 text-gray-500 hover:text-blue-500" title="Download">
+                          <Download size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Email actions footer */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50 flex">
+              <div className="flex space-x-2">
+                <button
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center shadow-sm transition-colors"
+                  onClick={replyToEmail}
+                >
+                  <Reply size={16} className="mr-2" />
                   Reply
                 </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
+                <button
+                  className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg flex items-center transition-colors"
+                  onClick={forwardEmail}
+                >
+                  <Forward size={16} className="mr-2" />
                   Forward
                 </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 flex items-center">
-                  <Trash className="h-4 w-4 mr-2" />
+                <button
+                  className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-lg flex items-center transition-colors"
+                  onClick={() => deleteEmail(selectedEmail.id, {})}
+                >
+                  <Trash size={16} className="mr-2" />
                   Delete
+                </button>
+              </div>
+
+              <div className="ml-auto flex items-center space-x-2">
+                <button
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+                  onClick={printEmail}
+                  title="Print"
+                >
+                  <Printer size={16} />
+                </button>
+                <button
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
+                  title="More actions"
+                >
+                  <MoreHorizontal size={16} />
                 </button>
               </div>
             </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <Inbox size={64} strokeWidth={1} />
+            <Mail size={64} strokeWidth={1} />
             <p className="mt-4 text-lg">Select an email to read</p>
+            <p className="text-sm text-gray-400 mt-2">
+              {activeFolder === 'inbox'
+                ? 'Your inbox is organized and ready for you'
+                : `Viewing your ${activeFolder} folder`}
+            </p>
           </div>
         )}
       </div>
 
       {/* Notification Panel */}
-      <div className="w-12 bg-gray-800 flex flex-col items-center py-4">
-        <button className="w-8 h-8 mb-6 text-gray-400 hover:text-white">
-          <Bell size={20} />
+      <div className="w-16 bg-gray-800 flex flex-col items-center py-6">
+        <div className="relative">
+          <button
+            className="w-10 h-10 mb-6 text-gray-400 hover:text-white flex items-center justify-center"
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            <Bell size={20} />
+            {unreadNotifications > 0 && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">{unreadNotifications}</span>
+              </div>
+            )}
+          </button>
+        </div>
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
+          <Calendar size={20} />
         </button>
-        <button className="w-8 h-8 text-gray-400 hover:text-white">
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
+          <Clock size={20} />
+        </button>
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
+          <Bookmark size={20} />
+        </button>
+        <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center">
           <Settings size={20} />
         </button>
+
+        <div className="mt-auto">
+          <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center">
+            <User size={20} />
+          </button>
+        </div>
       </div>
+
+      {/* Notifications panel */}
+      {showNotifications && (
+        <div className="absolute right-16 top-0 w-72 bg-white shadow-lg rounded-lg mt-4 mr-4 z-10 border border-gray-200">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="font-medium">Notifications</h3>
+            <div className="flex items-center">
+              <button
+                className="text-sm text-blue-500 hover:text-blue-700"
+                onClick={markAllNotificationsRead}
+              >
+                Mark all read
+              </button>
+              <button
+                className="ml-2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowNotifications(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-500">
+                <p>No notifications</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}
+                >
+                  <div className="flex">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${!notification.read ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 text-gray-500'}`}
+                    >
+                      <AlertTriangle size={16} />
+                    </div>
+                    <div className="ml-3">
+                      <p className={`text-sm ${!notification.read ? 'font-medium' : ''}`}>
+                        {notification.text}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="p-3 border-t border-gray-200 text-center">
+            <button className="text-sm text-blue-500 hover:text-blue-700">
+              View all notifications
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
