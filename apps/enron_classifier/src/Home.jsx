@@ -34,6 +34,7 @@ import {
   AlertTriangle,
   Moon,
   Sun,
+  FileText
 } from 'lucide-react';
 import UserSelector from './UserSelector';
 
@@ -72,6 +73,9 @@ const Home = () => {
     { id: 1, name: 'Projects', icon: 'Folder' },
     { id: 2, name: 'Newsletters', icon: 'Mail' },
   ]);
+  // Add state for summarization
+  const [summarizing, setSummarizing] = useState(false);
+  const [emailSummary, setEmailSummary] = useState('');
   // Dark mode state
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
@@ -219,6 +223,8 @@ const Home = () => {
 
   const handleEmailClick = (email) => {
     setSelectedEmail(email);
+    // Reset summary when selecting a new email
+    setEmailSummary('');
     // Mark as read (in a real app, you'd update this in the database)
     setEmails(emails.map((e) => (e.id === email.id ? { ...e, read: true } : e)));
   };
@@ -349,6 +355,43 @@ const Home = () => {
 
   const printEmail = () => {
     displayToast('Preparing to print');
+  };
+
+  const summarizeEmail = async () => {
+    if (!selectedEmail || !selectedEmail.content) {
+      displayToast('No content to summarize', 'error');
+      return;
+    }
+    
+    setSummarizing(true);
+    setEmailSummary('');
+    
+    try {
+      const response = await fetch('http://localhost:5050/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email_text: selectedEmail.content,
+          num_sentences: 3
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setEmailSummary(data.summary);
+        displayToast('Email summarized successfully');
+      } else {
+        displayToast('Failed to summarize email', 'error');
+        console.error('Summarize API error:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error summarizing email:', error);
+      displayToast('Failed to summarize email', 'error');
+    } finally {
+      setSummarizing(false);
+    }
   };
 
   const refreshEmails = () => {
@@ -677,11 +720,11 @@ const Home = () => {
                   className={`px-4 py-3 cursor-pointer transition-colors relative
                 ${
                   darkMode
-                    ? `border-b border-gray-700 hover:bg-gray-700 
-                     ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''} 
+                    ? `border-b border-gray-700 hover:bg-gray-700
+                     ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''}
                      ${selectedEmail?.id === email.id ? 'bg-gray-700' : ''}`
                     : `border-b border-gray-200 hover:bg-gray-50
-                     ${!email.read ? 'bg-blue-50' : ''} 
+                     ${!email.read ? 'bg-blue-50' : ''}
                      ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`
                 }`}
                   onClick={() => handleEmailClick(email)}
@@ -922,6 +965,17 @@ const Home = () => {
 
             {/* Email content area with scrollable container */}
             <div className="flex-1 overflow-y-auto p-6">
+              {/* Email summary if available */}
+              {emailSummary && (
+                <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-blue-50 text-gray-800'}`}>
+                  <div className="flex items-center mb-2">
+                    <FileText size={16} className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Summary</h3>
+                  </div>
+                  <p className="text-sm">{emailSummary}</p>
+                </div>
+              )}
+              
               {/* Email body */}
               <div className="py-4 whitespace-pre-line mb-4">
                 <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>
@@ -1023,10 +1077,22 @@ const Home = () => {
                       ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
                       : 'border-gray-300 hover:bg-gray-100 text-gray-700'
                   }`}
-                  onClick={() => deleteEmail(selectedEmail.id, {})}
+                  onClick={(e) => deleteEmail(selectedEmail.id, e)}
                 >
                   <Trash size={16} className="mr-2" />
                   Delete
+                </button>
+                <button
+                  className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+                    darkMode
+                      ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
+                      : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                  }`}
+                  onClick={summarizeEmail}
+                  disabled={summarizing}
+                >
+                  <FileText size={16} className="mr-2" />
+                  {summarizing ? 'Summarizing...' : 'Summarize'}
                 </button>
               </div>
 
