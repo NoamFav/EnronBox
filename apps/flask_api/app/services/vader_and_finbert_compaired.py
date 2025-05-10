@@ -166,6 +166,16 @@ def benchmark_models(texts):
     print(f"  - VADER:   {vader_time / len(texts):.4f} seconds/text")
     print(f"  - FinBERT: {finbert_time / len(texts):.4f} seconds/text")
 
+
+print(
+    "Conclusion:\n"
+    "While both VADER and FinBERT often return similar sentiment results—especially neutral for composed or formal emails—\n"
+    "VADER tends to pick up on subtle emotional cues by sometimes assigning slight positive or negative scores,\n"
+    "whereas FinBERT frequently returns a flat 100% neutral. This makes VADER more nuanced for our use case.\n"
+    "Additionally, VADER is a lot faster. taking almost no time compared to FinBERT’s ~0.4 seconds per input.\n"
+    "Given its speed and sensitivity, VADER is the better choice for our interactive email application."
+)
+
 # Run comparison and analysis
 if __name__ == "__main__":
     compare_models(texts)
