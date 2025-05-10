@@ -404,10 +404,12 @@ const Home = () => {
   };
 
   return (
-    <div className={`flex h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+    <div
+      className={`flex h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'} transition-colors duration-300`}
+    >
       {/* Toast Notification */}
       {showToast && (
-        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50 animate-fade-in-down">
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50 animate-pulse">
           <p>{toastMessage}</p>
           <button className="ml-2" onClick={() => setShowToast(false)}>
             <X size={14} />
@@ -416,188 +418,190 @@ const Home = () => {
       )}
 
       {/* Sidebar */}
-      {showSidebar && (
+      <div
+        className={`w-64 ${
+          showSidebar ? 'translate-x-0' : '-translate-x-full'
+        } ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm transition-all duration-300 ease-in-out`}
+      >
         <div
-          className={`w-64 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm`}
+          className={`p-4 flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
         >
-          <div
-            className={`p-4 flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
-          >
-            <h1 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              EnronBox
-            </h1>
-            <button
-              className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setShowSidebar(false)}
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          {/* User Selector */}
-          <div className={`px-4 py-3 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-            <UserSelector
-              onSelectUser={handleSelectUser}
-              currentUser={currentUser}
-              darkMode={darkMode}
-            />
-          </div>
-
+          <h1 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            EnronBox
+          </h1>
           <button
-            className={`mx-4 my-3 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150`}
-            onClick={composeNewEmail}
+            className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transform transition-transform hover:scale-110`}
+            onClick={() => setShowSidebar(false)}
           >
-            <Mail size={16} className="mr-2" />
-            <span>Compose</span>
+            <ChevronRight size={20} />
           </button>
+        </div>
 
-          <nav className="mt-2 flex-1 overflow-y-auto">
-            <p
-              className={`px-4 py-1 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-            >
-              Main
-            </p>
-            <ul>
-              {folders.map((folder) => (
-                <li
-                  key={folder}
-                  className={`flex items-center px-4 py-2 cursor-pointer ${
-                    darkMode
-                      ? `hover:bg-gray-700 ${activeFolder === folder ? 'bg-gray-700 text-blue-400' : 'text-gray-300'}`
-                      : `hover:bg-gray-100 ${activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`
-                  } transition-colors`}
-                  onClick={() => handleSelectFolder(folder)}
-                >
-                  {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
-                  {folder.toLowerCase() === 'sent' && <Send size={18} className="mr-3" />}
-                  {folder.toLowerCase() === 'starred' && <Star size={18} className="mr-3" />}
-                  {folder.toLowerCase() === 'drafts' && <File size={18} className="mr-3" />}
-                  {folder.toLowerCase() === 'trash' && <Trash size={18} className="mr-3" />}
-                  {folder.toLowerCase() === 'archive' && <Archive size={18} className="mr-3" />}
-                  {!['inbox', 'sent', 'starred', 'drafts', 'trash', 'archive'].includes(
-                    folder.toLowerCase()
-                  ) && <File size={18} className="mr-3" />}
-                  <span className="text-sm">{folder}</span>
-                  {folder.toLowerCase() === 'inbox' && unreadCount > 0 && (
-                    <span className="ml-auto bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+        {/* User Selector */}
+        <div className={`px-4 py-3 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
+          <UserSelector
+            onSelectUser={handleSelectUser}
+            currentUser={currentUser}
+            darkMode={darkMode}
+          />
+        </div>
 
-            <div
-              className={`flex items-center justify-between px-4 py-1 mt-3 cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              onClick={() => setShowLabels(!showLabels)}
-            >
-              <p
-                className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+        <button
+          className={`mx-4 my-3 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow transform hover:scale-105`}
+          onClick={composeNewEmail}
+        >
+          <Mail size={16} className="mr-2" />
+          <span>Compose</span>
+        </button>
+
+        <nav className="mt-2 flex-1 overflow-y-auto">
+          <p
+            className={`px-4 py-1 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+          >
+            Main
+          </p>
+          <ul>
+            {folders.map((folder) => (
+              <li
+                key={folder}
+                className={`flex items-center px-4 py-2 cursor-pointer ${
+                  darkMode
+                    ? `hover:bg-gray-700 ${activeFolder === folder ? 'bg-gray-700 text-blue-400' : 'text-gray-300'}`
+                    : `hover:bg-gray-100 ${activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`
+                } transition-all duration-150`}
+                onClick={() => handleSelectFolder(folder)}
               >
-                Labels
-              </p>
-              {showLabels ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </div>
+                {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
+                {folder.toLowerCase() === 'sent' && <Send size={18} className="mr-3" />}
+                {folder.toLowerCase() === 'starred' && <Star size={18} className="mr-3" />}
+                {folder.toLowerCase() === 'drafts' && <File size={18} className="mr-3" />}
+                {folder.toLowerCase() === 'trash' && <Trash size={18} className="mr-3" />}
+                {folder.toLowerCase() === 'archive' && <Archive size={18} className="mr-3" />}
+                {!['inbox', 'sent', 'starred', 'drafts', 'trash', 'archive'].includes(
+                  folder.toLowerCase()
+                ) && <File size={18} className="mr-3" />}
+                <span className="text-sm">{folder}</span>
+                {folder.toLowerCase() === 'inbox' && unreadCount > 0 && (
+                  <span className="ml-auto bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
 
-            {showLabels && (
-              <ul className="ml-2">
-                {labels.map((label) => (
-                  <li
-                    key={label.id}
-                    className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
-                  >
-                    <div className={`w-3 h-3 rounded-full bg-${label.color}-500 mr-3`}></div>
-                    <span className="text-sm">{label.name}</span>
-                  </li>
-                ))}
-                <li
-                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'}`}
-                >
-                  <Tag size={14} className="mr-3" />
-                  <span className="text-sm">Manage labels</span>
-                </li>
-              </ul>
-            )}
-
+          <div
+            className={`flex items-center justify-between px-4 py-1 mt-3 cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
+            onClick={() => setShowLabels(!showLabels)}
+          >
             <p
-              className={`px-4 py-1 mt-3 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
+              className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
             >
-              Folders
+              Labels
             </p>
-            <ul>
-              {customFolders.map((folder) => (
+            <div
+              className={`transform transition-transform duration-300 ${showLabels ? 'rotate-180' : 'rotate-0'}`}
+            >
+              <ChevronDown size={14} />
+            </div>
+          </div>
+
+          {showLabels && (
+            <ul className="ml-2 animate-fadeIn">
+              {labels.map((label) => (
                 <li
-                  key={folder.id}
-                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'}`}
+                  key={label.id}
+                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
                 >
-                  <Folder size={18} className="mr-3" />
-                  <span className="text-sm">{folder.name}</span>
+                  <div className={`w-3 h-3 rounded-full bg-${label.color}-500 mr-3`}></div>
+                  <span className="text-sm">{label.name}</span>
                 </li>
               ))}
               <li
-                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'}`}
+                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
               >
-                <Folder size={14} className="mr-3" />
-                <span className="text-sm">Create new folder</span>
+                <Tag size={14} className="mr-3" />
+                <span className="text-sm">Manage labels</span>
               </li>
             </ul>
-          </nav>
+          )}
 
-          <div
-            className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-t`}
+          <p
+            className={`px-4 py-1 mt-3 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
           >
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                <User size={16} />
-              </div>
-              <div className="ml-3">
-                <p
-                  className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}
-                >
-                  {currentUser?.username || 'No User'}
-                </p>
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {currentUser ? `${currentUser.username}@enron.com` : ''}
-                </p>
-              </div>
-              <button
-                className={`ml-auto ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+            Folders
+          </p>
+          <ul>
+            {customFolders.map((folder) => (
+              <li
+                key={folder.id}
+                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
               >
-                <Settings size={16} />
-              </button>
+                <Folder size={18} className="mr-3" />
+                <span className="text-sm">{folder.name}</span>
+              </li>
+            ))}
+            <li
+              className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
+            >
+              <Folder size={14} className="mr-3" />
+              <span className="text-sm">Create new folder</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div
+          className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-t`}
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
+              <User size={16} />
             </div>
+            <div className="ml-3">
+              <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                {currentUser?.username || 'No User'}
+              </p>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {currentUser ? `${currentUser.username}@enron.com` : ''}
+              </p>
+            </div>
+            <button
+              className={`ml-auto ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transform transition-transform hover:rotate-45`}
+            >
+              <Settings size={16} />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Collapsed sidebar toggle */}
       {!showSidebar && (
         <div
-          className={`w-12 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col items-center py-4`}
+          className={`w-12 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col items-center py-4 transition-all duration-300 ease-in-out`}
         >
           <button
-            className={`w-8 h-8 mb-4 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+            className={`w-8 h-8 mb-4 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
             onClick={() => setShowSidebar(true)}
           >
             <Menu size={20} />
           </button>
           <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
           >
             <Inbox size={20} />
           </button>
           <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
           >
             <Send size={20} />
           </button>
           <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
           >
             <Star size={20} />
           </button>
           <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'}`}
+            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
           >
             <Trash size={20} />
           </button>
@@ -606,7 +610,7 @@ const Home = () => {
 
       {/* Email List */}
       <div
-        className={`w-1/3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r overflow-hidden flex flex-col`}
+        className={`w-1/3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r overflow-hidden flex flex-col transition-colors duration-300`}
       >
         <div
           className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-b flex items-center justify-between`}
@@ -619,7 +623,7 @@ const Home = () => {
                 darkMode
                   ? 'bg-gray-700 border-gray-600 text-gray-200 focus:ring-blue-400 placeholder-gray-400'
                   : 'bg-white border-gray-300 focus:ring-blue-500'
-              } border rounded-lg focus:outline-none focus:ring-2`}
+              } border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -630,7 +634,7 @@ const Home = () => {
               darkMode
                 ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
                 : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
-            } rounded-full`}
+            } rounded-full transition-all duration-300 transform hover:rotate-180`}
             onClick={refreshEmails}
           >
             <RefreshCcw size={18} />
@@ -639,14 +643,14 @@ const Home = () => {
 
         {/* Filter bar */}
         <div
-          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b flex items-center text-sm`}
+          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700' : 'bg-gray-50 border-gray-200'} border-b flex items-center text-sm transition-colors duration-300`}
         >
           <div className="flex items-center">
             <Filter size={14} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
             <span className={`mr-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filter:</span>
           </div>
           <button
-            className={`mr-3 px-2 py-0.5 rounded ${
+            className={`mr-3 px-2 py-0.5 rounded transition-all duration-300 ${
               filterOptions.unreadOnly
                 ? darkMode
                   ? 'bg-blue-800 text-blue-200'
@@ -660,7 +664,7 @@ const Home = () => {
             Unread
           </button>
           <button
-            className={`mr-3 px-2 py-0.5 rounded ${
+            className={`mr-3 px-2 py-0.5 rounded transition-all duration-300 ${
               filterOptions.hasAttachments
                 ? darkMode
                   ? 'bg-blue-800 text-blue-200'
@@ -680,7 +684,7 @@ const Home = () => {
                 darkMode
                   ? 'bg-transparent border-none text-gray-300'
                   : 'bg-transparent border-none text-gray-600'
-              } focus:outline-none text-sm`}
+              } focus:outline-none text-sm transition-colors duration-300`}
               value={filterOptions.sortBy}
               onChange={(e) => setSort(e.target.value)}
             >
@@ -700,13 +704,13 @@ const Home = () => {
               ></div>
             </div>
           ) : emails.length === 0 ? (
-            <div className="flex flex-col justify-center items-center p-8 h-full">
+            <div className="flex flex-col justify-center items-center p-8 h-full animate-fadeIn">
               <Mail size={48} className={darkMode ? 'text-gray-600' : 'text-gray-300'} />
               <p className={darkMode ? 'text-gray-400 mt-4' : 'text-gray-500 mt-4'}>
                 No emails in this folder
               </p>
               <button
-                className={`mt-2 text-sm hover:underline ${darkMode ? 'text-blue-400' : 'text-blue-500'}`}
+                className={`mt-2 text-sm hover:underline ${darkMode ? 'text-blue-400' : 'text-blue-500'} transition-colors duration-300`}
                 onClick={refreshEmails}
               >
                 Refresh
@@ -714,20 +718,21 @@ const Home = () => {
             </div>
           ) : (
             <div>
-              {emails.map((email) => (
+              {emails.map((email, index) => (
                 <div
                   key={email.id}
-                  className={`px-4 py-3 cursor-pointer transition-colors relative
-                ${
-                  darkMode
-                    ? `border-b border-gray-700 hover:bg-gray-700
-                     ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''}
-                     ${selectedEmail?.id === email.id ? 'bg-gray-700' : ''}`
-                    : `border-b border-gray-200 hover:bg-gray-50
-                     ${!email.read ? 'bg-blue-50' : ''}
-                     ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`
-                }`}
+                  className={`px-4 py-3 cursor-pointer transition-all duration-200 relative animate-fadeIn
+              ${
+                darkMode
+                  ? `border-b border-gray-700 hover:bg-gray-700 
+                   ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''} 
+                   ${selectedEmail?.id === email.id ? 'bg-gray-700' : ''}`
+                  : `border-b border-gray-200 hover:bg-gray-50
+                   ${!email.read ? 'bg-blue-50' : ''} 
+                   ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`
+              }`}
                   onClick={() => handleEmailClick(email)}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Priority indicator */}
                   {email.priority === 'high' && (
@@ -737,13 +742,13 @@ const Home = () => {
                   <div className="flex items-center mb-1.5">
                     <div className="flex space-x-2 items-center">
                       <button
-                        className={`hover:text-yellow-400 transition-colors ${email.starred ? 'text-yellow-400' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
+                        className={`hover:text-yellow-400 transition-colors duration-300 transform hover:scale-110 ${email.starred ? 'text-yellow-400' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                         onClick={(e) => toggleStarred(email.id, e)}
                       >
                         <Star size={16} fill={email.starred ? 'currentColor' : 'none'} />
                       </button>
                       <button
-                        className={`hover:text-red-500 transition-colors ${email.flagged ? 'text-red-500' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
+                        className={`hover:text-red-500 transition-colors duration-300 transform hover:scale-110 ${email.flagged ? 'text-red-500' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                         onClick={(e) => toggleFlag(email.id, e)}
                       >
                         <Flag size={16} fill={email.flagged ? 'currentColor' : 'none'} />
@@ -761,7 +766,7 @@ const Home = () => {
                     >
                       {email.time}
                       {email.priority === 'high' && (
-                        <AlertCircle size={12} className="ml-1 text-red-500" />
+                        <AlertCircle size={12} className="ml-1 text-red-500 animate-pulse" />
                       )}
                     </span>
                   </div>
@@ -807,14 +812,14 @@ const Home = () => {
 
                   {/* Email actions - visible on hover */}
                   <div
-                    className={`absolute right-0 top-0 bottom-0 flex items-center justify-end px-2 opacity-0 hover:opacity-100 transition-opacity ${
+                    className={`absolute right-0 top-0 bottom-0 flex items-center justify-end px-2 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-300 ${
                       darkMode
                         ? 'bg-gradient-to-l from-gray-800 via-gray-800 to-transparent'
                         : 'bg-gradient-to-l from-white via-white to-transparent'
                     }`}
                   >
                     <button
-                      className={`p-1.5 rounded ${
+                      className={`p-1.5 rounded transform transition-transform hover:scale-110 ${
                         darkMode
                           ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
                           : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
@@ -825,7 +830,7 @@ const Home = () => {
                       <Archive size={14} />
                     </button>
                     <button
-                      className={`p-1.5 rounded ${
+                      className={`p-1.5 rounded transform transition-transform hover:scale-110 ${
                         darkMode
                           ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
                           : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
@@ -836,7 +841,7 @@ const Home = () => {
                       <Trash size={14} />
                     </button>
                     <button
-                      className={`p-1.5 rounded ${
+                      className={`p-1.5 rounded transform transition-transform hover:scale-110 ${
                         darkMode
                           ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
                           : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
@@ -855,7 +860,7 @@ const Home = () => {
 
         {/* Status bar */}
         <div
-          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-500'} border-t text-xs flex items-center`}
+          className={`px-4 py-2 ${darkMode ? 'bg-gray-700 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-500'} border-t text-xs flex items-center transition-colors duration-300`}
         >
           <span>
             {emails.length} email{emails.length !== 1 ? 's' : ''}
@@ -863,22 +868,27 @@ const Home = () => {
           <span className="mx-2">•</span>
           <span>{unreadCount} unread</span>
           <button
-            className={`ml-auto flex items-center ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-500'}`}
+            className={`ml-auto flex items-center ${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-500'} transition-colors duration-300`}
             onClick={refreshEmails}
           >
-            <RefreshCcw size={12} className="mr-1" />
+            <RefreshCcw
+              size={12}
+              className="mr-1 transform transition-transform hover:rotate-180"
+            />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Email Content */}
-      <div className={`flex-1 ${darkMode ? 'bg-gray-800' : 'bg-white'} flex flex-col`}>
+      <div
+        className={`flex-1 ${darkMode ? 'bg-gray-800' : 'bg-white'} flex flex-col transition-colors duration-300`}
+      >
         {selectedEmail ? (
           <>
             {/* Email header */}
             <div
-              className={`p-6 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}
+              className={`p-6 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} animate-fadeIn transition-colors duration-300`}
             >
               <div className="flex items-center justify-between mb-3">
                 <h2 className={`text-xl font-bold ${darkMode ? 'text-gray-100' : ''}`}>
@@ -890,7 +900,7 @@ const Home = () => {
                     return label ? (
                       <span
                         key={labelId}
-                        className={`px-2 py-0.5 text-xs font-medium rounded ${
+                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors duration-300 ${
                           darkMode
                             ? `bg-${label.color}-900 text-${label.color}-200`
                             : `bg-${label.color}-100 text-${label.color}-800`
@@ -904,7 +914,7 @@ const Home = () => {
               </div>
               <div className="flex items-center">
                 <div
-                  className={`w-10 h-10 ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded-full flex items-center justify-center font-semibold`}
+                  className={`w-10 h-10 ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded-full flex items-center justify-center font-semibold transition-colors duration-300`}
                 >
                   {(selectedEmail.sender || 'U')[0].toUpperCase()}
                 </div>
@@ -921,7 +931,7 @@ const Home = () => {
                     </p>
                     {selectedEmail.priority === 'high' && (
                       <span
-                        className={`ml-2 px-2 py-0.5 ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'} text-xs font-medium rounded-full flex items-center`}
+                        className={`ml-2 px-2 py-0.5 ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'} text-xs font-medium rounded-full flex items-center animate-pulse`}
                       >
                         <AlertCircle size={12} className="mr-1" />
                         High Priority
@@ -934,26 +944,26 @@ const Home = () => {
                 </div>
                 <div className="ml-auto flex items-center space-x-1">
                   <button
-                    className={`p-1.5 rounded-full ${
+                    className={`p-1.5 rounded-full transition-all duration-300 ${
                       selectedEmail.starred
                         ? 'text-yellow-400'
                         : darkMode
                           ? 'text-gray-500 hover:text-yellow-400'
                           : 'text-gray-400 hover:text-yellow-400'
-                    }`}
+                    } transform hover:scale-110`}
                     onClick={(e) => toggleStarred(selectedEmail.id, e)}
                     title={selectedEmail.starred ? 'Unstar' : 'Star'}
                   >
                     <Star size={18} fill={selectedEmail.starred ? 'currentColor' : 'none'} />
                   </button>
                   <button
-                    className={`p-1.5 rounded-full ${
+                    className={`p-1.5 rounded-full transition-all duration-300 ${
                       selectedEmail.flagged
                         ? 'text-red-500'
                         : darkMode
                           ? 'text-gray-500 hover:text-red-500'
                           : 'text-gray-400 hover:text-red-500'
-                    }`}
+                    } transform hover:scale-110`}
                     onClick={(e) => toggleFlag(selectedEmail.id, e)}
                     title={selectedEmail.flagged ? 'Remove flag' : 'Flag'}
                   >
@@ -964,7 +974,7 @@ const Home = () => {
             </div>
 
             {/* Email content area with scrollable container */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 animate-fadeIn" style={{ animationDelay: '150ms' }}>
               {/* Email summary if available */}
               {emailSummary && (
                 <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-blue-50 text-gray-800'}`}>
@@ -992,10 +1002,12 @@ const Home = () => {
               {/* Attachments section */}
               {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
                 <div
-                  className={`mt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}
+                  className={`mt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} pt-4 animate-fadeIn`}
+                  style={{ animationDelay: '300ms' }}
                 >
                   <h3
-                    className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}
+                    className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-3 animate-slideUp`}
+                    style={{ animationDelay: '350ms' }}
                   >
                     Attachments ({selectedEmail.attachments.length})
                   </h3>
@@ -1007,27 +1019,34 @@ const Home = () => {
                           darkMode
                             ? 'border-gray-700 bg-gray-700 hover:bg-gray-600'
                             : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
-                        } transition-colors`}
+                        } transition-all duration-300 transform hover:scale-105 hover:shadow-md animate-fadeIn`}
+                        style={{ animationDelay: `${400 + index * 100}ms` }}
                       >
                         {attachment.type === 'pdf' && (
                           <div
                             className={`w-8 h-8 rounded flex items-center justify-center mr-3 ${
                               darkMode ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-500'
-                            }`}
+                            } transform transition-transform group-hover:rotate-3`}
                           >
-                            <File size={16} />
+                            <File
+                              size={16}
+                              className="transition-all duration-300 transform group-hover:scale-110"
+                            />
                           </div>
                         )}
                         {attachment.type === 'image' && (
                           <div
                             className={`w-8 h-8 rounded flex items-center justify-center mr-3 ${
                               darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-500'
-                            }`}
+                            } transform transition-transform group-hover:rotate-3`}
                           >
-                            <File size={16} />
+                            <File
+                              size={16}
+                              className="transition-all duration-300 transform group-hover:scale-110"
+                            />
                           </div>
                         )}
-                        <div>
+                        <div className="transition-all duration-300 transform group-hover:translate-x-1">
                           <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : ''}`}>
                             {attachment.name}
                           </p>
@@ -1036,10 +1055,17 @@ const Home = () => {
                           </p>
                         </div>
                         <button
-                          className={`ml-4 ${darkMode ? 'text-gray-400 hover:text-blue-300' : 'text-gray-500 hover:text-blue-500'}`}
+                          className={`ml-4 ${
+                            darkMode
+                              ? 'text-gray-400 hover:text-blue-300'
+                              : 'text-gray-500 hover:text-blue-500'
+                          } transition-all duration-300 transform hover:scale-125`}
                           title="Download"
                         >
-                          <Download size={14} />
+                          <Download
+                            size={14}
+                            className="transition-all duration-300 transform hover:translate-y-1"
+                          />
                         </button>
                       </div>
                     ))}
@@ -1050,36 +1076,49 @@ const Home = () => {
 
             {/* Email actions footer */}
             <div
-              className={`p-4 border-t ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-gray-50'} flex`}
+              className={`p-4 border-t ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-gray-50'} flex animate-fadeIn`}
+              style={{ animationDelay: '500ms' }}
             >
               <div className="flex space-x-2">
                 <button
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center shadow-sm transition-colors"
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center shadow-sm transition-all duration-300 transform hover:scale-105 hover:shadow animate-slideUp"
                   onClick={replyToEmail}
+                  style={{ animationDelay: '550ms' }}
                 >
-                  <Reply size={16} className="mr-2" />
+                  <Reply
+                    size={16}
+                    className="mr-2 transform transition-transform group-hover:rotate-45"
+                  />
                   Reply
                 </button>
                 <button
-                  className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+                  className={`px-4 py-2 border rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 animate-slideUp ${
                     darkMode
                       ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
                       : 'border-gray-300 hover:bg-gray-100 text-gray-700'
                   }`}
                   onClick={forwardEmail}
+                  style={{ animationDelay: '600ms' }}
                 >
-                  <Forward size={16} className="mr-2" />
+                  <Forward
+                    size={16}
+                    className="mr-2 transform transition-transform group-hover:translate-x-1"
+                  />
                   Forward
                 </button>
                 <button
-                  className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+                  className={`px-4 py-2 border rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 animate-slideUp ${
                     darkMode
-                      ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
-                      : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                      ? 'border-gray-600 hover:bg-gray-600 text-gray-200 hover:text-red-300 hover:border-red-700'
+                      : 'border-gray-300 hover:bg-red-50 text-gray-700 hover:text-red-600 hover:border-red-200'
                   }`}
-                  onClick={(e) => deleteEmail(selectedEmail.id, e)}
+                  onClick={() => deleteEmail(selectedEmail.id, {})}
+                  style={{ animationDelay: '650ms' }}
                 >
-                  <Trash size={16} className="mr-2" />
+                  <Trash
+                    size={16}
+                    className="mr-2 transform transition-transform group-hover:translate-y-1"
+                  />
                   Delete
                 </button>
                 <button
@@ -1098,38 +1137,52 @@ const Home = () => {
 
               <div className="ml-auto flex items-center space-x-2">
                 <button
-                  className={`p-2 rounded ${
+                  className={`p-2 rounded transition-all duration-300 transform hover:scale-110 animate-fadeIn ${
                     darkMode
                       ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
                   }`}
                   onClick={printEmail}
                   title="Print"
+                  style={{ animationDelay: '700ms' }}
                 >
-                  <Printer size={16} />
+                  <Printer
+                    size={16}
+                    className="transform transition-transform hover:translate-y-0.5"
+                  />
                 </button>
                 <button
-                  className={`p-2 rounded ${
+                  className={`p-2 rounded transition-all duration-300 transform hover:scale-110 animate-fadeIn ${
                     darkMode
                       ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
                   }`}
                   title="More actions"
+                  style={{ animationDelay: '750ms' }}
                 >
-                  <MoreHorizontal size={16} />
+                  <MoreHorizontal
+                    size={16}
+                    className="transform transition-transform hover:rotate-90"
+                  />
                 </button>
               </div>
             </div>
           </>
         ) : (
           <div
-            className={`flex flex-col items-center justify-center h-full ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+            className={`flex flex-col items-center justify-center h-full ${darkMode ? 'text-gray-400' : 'text-gray-500'} animate-fadeIn`}
           >
-            <Mail size={64} strokeWidth={1} />
-            <p className={`mt-4 text-lg ${darkMode ? 'text-gray-300' : ''}`}>
+            <Mail size={64} strokeWidth={1} className="animate-pulse transition-all duration-500" />
+            <p
+              className={`mt-4 text-lg ${darkMode ? 'text-gray-300' : ''} animate-slideUp`}
+              style={{ animationDelay: '200ms' }}
+            >
               Select an email to read
             </p>
-            <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-2`}>
+            <p
+              className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-2 animate-slideUp`}
+              style={{ animationDelay: '300ms' }}
+            >
               {activeFolder === 'inbox'
                 ? 'Your inbox is organized and ready for you'
                 : `Viewing your ${activeFolder} folder`}
@@ -1140,44 +1193,49 @@ const Home = () => {
 
       {/* Notification Panel */}
       <div
-        className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6`}
+        className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6 animate-fadeIn`}
+        style={{ animationDelay: '400ms' }}
       >
         <div className="relative">
           <button
-            className="w-10 h-10 mb-6 text-gray-400 hover:text-white flex items-center justify-center"
+            className="w-10 h-10 mb-6 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110"
             onClick={() => setShowNotifications(!showNotifications)}
           >
-            <Bell size={20} />
+            <Bell size={20} className={unreadNotifications > 0 ? 'animate-swing' : ''} />
             {unreadNotifications > 0 && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
                 <span className="text-white text-xs">{unreadNotifications}</span>
               </div>
             )}
           </button>
         </div>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
-          <Calendar size={20} />
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+          <Calendar size={20} className="transition-transform duration-300 hover:rotate-12" />
         </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
-          <Clock size={20} />
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+          <Clock size={20} className="transition-transform duration-300 hover:rotate-45" />
         </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center">
-          <Bookmark size={20} />
+        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+          <Bookmark size={20} className="transition-transform duration-300 hover:translate-y-1" />
         </button>
         <button
-          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center"
+          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
           onClick={toggleDarkMode}
           title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {darkMode ? (
+            <Sun size={20} className="animate-spin-slow" />
+          ) : (
+            <Moon size={20} className="animate-pulse" />
+          )}
         </button>
-        <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center">
-          <Settings size={20} />
+        <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+          <Settings size={20} className="transition-transform duration-300 hover:rotate-90" />
         </button>
 
         <div className="mt-auto">
-          <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center">
-            <User size={20} />
+          <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+            <User size={20} className="transition-transform duration-300 hover:scale-125" />
           </button>
         </div>
       </div>
@@ -1185,21 +1243,26 @@ const Home = () => {
       {/* Notifications panel */}
       {showNotifications && (
         <div
-          className={`absolute right-16 top-0 w-72 ${darkMode ? 'bg-gray-800 shadow-xl border-gray-700' : 'bg-white shadow-lg border-gray-200'} rounded-lg mt-4 mr-4 z-10 border`}
+          className={`absolute right-16 top-0 w-72 ${darkMode ? 'bg-gray-800 shadow-xl border-gray-700' : 'bg-white shadow-lg border-gray-200'} rounded-lg mt-4 mr-4 z-10 border animate-slideInRight`}
         >
           <div
             className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}
           >
-            <h3 className={`font-medium ${darkMode ? 'text-gray-200' : ''}`}>Notifications</h3>
+            <h3
+              className={`font-medium ${darkMode ? 'text-gray-200' : ''} animate-fadeIn`}
+              style={{ animationDelay: '100ms' }}
+            >
+              Notifications
+            </h3>
             <div className="flex items-center">
               <button
-                className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'}`}
+                className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'} transition-colors duration-300`}
                 onClick={markAllNotificationsRead}
               >
                 Mark all read
               </button>
               <button
-                className={`ml-2 ${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`ml-2 ${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'} transition-all duration-300 transform hover:rotate-90`}
                 onClick={() => setShowNotifications(false)}
               >
                 <X size={16} />
@@ -1208,11 +1271,14 @@ const Home = () => {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div
+                className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} animate-fadeIn`}
+                style={{ animationDelay: '200ms' }}
+              >
                 <p>No notifications</p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((notification, index) => (
                 <div
                   key={notification.id}
                   className={`p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'} ${
@@ -1223,7 +1289,8 @@ const Home = () => {
                       : !notification.read
                         ? 'bg-blue-50 hover:bg-gray-50'
                         : 'hover:bg-gray-50'
-                  }`}
+                  } transition-colors duration-300 animate-fadeIn`}
+                  style={{ animationDelay: `${200 + index * 100}ms` }}
                 >
                   <div className="flex">
                     <div
@@ -1235,7 +1302,7 @@ const Home = () => {
                           : darkMode
                             ? 'bg-gray-700 text-gray-400'
                             : 'bg-gray-100 text-gray-500'
-                      }`}
+                      } transform transition-transform duration-300 hover:scale-110 ${!notification.read ? 'animate-bounce-mini' : ''}`}
                     >
                       <AlertTriangle size={16} />
                     </div>
@@ -1243,11 +1310,14 @@ const Home = () => {
                       <p
                         className={`text-sm ${
                           darkMode ? 'text-gray-300' : ''
-                        } ${!notification.read ? 'font-medium' : ''}`}
+                        } ${!notification.read ? 'font-medium' : ''} transition-colors duration-300`}
                       >
                         {notification.text}
                       </p>
-                      <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
+                      <p
+                        className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'} mt-1 animate-slideUp`}
+                        style={{ animationDelay: `${300 + index * 100}ms` }}
+                      >
                         2 hours ago
                       </p>
                     </div>
@@ -1257,10 +1327,11 @@ const Home = () => {
             )}
           </div>
           <div
-            className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} text-center`}
+            className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} text-center animate-fadeIn`}
+            style={{ animationDelay: '400ms' }}
           >
             <button
-              className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'}`}
+              className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'} transition-colors duration-300 transform hover:scale-105`}
             >
               View all notifications
             </button>
