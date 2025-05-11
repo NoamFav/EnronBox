@@ -32,12 +32,4 @@ class Extractor:
         for name in entities["names"]:
             body = re.sub(rf"\b{name}\b", "[NAME]", body)
 
-        # Replace organizations with [ORG]
-        for org in entities["orgs"]:
-            body = re.sub(rf"\b{org}\b", "[ORG]", body)
-
-        # Replace dates with [DATE]
-        for date in entities["dates"]:
-            body = re.sub(rf"\b{date}\b", "[DATE]", body)
-
         return body
