@@ -14,7 +14,7 @@ class EmailResponder:
             "default": self._init_default_templates(),
         }
 
-    def generate_reply(self, email: Dict[str, Any]) -> str:
+    def generate_reply(self, email: Dict[str, Any]) -> str:  #todo add test for this
         """
         Ensure all required keys are present in the email dictionary
 
@@ -59,7 +59,7 @@ class EmailResponder:
             return error_msg
 
     # Analysis and template selection methods
-    def _analyze_sentiment(self, sentiment_data: Dict[str, float]) -> str:
+    def _analyze_sentiment(self, sentiment_data: Dict[str, float]) -> str:  #todo update and test this and if possible connect with sentiment anlaysis
         """Convert polarity score to sentiment category"""
         polarity = sentiment_data.get("polarity", 0)
         if polarity > 0.3:
@@ -117,7 +117,7 @@ class EmailResponder:
         }
 
     # Template definitions
-    def _init_work_templates(self):
+    def _init_work_templates(self):#todo add more of this and make it connect to the sentiment analysis
         return {
             "positive": [
                 "Dear {sender},\n\n"
@@ -164,7 +164,7 @@ class EmailResponder:
             ],
         }
 
-    def _init_personal_templates(self):
+    def _init_personal_templates(self): # todo add templataes
         return {
             "positive": [
                 "Hi {first_name},\n\n"
