@@ -5,7 +5,8 @@ summarize_bp = Blueprint("summarize", __name__)
 
 from flask import request, jsonify, make_response
 
-@summarize_bp.route("", methods=["POST", "OPTIONS"])
+
+@summarize_bp.route("", methods=["POST"])
 def summarize_email():
     """
     Endpoint to summarize email content
@@ -21,30 +22,15 @@ def summarize_email():
         "summary": "Summarized email text"
     }
     """
-
-    # Handle CORS preflight request
-    if request.method == "OPTIONS":
-        response = make_response()
-        response.headers.add("Access-Control-Allow-Origin", "http://localhost:1420")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
-        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
-        return response
-
-    # Handle actual POST request
     data = request.get_json()
 
-    if not data or 'email_text' not in data:
-        response = jsonify({"error": "Missing required parameter: email_text"})
-        response.headers.add("Access-Control-Allow-Origin", "http://localhost:1420")
-        return response, 400
+    if not data or "email_text" not in data:
+        return jsonify({"error": "Missing required parameter: email_text"}), 400
 
-    email_text = data.get('email_text')
-    num_sentences = data.get('num_sentences', 3)
+    email_text = data.get("email_text")
+    num_sentences = data.get("num_sentences", 3)
 
     summarizer = EmailSummarizer()
     summary = summarizer.summarize_email(email_text, num_sentences)
 
-    response = jsonify({"summary": summary})
-    response.headers.add("Access-Control-Allow-Origin", "http://localhost:1420")
-    return response
-
+    return jsonify({"summary": summary})

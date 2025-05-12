@@ -4,7 +4,23 @@ from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:1420",
+                    "tauri://localhost",
+                    "file://",
+                    "null",
+                    "*",
+                ]
+            }
+        },
+        supports_credentials=True,
+        allow_headers=["Content-Type"],
+        methods=["POST", "OPTIONS"],
+    )
 
     from app.routes.summarize import summarize_bp
     from app.routes.ner import ner_bp
