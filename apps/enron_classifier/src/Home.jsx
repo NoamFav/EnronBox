@@ -34,7 +34,7 @@ import {
   AlertTriangle,
   Moon,
   Sun,
-  FileText
+  FileText,
 } from 'lucide-react';
 import UserSelector from './UserSelector';
 
@@ -362,10 +362,10 @@ const Home = () => {
       displayToast('No content to summarize', 'error');
       return;
     }
-    
+
     setSummarizing(true);
     setEmailSummary('');
-    
+
     try {
       const response = await fetch('http://localhost:5050/api/summarize', {
         method: 'POST',
@@ -374,10 +374,10 @@ const Home = () => {
         },
         body: JSON.stringify({
           email_text: selectedEmail.content,
-          num_sentences: 3
+          num_sentences: 3,
         }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setEmailSummary(data.summary);
@@ -974,18 +974,30 @@ const Home = () => {
             </div>
 
             {/* Email content area with scrollable container */}
-            <div className="flex-1 overflow-y-auto p-6 animate-fadeIn" style={{ animationDelay: '150ms' }}>
+            <div
+              className="flex-1 overflow-y-auto p-6 animate-fadeIn"
+              style={{ animationDelay: '150ms' }}
+            >
               {/* Email summary if available */}
               {emailSummary && (
-                <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-blue-50 text-gray-800'}`}>
+                <div
+                  className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-blue-50 text-gray-800'}`}
+                >
                   <div className="flex items-center mb-2">
-                    <FileText size={16} className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                    <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Summary</h3>
+                    <FileText
+                      size={16}
+                      className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}
+                    />
+                    <h3
+                      className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                    >
+                      Summary
+                    </h3>
                   </div>
                   <p className="text-sm">{emailSummary}</p>
                 </div>
               )}
-              
+
               {/* Email body */}
               <div className="py-4 whitespace-pre-line mb-4">
                 <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>
