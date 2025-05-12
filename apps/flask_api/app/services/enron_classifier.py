@@ -1,5 +1,6 @@
 from app.services.emotion_enhancer import EmotionEnhancer
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from app.services.db import store_data
 
 import pandas as pd
 import numpy as np
@@ -820,3 +821,24 @@ class EnronEmailClassifier:
 
         user_processed = processed_count[0] - user_start
         return username, user_processed, email_count
+
+    def serialize_prediction(email_id: str, prediction):
+        """
+        Serialize model prediction results for storage.
+
+        Args:
+            email_id (str): The ID of the email.
+            prediction (Dict[str, Any]): The prediction result from the model.
+
+        Returns:
+            Dict[str, Any]: A dictionary ready for storage in the database.
+        """
+        return {
+            "email_id": email_id,
+            "category": prediction["category"],
+            "confidence": prediction["confidence"],
+            "polarity": prediction["emotion"]["polarity"],
+            "subjectivity": prediction["emotion"]["subjectivity"],
+            "stress_score": prediction["emotion"]["stress_score"],
+            "relaxation_score": prediction["emotion"]["relaxation_score"]
+        }
