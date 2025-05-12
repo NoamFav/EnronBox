@@ -1,4 +1,5 @@
 from app.services.emotion_enhancer import EmotionEnhancer
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
 import numpy as np
@@ -138,6 +139,36 @@ class EnronEmailClassifier:
                 total=total_emails_to_process,
             )
 
+            # Decide whether to use multithreading
+        if total_estimated_emails > 10000:
+            # Use ThreadPoolExecutor for multithreaded processing
+            with ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(
+                        self._process_user_emails,
+                        username,
+                        maildir,
+                        email_count,
+                        max_emails,
+                        progress,
+                        overall_task,
+                        processed_count,
+                        emails,
+                        labels,
+                    )
+                    for username, maildir, email_count in valid_users
+                ]
+
+                for future in as_completed(futures):
+                    username, user_processed, email_count = future.result()
+                    description_msg = (
+                        f"[green]✅ Done processing {username} emails - "
+                        f"max emails reached ({user_processed}/{email_count})"
+                        if user_processed < email_count
+                        else f"[green]✅ Done processing {username} emails ({user_processed}/{email_count})"
+                    )
+                    progress.update(overall_task, description=description_msg)
+        else:
             # Process each valid user
             for username, maildir, email_count in valid_users:
                 user_dir = os.path.join(enron_dir, username)
@@ -741,3 +772,51 @@ class EnronEmailClassifier:
                 "relaxation_score": features["relaxation_score"].iloc[0],
             },
         }
+
+    def process_user_emails(self, username, maildir, email_count, max_emails, progress, overall_task, processed_count, emails, labels):
+        """Helper function to process emails when using multithreaded loading"""
+        user_start = processed_count[0]
+        user_task = progress.add_task(f"[cyan]Processing user: {username}", total=email_count)
+
+        # Process each folder in the maildir
+        for folder in os.listdir(maildir):
+            folder_path = os.path.join(maildir, folder)
+            if not os.path.isdir(folder_path):
+                continue
+
+            # Map folder names to categories
+            category_idx = -1
+            for i, category in enumerate(self.categories):
+                if category.lower() in folder.lower():
+                    category_idx = i
+                    break
+            if category_idx == -1:
+                if "sent" in folder.lower():
+                    category_idx = 2  # Business
+                elif "inbox" in folder.lower():
+                    category_idx = 3  # Personal
+                elif "deleted" in folder.lower():
+                    category_idx = 5  # External
+                else:
+                    category_idx = 0  # Work
+
+            # Process the folder
+            self._process_folder(
+                folder_path,
+                category_idx,
+                emails,
+                labels,
+                max_emails,
+                progress=progress,
+                task_id=user_task,
+                overall_task=overall_task,
+                processed_count=processed_count,
+                username=username,
+            )
+
+            # If max_emails has been reached, break early
+            if len(emails) >= max_emails:
+                break
+
+        user_processed = processed_count[0] - user_start
+        return username, user_processed, email_count
