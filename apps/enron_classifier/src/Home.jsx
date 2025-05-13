@@ -54,7 +54,6 @@ const Home = () => {
     { id: 3, text: '2 new email drafts saved', read: true },
   ]);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [viewMode, setViewMode] = useState('default');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showLabels, setShowLabels] = useState(false);
@@ -62,7 +61,8 @@ const Home = () => {
   const [filterOptions, setFilterOptions] = useState({
     unreadOnly: false,
     hasAttachments: false,
-    sortBy: 'date', // 'date', 'sender', 'subject'
+    sortBy: 'date',
+    byLabel: null,
   });
   const [customFolders, setCustomFolders] = useState([
     { id: 1, name: 'Projects', icon: 'Folder' },
@@ -234,9 +234,7 @@ const Home = () => {
         color: colorMap[name] || 'gray',
       }));
       setLabels(derivedLabels);
-      console.log('Sidebar labels =', derivedLabels);
 
-      // 6) Build name → id lookup & merge into emails
       const nameToId = new Map(derivedLabels.map((l) => [l.name, l.id]));
       const classified = formatted.map((e) => {
         const cat = byCategory.get(e.id);
@@ -244,10 +242,22 @@ const Home = () => {
         return { ...e, labels: lid ? [lid] : [] };
       });
 
-      // 7) Apply your filters & sort
       let filtered = classified;
+
+      // unread & attachments as before
       if (filterOptions.unreadOnly) filtered = filtered.filter((e) => !e.read);
       if (filterOptions.hasAttachments) filtered = filtered.filter((e) => e.hasAttachments);
+
+      if (filterOptions.byLabel) {
+        filtered = filtered.filter((e) => {
+          // e.labels is an array of label‐IDs
+          return e.labels.some((id) => {
+            const lbl = getLabelById(id);
+            return lbl?.name === filterOptions.byLabel;
+          });
+        });
+      }
+
       switch (filterOptions.sortBy) {
         case 'sender':
           filtered.sort((a, b) => a.sender.localeCompare(b.sender));
@@ -255,11 +265,9 @@ const Home = () => {
         case 'subject':
           filtered.sort((a, b) => a.subject.localeCompare(b.subject));
           break;
-        // date assumed in API order
       }
 
       setEmails(filtered);
-      console.log('Emails now =', filtered);
     } catch (error) {
       console.error('Error fetching or classifying emails:', error);
       displayToast('Failed to load & classify emails', 'error');
@@ -268,7 +276,7 @@ const Home = () => {
     }
   };
 
-  const displayToast = (message, type = 'info') => {
+  const displayToast = (message) => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => {
@@ -380,31 +388,19 @@ const Home = () => {
     });
   };
 
+  const toggleFilterByLabel = (labelName) => {
+    setFilterOptions((opts) => ({
+      ...opts,
+      // if you click the same label again, clear the filter
+      byLabel: opts.byLabel === labelName ? null : labelName,
+    }));
+  };
+
   const setSort = (sortOption) => {
     setFilterOptions({
       ...filterOptions,
       sortBy: sortOption,
     });
-  };
-
-  const addLabelToEmail = (emailId, labelId) => {
-    setEmails(
-      emails.map((email) => {
-        if (email.id === emailId) {
-          const newLabels = email.labels.includes(labelId)
-            ? email.labels.filter((id) => id !== labelId)
-            : [...email.labels, labelId];
-
-          const labelName = labels.find((l) => l.id === labelId)?.name;
-          displayToast(
-            `Label "${labelName}" ${email.labels.includes(labelId) ? 'removed' : 'added'}`
-          );
-
-          return { ...email, labels: newLabels };
-        }
-        return email;
-      })
-    );
   };
 
   // Helper to get label details by id
@@ -585,21 +581,32 @@ const Home = () => {
 
           {showLabels && (
             <ul className="ml-2 animate-fadeIn">
-              {labels.map((label) => (
-                <li
-                  key={label.id}
-                  className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
-                >
-                  <div
+              {labels.map((label) => {
+                const isActive = filterOptions.byLabel === label.name;
+                const dotClass = colorClassMap[label.name] || 'bg-gray-500';
+                return (
+                  <li
+                    key={label.id}
+                    onClick={() => toggleFilterByLabel(label.name)}
                     className={`
-                        w-3 h-3 rounded-full 
-                        ${colorClassMap[label.name] || 'bg-gray-500'} 
-                        mr-3
-                      `}
-                  />
-                  <span className="text-sm">{label.name}</span>
-                </li>
-              ))}
+                      flex items-center px-4 py-2 cursor-pointer
+                      transition-colors duration-150
+                      ${
+                        darkMode
+                          ? isActive
+                            ? 'bg-gray-600 text-white'
+                            : 'hover:bg-gray-700 text-gray-300'
+                          : isActive
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'hover:bg-gray-100 text-gray-700'
+                      }
+                    `}
+                  >
+                    <div className={`w-3 h-3 rounded-full ${dotClass} mr-3`} />
+                    <span className="text-sm">{label.name}</span>
+                  </li>
+                );
+              })}
               <li
                 className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
               >
