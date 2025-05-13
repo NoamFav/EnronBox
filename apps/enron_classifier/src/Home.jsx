@@ -58,12 +58,7 @@ const Home = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showLabels, setShowLabels] = useState(false);
-  const [labels, setLabels] = useState([
-    { id: 1, name: 'Important', color: 'red' },
-    { id: 2, name: 'Work', color: 'blue' },
-    { id: 3, name: 'Personal', color: 'green' },
-    { id: 4, name: 'Finance', color: 'purple' },
-  ]);
+  const [labels, setLabels] = useState([]);
   const [filterOptions, setFilterOptions] = useState({
     unreadOnly: false,
     hasAttachments: false,
@@ -81,7 +76,35 @@ const Home = () => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode === 'true' || false;
   });
+  const colorClassMap = {
+    Work: 'bg-blue-500',
+    Urgent: 'bg-red-500',
+    Business: 'bg-amber-500',
+    Personal: 'bg-green-500',
+    Meeting: 'bg-teal-500',
+    External: 'bg-gray-500',
+    Newsletter: 'bg-purple-500',
+  };
 
+  const lightBadgeClassMap = {
+    Work: 'bg-blue-100 text-blue-800',
+    Urgent: 'bg-red-100 text-red-800',
+    Business: 'bg-amber-100 text-amber-800',
+    Personal: 'bg-green-100 text-green-800',
+    Meeting: 'bg-teal-100 text-teal-800',
+    External: 'bg-gray-100 text-gray-800',
+    Newsletter: 'bg-purple-100 text-purple-800',
+  };
+
+  const darkBadgeClassMap = {
+    Work: 'bg-blue-900 text-blue-200',
+    Urgent: 'bg-red-900 text-red-200',
+    Business: 'bg-amber-900 text-amber-200',
+    Personal: 'bg-green-900 text-green-200',
+    Meeting: 'bg-teal-900 text-teal-200',
+    External: 'bg-gray-900 text-gray-200',
+    Newsletter: 'bg-purple-900 text-purple-200',
+  };
   // Apply dark mode when it changes
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -130,65 +153,119 @@ const Home = () => {
   const fetchEmails = async (username, folder) => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const resp = await fetch(
         `http://localhost:5050/api/users/${username}/folders/${folder}/emails`
       );
-      if (response.ok) {
-        const data = await response.json();
-        // Transform the data to match our component's expected format
-        const formattedEmails = data.map((email) => ({
-          id: email.id,
-          sender: email.from_address,
-          subject: email.subject || '(No Subject)',
-          content: email.body,
-          read: Math.random() > 0.5, // Mock read status since it's not in the DB
-          starred: Math.random() > 0.7, // Mock starred status
-          time: formatDate(email.date),
-          hasAttachments: Math.random() > 0.7, // Mock attachment status
-          priority: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'normal',
-          labels: Math.random() > 0.7 ? [Math.floor(Math.random() * 4) + 1] : [],
-          flagged: Math.random() > 0.85,
-          attachments:
-            Math.random() > 0.7
-              ? [
-                  { name: 'document.pdf', size: '2.4 MB', type: 'pdf' },
-                  { name: 'image.jpg', size: '1.1 MB', type: 'image' },
-                ]
-              : [],
-        }));
+      if (!resp.ok) throw new Error('Email fetch failed');
+      const raw = await resp.json();
 
-        // Apply filters
-        let filteredEmails = formattedEmails;
+      const formatted = raw.map((e) => ({
+        id: e.id,
+        sender: e.from_address,
+        subject: e.subject || '(No Subject)',
+        content: e.body,
+        read: Math.random() > 0.5,
+        starred: Math.random() > 0.7,
+        time: formatDate(e.date),
+        rawTime: e.date,
+        hasAttachments: Math.random() > 0.7,
+        priority: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'normal',
+        flagged: Math.random() > 0.85,
+        attachments:
+          Math.random() > 0.7
+            ? [
+                { name: 'document.pdf', size: '2.4 MB', type: 'pdf' },
+                { name: 'image.jpg', size: '1.1 MB', type: 'image' },
+              ]
+            : [],
+        labels: [], // to be filled in ↓
+      }));
 
-        if (filterOptions.unreadOnly) {
-          filteredEmails = filteredEmails.filter((email) => !email.read);
-        }
-
-        if (filterOptions.hasAttachments) {
-          filteredEmails = filteredEmails.filter((email) => email.hasAttachments);
-        }
-
-        // Apply sorting
-        switch (filterOptions.sortBy) {
-          case 'sender':
-            filteredEmails.sort((a, b) => a.sender.localeCompare(b.sender));
-            break;
-          case 'subject':
-            filteredEmails.sort((a, b) => a.subject.localeCompare(b.subject));
-            break;
-          case 'date':
-          default:
-            // Assume already sorted by date from API
-            break;
-        }
-
-        setEmails(filteredEmails);
+      const batchRes = await fetch('http://localhost:5050/api/classify/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          formatted.map((e) => ({
+            id: e.id,
+            subject: e.subject,
+            body: e.content,
+            sender: e.sender,
+            has_attachment: e.hasAttachments,
+            num_recipients: 1,
+            time_sent: e.rawTime,
+          }))
+        ),
+      });
+      if (!batchRes.ok) {
+        const err = await batchRes.json().catch(() => ({}));
+        console.error('Batch classify error payload:', err);
+        throw new Error(`Batch classify failed: ${err.error || batchRes.statusText}`);
       }
+      const results = await batchRes.json(); // [{ email_id, classification }, ...]
+
+      const byCategory = new Map(
+        results.map((r) => [Number(r.email_id), r.classification.category])
+      );
+
+      const allCategories = [
+        'Work',
+        'Urgent',
+        'Business',
+        'Personal',
+        'Meeting',
+        'External',
+        'Newsletter',
+      ];
+      const colorMap = {
+        Work: 'blue',
+        Urgent: 'red',
+        Business: 'orange',
+        Personal: 'green',
+        Meeting: 'teal',
+        External: 'gray',
+        Newsletter: 'purple',
+      };
+      const usedNames = Array.from(
+        new Set(Array.from(byCategory.values()).filter((c) => allCategories.includes(c)))
+      );
+      const derivedLabels = usedNames.map((name, i) => ({
+        id: i + 1,
+        name,
+        color: colorMap[name] || 'gray',
+      }));
+      setLabels(derivedLabels);
+      console.log('Sidebar labels =', derivedLabels);
+
+      // 6) Build name → id lookup & merge into emails
+      const nameToId = new Map(derivedLabels.map((l) => [l.name, l.id]));
+      const classified = formatted.map((e) => {
+        const cat = byCategory.get(e.id);
+        const lid = nameToId.get(cat);
+        return { ...e, labels: lid ? [lid] : [] };
+      });
+
+      // 7) Apply your filters & sort
+      let filtered = classified;
+      if (filterOptions.unreadOnly) filtered = filtered.filter((e) => !e.read);
+      if (filterOptions.hasAttachments) filtered = filtered.filter((e) => e.hasAttachments);
+      switch (filterOptions.sortBy) {
+        case 'sender':
+          filtered.sort((a, b) => a.sender.localeCompare(b.sender));
+          break;
+        case 'subject':
+          filtered.sort((a, b) => a.subject.localeCompare(b.subject));
+          break;
+        // date assumed in API order
+      }
+
+      setEmails(filtered);
+      console.log('Emails now =', filtered);
     } catch (error) {
-      console.error('Error fetching emails:', error);
-      displayToast('Failed to load emails', 'error');
+      console.error('Error fetching or classifying emails:', error);
+      displayToast('Failed to load & classify emails', 'error');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const displayToast = (message, type = 'info') => {
@@ -513,7 +590,13 @@ const Home = () => {
                   key={label.id}
                   className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
                 >
-                  <div className={`w-3 h-3 rounded-full bg-${label.color}-500 mr-3`}></div>
+                  <div
+                    className={`
+                        w-3 h-3 rounded-full 
+                        ${colorClassMap[label.name] || 'bg-gray-500'} 
+                        mr-3
+                      `}
+                  />
                   <span className="text-sm">{label.name}</span>
                 </li>
               ))}
@@ -790,14 +873,16 @@ const Home = () => {
                     <div className="flex items-center space-x-1 ml-2">
                       {/* Label indicators */}
                       {email.labels.map((labelId) => {
-                        const label = getLabelById(labelId);
-                        return label ? (
+                        const lbl = getLabelById(labelId);
+                        if (!lbl) return null;
+                        const dotClass = colorClassMap[lbl.name] || 'bg-gray-500';
+                        return (
                           <div
                             key={labelId}
-                            className={`w-2 h-2 rounded-full bg-${label.color}-500`}
-                            title={label.name}
-                          ></div>
-                        ) : null;
+                            className={`w-2 h-2 rounded-full ${dotClass}`}
+                            title={lbl.name}
+                          />
+                        );
                       })}
 
                       {/* Attachment indicator */}
@@ -897,18 +982,17 @@ const Home = () => {
                 <div className="flex items-center space-x-1">
                   {selectedEmail.labels.map((labelId) => {
                     const label = getLabelById(labelId);
-                    return label ? (
+                    const classes = darkMode
+                      ? darkBadgeClassMap[label.name] || 'bg-gray-900 text-gray-200'
+                      : lightBadgeClassMap[label.name] || 'bg-gray-100 text-gray-800';
+                    return (
                       <span
                         key={labelId}
-                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors duration-300 ${
-                          darkMode
-                            ? `bg-${label.color}-900 text-${label.color}-200`
-                            : `bg-${label.color}-100 text-${label.color}-800`
-                        }`}
+                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors duration-300 ${classes}`}
                       >
                         {label.name}
                       </span>
-                    ) : null;
+                    );
                   })}
                 </div>
               </div>

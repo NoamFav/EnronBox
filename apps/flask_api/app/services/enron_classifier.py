@@ -1,13 +1,15 @@
 from app.services.emotion_enhancer import EmotionEnhancer
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.services.db import store_data
+import sqlite3
 
 import pandas as pd
 import numpy as np
 import re
-import os
+import os, pickle
 import email
 from nltk.corpus import stopwords
+import nltk
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -26,17 +28,38 @@ from rich.progress import (
     BarColumn,
     TimeElapsedColumn,
 )
+from typing import Dict, Any
 from rich.table import Table
 from rich import box
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
+from pathlib import Path
 
 logging.getLogger("nltk").setLevel(logging.ERROR)
 
+try:
+    stopwords.words("english")
+except LookupError:
+    nltk.download("stopwords", quiet=True)
+
 
 class EnronEmailClassifier:
-    def __init__(self):
+    def __init__(self, model_dir="models"):
+
+        text_path = Path(model_dir) / "text_model.pkl"
+        num_path = Path(model_dir) / "num_model.pkl"
+
+        if text_path.exists() and num_path.exists():
+            # load existing models
+            with open(text_path, "rb") as f:
+                self.text_model = pickle.load(f)
+            with open(num_path, "rb") as f:
+                self.numerical_model = pickle.load(f)
+        else:
+            # not trained yet
+            self.text_model = None
+            self.numerical_model = None
         # Initialize Rich Console
         self.console = Console()
 
@@ -51,10 +74,9 @@ class EnronEmailClassifier:
         ]
         self.stop_words = set(stopwords.words("english"))
         self.lemmatizer = WordNetLemmatizer()
-        self.text_model = None
-        self.numerical_model = None
         self.emotion_enhancer = EmotionEnhancer()
         self.label_map = None
+        self.stop_words = set(stopwords.words("english"))
 
     def _rich_print(self, message, style="bold green"):
         """Print message with Rich formatting"""
@@ -94,199 +116,63 @@ class EnronEmailClassifier:
 
         return " ".join(cleaned_tokens)
 
-    def load_enron_emails(self, enron_dir, max_emails=5000):
+    def load_enron_emails(self, enron_db_path: str, max_emails: int = 5000):
         """
-        Load and process emails from the Enron dataset,
-        using Rich progress tracking
+        Load up to `max_emails` from the SQLite DB at `enron_db_path`,
+        map each folder → a category index, and return (df, labels).
         """
-        emails = []
+        # 1) grab the raw table of emails + folder names
+        conn = sqlite3.connect(enron_db_path)
+        query = """
+            SELECT
+                e.id AS email_id,
+                e.from_address    AS sender,
+                e.subject         AS subject,
+                e.body            AS body,
+                f.name            AS folder_name,
+                e.date            AS time_sent
+            FROM emails e
+            JOIN folders f ON e.folder_id = f.id
+            LIMIT ?
+        """
+        df = pd.read_sql_query(query, conn, params=(max_emails,))
+        conn.close()
+
+        # 2) fill in any numerical cols your train() expects
+        df["has_attachment"] = False
+        df["num_recipients"] = 1
+        # convert time_sent to actual datetime:
+        df["time_sent"] = pd.to_datetime(df["time_sent"], errors="coerce")
+
+        # 3) map folder_name → a numeric label index
         labels = []
-        processed_count = [0]
-
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
-            TimeElapsedColumn(),
-            console=self.console,
-        ) as progress:
-            # Estimate total emails and gather valid users
-            total_estimated_emails = 0
-            valid_users = []
-            for username in os.listdir(enron_dir):
-                user_dir = os.path.join(enron_dir, username)
-                if not os.path.isdir(user_dir) or username.startswith("."):
-                    continue
-
-                maildir = os.path.join(user_dir, "maildir")
-                if not os.path.exists(maildir) or not os.path.isdir(maildir):
-                    maildir = user_dir
-
-                user_email_count = sum(
-                    len(files)
-                    for root, _, files in os.walk(maildir)
-                    if not root.endswith("attachments")
-                )
-                if user_email_count == 0:
-                    continue
-
-                total_estimated_emails += user_email_count
-                valid_users.append((username, maildir, user_email_count))
-
-            total_emails_to_process = min(total_estimated_emails, max_emails)
-            overall_task = progress.add_task(
-                "[bold green]📦 Processing Emails...",
-                total=total_emails_to_process,
+        for folder in df["folder_name"]:
+            idx = next(
+                (
+                    i
+                    for i, cat in enumerate(self.categories)
+                    if cat.lower() in folder.lower()
+                ),
+                None,
             )
-
-            # Decide whether to use multithreading
-        if total_estimated_emails > 10000:
-            # Use ThreadPoolExecutor for multithreaded processing
-            with ThreadPoolExecutor() as executor:
-                futures = [
-                    executor.submit(
-                        self._process_user_emails,
-                        username,
-                        maildir,
-                        email_count,
-                        max_emails,
-                        progress,
-                        overall_task,
-                        processed_count,
-                        emails,
-                        labels,
-                    )
-                    for username, maildir, email_count in valid_users
-                ]
-
-                for future in as_completed(futures):
-                    username, user_processed, email_count = future.result()
-                    description_msg = (
-                        f"[green]✅ Done processing {username} emails - "
-                        f"max emails reached ({user_processed}/{email_count})"
-                        if user_processed < email_count
-                        else f"[green]✅ Done processing {username} emails ({user_processed}/{email_count})"
-                    )
-                    progress.update(overall_task, description=description_msg)
-        else:
-            # Process each valid user
-            for username, maildir, email_count in valid_users:
-                user_dir = os.path.join(enron_dir, username)
-                if not os.path.isdir(user_dir) or username.startswith("."):
-                    continue
-
-                if not os.path.exists(maildir) or not os.path.isdir(maildir):
-                    maildir = user_dir
-
-                # Record the overall processed count before starting this user
-                user_start = processed_count[0]
-
-                # Create a progress task for this user with the estimated total emails
-                user_task = progress.add_task(
-                    f"[cyan]Processing user: {username}", total=email_count
-                )
-
-                # Use the standard maildir if present
-                user_maildir = os.path.join(user_dir, "maildir")
-                if os.path.exists(user_maildir) and os.path.isdir(user_maildir):
-                    maildir = user_maildir
+            if idx is None:
+                # fallback logic copied from your maildir loader
+                lname = folder.lower()
+                if "sent" in lname:
+                    idx = self.categories.index("Business")
+                elif "inbox" in lname:
+                    idx = self.categories.index("Personal")
+                elif "deleted" in lname:
+                    idx = self.categories.index("External")
                 else:
-                    maildir = user_dir
+                    idx = self.categories.index("Work")
+            labels.append(idx)
 
-                # Process each folder in the maildir
-                for folder in os.listdir(maildir):
-                    folder_path = os.path.join(maildir, folder)
-                    if not os.path.isdir(folder_path):
-                        continue
+        # 4) drop helper columns
+        df = df.drop(columns=["folder_name"])
 
-                    # Map folder names to categories
-                    category_idx = -1
-                    for i, category in enumerate(self.categories):
-                        if category.lower() in folder.lower():
-                            category_idx = i
-                            break
-                    if category_idx == -1:
-                        if "sent" in folder.lower():
-                            category_idx = 2  # Business
-                        elif "inbox" in folder.lower():
-                            category_idx = 3  # Personal
-                        elif "deleted" in folder.lower():
-                            category_idx = 5  # External
-                        else:
-                            category_idx = 0  # Work
-
-                    # Process the folder
-                    self._process_folder(
-                        folder_path,
-                        category_idx,
-                        emails,
-                        labels,
-                        max_emails,
-                        progress=progress,
-                        task_id=user_task,
-                        overall_task=overall_task,
-                        processed_count=processed_count,
-                        username=username,
-                    )
-
-                    # If max_emails has been reached, break early
-                    if len(emails) >= max_emails:
-                        break
-
-                # Compute the number of emails processed for this user
-                user_processed = processed_count[0] - user_start
-
-                # Create a descriptive message
-                if user_processed < email_count:
-                    description_msg = (
-                        f"[green]✅ Done processing {username} emails - "
-                        f"max emails reached ({user_processed}/{email_count})"
-                    )
-                else:
-                    description_msg = (
-                        f"[green]✅ Done processing {username}"
-                        "emails ({user_processed}/{email_count})"
-                    )
-
-                progress.update(
-                    user_task,
-                    completed=user_processed,
-                    description=description_msg,
-                )
-                if len(emails) >= max_emails:
-                    break
-
-        if not emails:
-            self._rich_print(
-                f"No emails were loaded from {enron_dir}."
-                "Check the directory structure.",
-                "bold red",
-            )
-            raise ValueError("No emails found in the specified directory.")
-
-        email_df = pd.DataFrame(emails)
-
-        summary_table = Table(
-            title="📬 Email Dataset Summary",
-            title_style="bold green",
-            box=box.ROUNDED,
-            show_header=True,
-            header_style="bold white on dark_blue",
-            pad_edge=False,
-        )
-
-        summary_table.add_column(
-            "📊 Metric", style="cyan", justify="left", no_wrap=True
-        )
-        summary_table.add_column("📈 Value", style="magenta", justify="left")
-
-        summary_table.add_row("Total Emails", str(len(emails)))
-        summary_table.add_row("Unique Categories", str(len(set(labels))))
-        summary_table.add_row("Columns", ", ".join(email_df.columns.tolist()))
-
-        self.console.print(summary_table)
-        return email_df, np.array(labels)
+        # 5) return the DataFrame & a numpy array of label‐indices
+        return df, np.array(labels, dtype=int)
 
     def _process_folder(
         self,
@@ -679,6 +565,10 @@ class EnronEmailClassifier:
         # Print the classification report
         self.display_classification_report(actual_categories, predicted_categories)
 
+        base_dir = Path(__file__).resolve().parent.parent
+        results_dir = base_dir / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+
         # Save additional visualizations if more than one class exists
         if len(np.unique(actual_categories)) > 1:
             plt.figure(figsize=(10, 8))
@@ -697,11 +587,8 @@ class EnronEmailClassifier:
             plt.ylabel("Actual")
             plt.title("Confusion Matrix")
             plt.tight_layout()
-            save_path = os.path.join("results", "confusion_matrix.png")
-            plt.savefig(save_path)
-            self._rich_print(
-                f"📊 Confusion Matrix saved at: {save_path}", style="bold yellow"
-            )
+            conf_matrix_path = results_dir / "confusion_matrix.png"
+            plt.savefig(conf_matrix_path)
 
             # Save Feature Importance Plot
             feature_importances = self.numerical_model.feature_importances_
@@ -721,13 +608,8 @@ class EnronEmailClassifier:
             plt.ylabel("Feature")
             plt.tight_layout()
 
-            os.makedirs("results", exist_ok=True)
-            importance_path = os.path.join("results", "feature_importance.png")
-            plt.savefig(importance_path)
-            self._rich_print(
-                f"📸 Feature importance plot saved at: {importance_path}",
-                style="bold yellow",
-            )
+            feat_imp_path = results_dir / "feature_importance.png"
+            plt.savefig(feat_imp_path)
 
         return self
 
@@ -774,10 +656,23 @@ class EnronEmailClassifier:
             },
         }
 
-    def process_user_emails(self, username, maildir, email_count, max_emails, progress, overall_task, processed_count, emails, labels):
+    def process_user_emails(
+        self,
+        username,
+        maildir,
+        email_count,
+        max_emails,
+        progress,
+        overall_task,
+        processed_count,
+        emails,
+        labels,
+    ):
         """Helper function to process emails when using multithreaded loading"""
         user_start = processed_count[0]
-        user_task = progress.add_task(f"[cyan]Processing user: {username}", total=email_count)
+        user_task = progress.add_task(
+            f"[cyan]Processing user: {username}", total=email_count
+        )
 
         # Process each folder in the maildir
         for folder in os.listdir(maildir):
@@ -822,16 +717,12 @@ class EnronEmailClassifier:
         user_processed = processed_count[0] - user_start
         return username, user_processed, email_count
 
-    def serialize_prediction(email_id: str, prediction):
+    @staticmethod
+    def serialize_prediction(
+        email_id: str, prediction: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Serialize model prediction results for storage.
-
-        Args:
-            email_id (str): The ID of the email.
-            prediction (Dict[str, Any]): The prediction result from the model.
-
-        Returns:
-            Dict[str, Any]: A dictionary ready for storage in the database.
         """
         return {
             "email_id": email_id,
@@ -840,5 +731,5 @@ class EnronEmailClassifier:
             "polarity": prediction["emotion"]["polarity"],
             "subjectivity": prediction["emotion"]["subjectivity"],
             "stress_score": prediction["emotion"]["stress_score"],
-            "relaxation_score": prediction["emotion"]["relaxation_score"]
+            "relaxation_score": prediction["emotion"]["relaxation_score"],
         }

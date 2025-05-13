@@ -2,7 +2,6 @@ import sqlite3
 import os
 import json
 from typing import List, Dict, Any
-from app.services.enron_classifier import serialize_prediction
 
 print("DB_PATH:", os.getenv("DB_PATH"))
 DB_PATH = os.getenv("DB_PATH", "/app/data/enron.db")
@@ -74,13 +73,15 @@ def get_email_by_id(email_id):
     conn.close()
     return email
 
+
 def initialize_table():
     """Initialize required tables in the DB if they don't exist."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        
+
         # Table for storing serialized model predictions
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email_id TEXT NOT NULL,
@@ -91,18 +92,22 @@ def initialize_table():
                 stress_score REAL NOT NULL,
                 relaxation_score REAL NOT NULL
             )
-        """)
-        
+        """
+        )
+
         # Table for storing and indexing entities
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS entities (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email_id TEXT NOT NULL,
                 entity_type TEXT NOT NULL,
                 entity_value TEXT NOT NULL
             )
-        """)
+        """
+        )
         conn.commit()
+
 
 def store_data(table: str, data: List[Dict[str, Any]]):
     """
@@ -112,23 +117,31 @@ def store_data(table: str, data: List[Dict[str, Any]]):
         table (str): The name of the table to store data into.
         data (List[Dict[str, Any]]): A list of dictionaries containing the data to store.
     """
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        
+
         if table == "predictions":
-            cursor.executemany("""
+            cursor.executemany(
+                """
                 INSERT INTO predictions (email_id, category, confidence, polarity, subjectivity, stress_score, relaxation_score)
                 VALUES (:email_id, :category, :confidence, :polarity, :subjectivity, :stress_score, :relaxation_score)
-            """, data)
+            """,
+                data,
+            )
         elif table == "entities":
-            cursor.executemany("""
+            cursor.executemany(
+                """
                 INSERT INTO entities (email_id, entity_type, entity_value)
                 VALUES (:email_id, :entity_type, :entity_value)
-            """, data)
+            """,
+                data,
+            )
         else:
             raise ValueError(f"Unknown table: {table}")
-        
+
         conn.commit()
+
 
 def store_prediction(self, email_id: str, prediction: Dict[str, Any]):
     """
@@ -138,8 +151,13 @@ def store_prediction(self, email_id: str, prediction: Dict[str, Any]):
         email_id (str): The ID of the email.
         prediction (Dict[str, Any]): The prediction result from the model.
     """
-    serialized_prediction = serialize_prediction(email_id, prediction)
+    from app.services.enron_classifier import EnronEmailClassifier
+
+    serialized_prediction = EnronEmailClassifier.serialize_prediction(
+        email_id, prediction
+    )
     store_data("predictions", [serialized_prediction])
+
 
 def store_entities(email_id: str, entities: Dict[str, List[str]]):
     """
@@ -150,13 +168,15 @@ def store_entities(email_id: str, entities: Dict[str, List[str]]):
         entities (Dict[str, List[str]]): A dictionary of entities with their types and values.
     """
     entity_data = []
-    
+
     for entity_type, values in entities.items():
         for value in values:
-            entity_data.append({
-                "email_id": email_id,
-                "entity_type": entity_type,
-                "entity_value": value
-            })
-    
+            entity_data.append(
+                {
+                    "email_id": email_id,
+                    "entity_type": entity_type,
+                    "entity_value": value,
+                }
+            )
+
     store_data("entities", entity_data)
