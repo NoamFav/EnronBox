@@ -178,7 +178,7 @@ const Home = () => {
                 { name: 'image.jpg', size: '1.1 MB', type: 'image' },
               ]
             : [],
-        labels: [], // to be filled in ↓
+        labels: [],
       }));
 
       const batchRes = await fetch('http://localhost:5050/api/classify/batch', {
