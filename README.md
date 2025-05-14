@@ -9,7 +9,7 @@
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-Latest-orange.svg)](https://scikit-learn.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue.svg)](https://www.typescriptlang.org/)
 
-<img src="src/assets/logo.png" width="250" alt="EnronClassifier Logo"/>
+<img src="apps/enron_classifier/src-tauri/icons/icon.png" width="250" alt="EnronClassifier Logo"/>
 
 A powerful desktop and web application for classifying, summarizing, and analyzing emotion in Enron emails. Built with React, Flask API, and Tauri for cross-platform support.
 
@@ -94,7 +94,7 @@ Launch the backend services quickly with Docker Compose:
 
 ```bash
 # Start the Flask API and Agent Daemon
-docker-compose up --build
+docker compose up --build
 ```
 
 This will start:
@@ -205,25 +205,12 @@ npm --prefix ./apps/enron_classifier install
 </details>
 
 <details>
-<summary><b>Environment Variables</b></summary>
-
-Create a `.env` file in the project root:
-
-```dotenv
-# For Flask API
-db_path=./apps/SQLite_db/enron.db
-PORT=5050
-```
-
-</details>
-
-<details>
 <summary><b>Frontend Development</b></summary>
 
 Start the React app in development mode:
 
 ```bash
-npm run dev
+npm --prefix ./apps/enron_classifier run tauri dev
 ```
 
 The UI is built with:
@@ -239,20 +226,10 @@ The UI is built with:
 <details>
 <summary><b>Backend Development</b></summary>
 
-Run the Flask API without Docker:
+Run the Flask API with Docker:
 
 ```bash
-cd apps/flask_api
-export FLASK_APP=app.py
-export FLASK_ENV=development
-flask run --port 5050
-```
-
-The Go agent daemon can be run separately:
-
-```bash
-cd apps/go_agents/agent-daemon
-go run main.go
+docker compose up --build
 ```
 
 </details>
