@@ -199,10 +199,7 @@ git clone https://github.com/your-org/EnronClassifier.git
 cd EnronClassifier
 
 # Install dependencies
-npm install
-
-# Set up Python environment
-pip install -r requirements.txt
+npm --prefix ./apps/enron_classifier install
 ```
 
 </details>
