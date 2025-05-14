@@ -1,15 +1,5 @@
 <div align="center">
 
-# 📬 Enron Email Intelligence
-
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-Latest-orange.svg)](https://scikit-learn.org/)
-[![Rich](https://img.shields.io/badge/Rich-Latest-purple.svg)](https://github.com/Textualize/rich)
-[![TextBlob](https://img.shields.io/badge/TextBlob-Latest-green.svg)](https://textblob.readthedocs.io/)
-[![spaCy](https://img.shields.io/badge/spaCy-Latest-teal.svg)](https://spacy.io/)
-
-<div align="center">
-
 # 📬 EnronClassifier
 
 [![React](https://img.shields.io/badge/React-18.0+-blue.svg)](https://reactjs.org/)
