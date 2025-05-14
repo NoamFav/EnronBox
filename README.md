@@ -8,14 +8,25 @@
 [![TextBlob](https://img.shields.io/badge/TextBlob-Latest-green.svg)](https://textblob.readthedocs.io/)
 [![spaCy](https://img.shields.io/badge/spaCy-Latest-teal.svg)](https://spacy.io/)
 
-<img src="src/ui/assets/logo.png" width="250" alt="Enron Email Intelligence Logo"/>
+<img src="src<div align="center">
 
-A powerful terminal-based email classification and analysis tool powered by machine learning and NLP, built on the Enron email dataset. The application offers a rich terminal UI using the `rich` library, featuring category classification, emotion analysis, keyword extraction, and smart commands.
+# 📬 EnronClassifier
 
-[Installation](#-setup-instructions) • 
-[Features](#-features) • 
-[Running the Shell](#-running-the-shell) • 
-[Project Structure](#-project-structure)
+[![React](https://img.shields.io/badge/React-18.0+-blue.svg)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1-green.svg)](https://flask.palletsprojects.com/)
+[![Tauri](https://img.shields.io/badge/Tauri-Latest-purple.svg)](https://tauri.app/)
+[![Docker](https://img.shields.io/badge/Docker-Compatible-blue.svg)](https://www.docker.com/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-Latest-orange.svg)](https://scikit-learn.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue.svg)](https://www.typescriptlang.org/)
+
+<img src="src/assets/logo.png" width="250" alt="EnronClassifier Logo"/>
+
+A powerful desktop and web application for classifying, summarizing, and analyzing emotion in Enron emails. Built with React, Flask API, and Tauri for cross-platform support.
+
+[Quick Start](#-quick-start) •
+[Features](#-features) •
+[Architecture](#-architecture) •
+[Development](#-development)
 
 </div>
 
@@ -23,10 +34,10 @@ A powerful terminal-based email classification and analysis tool powered by mach
 
 ## 📋 Overview
 
-Welcome to **Enron Email Intelligence**, a sophisticated email analysis toolkit! Built with advanced machine learning and NLP techniques, it provides comprehensive email classification, sentiment analysis, and intelligent processing capabilities through an elegant terminal interface. Whether you're a data scientist, email administrator, or NLP enthusiast, this tool offers powerful insights into email communications!
+Welcome to **EnronClassifier**, a sophisticated email analysis application! Built with advanced machine learning and NLP techniques, it provides comprehensive email classification, summarization, and emotion analysis capabilities through an elegant web and desktop interface. Whether you're a data scientist, researcher, or NLP enthusiast, this tool offers powerful insights into the Enron email dataset!
 
 <div align="center">
-  <img src="docs/images/terminal_ui_screenshot.png" width="600" alt="Enron Email Intelligence Terminal UI"/>
+  <img src="docs/images/app_screenshot.png" width="600" alt="EnronClassifier Screenshot"/>
 </div>
 
 ---
@@ -36,193 +47,226 @@ Welcome to **Enron Email Intelligence**, a sophisticated email analysis toolkit!
 <div style="display: flex; flex-wrap: wrap;">
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🧠 AI-Powered Classification</h3>
-<p>Advanced hybrid classifier combining TF-IDF with Random Forest and custom numerical features for highly accurate email categorization.</p>
-</div>
-
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🖥️ Rich Terminal UI</h3>
-<p>Elegant, interactive terminal interface with custom prompts, colors, and emoji-enhanced output for a delightful user experience.</p>
+<h3>🧠 Email Classification</h3>
+<p>Uses machine learning to categorize emails with high accuracy using a Python ML pipeline.</p>
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
 <h3>📄 Smart Summarization</h3>
-<p>Extract key information from lengthy emails using advanced algorithms that preserve context and meaning.</p>
-</div>
-
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🧍 Entity Recognition</h3>
-<p>Automatically identify and extract people, organizations, dates, and locations from email content to enhance context understanding.</p>
-</div>
-
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>✉️ Auto-Reply Generation</h3>
-<p>Create contextually appropriate email responses based on sentiment, urgency, and category predictions.</p>
+<p>Extractive summarization of lengthy emails using NLP libraries (NLTK, spaCy, Sumy).</p>
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
 <h3>🧠 Emotion Analysis</h3>
-<p>Advanced sentiment and emotion detection to identify stress, urgency, and tone in communications.</p>
+<p>Detects emotional tone and offers phrasing suggestions to enhance communication.</p>
+</div>
+
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>👤 User Selection</h3>
+<p>Select and analyze emails from specific Enron employees in the dataset.</p>
+</div>
+
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🔄 Agent Daemon</h3>
+<p>Background Go service for asynchronous tasks and seamless integrations.</p>
+</div>
+
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>💻 Cross-Platform</h3>
+<p>Available as both a web application and desktop app via Tauri framework.</p>
 </div>
 
 </div>
 
 ---
 
-## 📦 Setup Instructions
+## 🚀 Quick Start
 
 <details open>
-<summary><b>Installation Requirements</b></summary>
+<summary><b>Prerequisites</b></summary>
 
 Before diving into the email analysis, ensure your system meets these requirements:
 
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| **Python** | 3.8+ | [Download Python](https://www.python.org/downloads/) |
-| **pip** | Latest | Included with Python |
-| **Memory** | 4GB+ RAM | 8GB+ recommended for full dataset |
-| **Storage** | 1GB | For dataset and dependencies |
-| **OS** | Cross-platform | Windows, macOS, Linux compatible |
+| Requirement                 | Version | Notes                                                         |
+| --------------------------- | ------- | ------------------------------------------------------------- |
+| **Node.js & npm**           | v18+    | [Download Node.js](https://nodejs.org/)                       |
+| **Docker & Docker Compose** | Latest  | [Get Docker](https://www.docker.com/products/docker-desktop/) |
+| **Rust toolchain**          | Latest  | Required for Tauri builds                                     |
+| **Python**                  | 3.10+   | For local development of Flask API                            |
+| **Go**                      | 1.20+   | For agent-daemon development                                  |
 
 </details>
 
 <details open>
-<summary><b>Quick Installation</b></summary>
+<summary><b>Docker Setup (Backend)</b></summary>
 
-Follow these simple steps to set up the application:
-
-### **Linux/macOS**:
+Launch the backend services quickly with Docker Compose:
 
 ```bash
-# Clone the repository (if using git)
-git clone https://github.com/NoamFav/NLP_project.git
-cd NLP_project
-
-# Install dependencies
-make install
+# Start the Flask API and Agent Daemon
+docker-compose up --build
 ```
 
-### **Windows**:
+This will start:
 
-```cmd
-# Clone the repository (if using git)
-git clone https://github.com/NoamFav/NLP_project.git
-cd NLP_project
+- **Flask API** on port 5050
+- **Agent Daemon** working in the background
 
-# Install dependencies
-install.bat
-```
-
-The installer automatically handles all dependencies and downloads required NLP models.
+Both services will connect to the pre-loaded Enron SQLite database.
 
 </details>
 
-<details>
-<summary><b>Dataset Download</b></summary>
+<details open>
+<summary><b>Running the Application</b></summary>
 
-Use the platform-specific scripts to download and extract the Enron email dataset:
+### Desktop Application (Development)
 
-**macOS/Linux**:
 ```bash
-bash bin/download_enron.sh
+# Run the Tauri desktop app in development mode
+npm --prefix ./apps/enron_classifier run tauri dev
 ```
 
-**Windows**:
-```cmd
-bin\download_enron.cmd
+### Desktop Application (Production Build)
+
+```bash
+# Build the desktop application installers
+npm --prefix ./apps/enron_classifier run tauri build
 ```
 
-This will download, extract, and prepare the dataset for analysis.
+Installers will be available in `apps/enron_classifier/src-tauri/target/release/bundle/`.
+
+### Web Application
+
+```bash
+# Run the web version in development mode
+npm --prefix ./apps/enron_classifier run dev
+```
+
+Access the web app at http://localhost:5173
 
 </details>
 
 ---
 
-## 🏁 Running the Shell
+## 🛠️ Architecture
 
 <details open>
-<summary><b>Launch Instructions</b></summary>
+<summary><b>System Architecture</b></summary>
 
-Start the interactive shell with these commands:
-
-```bash
-# Unix/macOS
-./run.sh --max_emails 5000
-
-# Windows
-run.bat --max_emails 5000
+```
+┌──────────────┐    HTTP    ┌───────────────┐
+│   Frontend   │──────────▶│  Flask API     │
+│ (React +     │◀──────────│  (apps/flask_api)│
+│  Tauri)      │           └───────────────┘
+└──────────────┘                ▲
+                                │
+                                │
+                           ┌──────────┐
+                           │ SQLite   │
+                           │ (enron.db)│
+                           └──────────┘
+                                ▲
+                                │
+                           ┌──────────┐
+                           │Agent     │
+                           │Daemon    │
+                           └──────────┘
 ```
 
-**Tips for Optimal Performance**:
-- Keep `max_emails` under 5000 for faster startup during development
-- Always run from the project root directory
-- For production use, increase the email limit for more comprehensive analysis
+The system uses a modern architecture with three main components:
+
+1. **Frontend**: React-based UI with Tauri integration for desktop deployment
+2. **Flask API**: Python backend for ML and NLP processing
+3. **Agent Daemon**: Go service for background tasks and database maintenance
 
 </details>
 
 <details>
-<summary><b>Shell Commands</b></summary>
+<summary><b>API Endpoints</b></summary>
 
-Navigate the application using these Vim-style commands:
+The Flask API exposes these endpoints for frontend integration:
 
-| Command | Description | Usage |
-|---------|-------------|-------|
-| `:browse` | Browse and load emails | `:browse [folder]` |
-| `:analyze` | Run full analysis on current email | `:analyze` |
-| `:response` | Generate auto-response | `:response` |
-| `:user` | View email statistics for any user | `:user [email/name]` |
-| `:entities` | Extract named entities | `:entities` |
-| `:summary` | Generate email summary | `:summary` |
-| `:clear` | Reset the screen | `:clear` |
-| `:help` | List all commands | `:help` |
-| `:quit` | Exit the shell | `:quit` |
+| Route                     | Method | Description                      |
+| ------------------------- | ------ | -------------------------------- |
+| `/classify`               | POST   | Classify email content           |
+| `/summarize`              | POST   | Summarize email text             |
+| `/emotion-enhance`        | POST   | Analyze & enhance emotional tone |
+| `/users`                  | GET    | List available Enron users       |
+| `/users/<user_id>/emails` | GET    | Fetch emails for a specific user |
 
 </details>
-
-<div align="center">
-  <img src="docs/images/command_showcase.png" width="600" alt="Terminal Command Showcase"/>
-</div>
 
 ---
 
-## 🛠️ Technical Details
+## 💻 Development
 
 <details>
-<summary><b>Classification Details</b></summary>
+<summary><b>Clone & Setup</b></summary>
 
-The email classifier employs a sophisticated hybrid approach:
+```bash
+# Clone the repository
+git clone https://github.com/your-org/EnronClassifier.git
+cd EnronClassifier
 
-- **Text Pipeline**:
-  - TF-IDF vectorization with n-gram features
-  - Random Forest classifier with optimized hyperparameters
-  - Stop word removal and lemmatization
+# Install dependencies
+npm install
 
-- **Numerical Features**:
-  - Text length metrics (subject, body)
-  - Sentiment analysis (polarity, subjectivity)
-  - Urgency scoring based on keyword frequency
-  - Email metadata extraction (recipients, CCs, attachments)
-  - Business language detection
-
-- **Fusion Strategy**:
-  - Probabilistic combination of text and numerical predictions
-  - Confidence thresholds for improved precision
+# Set up Python environment
+pip install -r requirements.txt
+```
 
 </details>
 
 <details>
-<summary><b>Entity Extraction Process</b></summary>
+<summary><b>Environment Variables</b></summary>
 
-Named Entity Recognition is performed using spaCy:
+Create a `.env` file in the project root:
 
-1. Pre-processing to clean and normalize text
-2. Entity detection for:
-   - People (👤 names, positions)
-   - Organizations (🏢 companies, departments)
-   - Dates and times (📅 scheduling information)
-   - Locations (🌎 places, addresses)
-3. Post-processing to remove duplicates and improve accuracy
-4. Rich visualization in the terminal interface
+```dotenv
+# For Flask API
+db_path=./apps/SQLite_db/enron.db
+PORT=5050
+```
+
+</details>
+
+<details>
+<summary><b>Frontend Development</b></summary>
+
+Start the React app in development mode:
+
+```bash
+npm run dev
+```
+
+The UI is built with:
+
+- Vite + React 18
+- TypeScript
+- Tailwind CSS
+- Framer Motion for animations
+- React Router DOM for navigation
+
+</details>
+
+<details>
+<summary><b>Backend Development</b></summary>
+
+Run the Flask API without Docker:
+
+```bash
+cd apps/flask_api
+export FLASK_APP=app.py
+export FLASK_ENV=development
+flask run --port 5050
+```
+
+The Go agent daemon can be run separately:
+
+```bash
+cd apps/go_agents/agent-daemon
+go run main.go
+```
 
 </details>
 
@@ -231,90 +275,55 @@ Named Entity Recognition is performed using spaCy:
 ## 📁 Project Structure
 
 ```
-enron-email-intelligence/
-├── bin/                 # Scripts: dataset download (sh/cmd)
-├── data/                # Preprocessed data (optional)
-├── docs/                # Documentation and diagrams
-│   └── images/          # Screenshots and visual aids
-├── maildir/             # Enron dataset folder (after extraction)
-├── results/             # Output files and evaluations
-├── scripts/             # Postinstall and misc helpers
-├── src/                 # Source code
-│   ├── ui/              # Terminal shell UI
-│   │   └── assets/      # UI resources and icons
-│   ├── ner/             # Named Entity Recognition
-│   ├── response/        # Auto-response engine
-│   ├── summarizer/      # Email summarizer
-│   ├── emotion_enhancer.py
-│   ├── enron_classifier.py
-│   └── main.py
-├── install.bat          # Windows installer
-├── Makefile             # Linux/macOS installer
-├── postinstall.py       # Common setup tasks
-├── README.md            # Project overview
-└── requirements.txt     # Python dependencies
+EnronClassifier/
+├── apps/
+│   ├── flask_api/            # Flask backend & Dockerfile
+│   │   ├── app.py
+│   │   ├── models/
+│   │   └── services/
+│   ├── go_agents/            # Go agent-daemon service
+│   │   └── agent-daemon/
+│   └── enron_classifier/     # Frontend code
+│       ├── src/
+│       │   ├── components/
+│       │   ├── pages/
+│       │   └── services/
+│       └── src-tauri/        # Tauri configuration
+├── SQLite_db/
+│   └── enron.db              # Pre-loaded Enron dataset
+├── package.json
+├── requirements.txt          # Python dependencies
+└── docker-compose.yml        # Service definitions
 ```
 
 ---
 
-## 🎯 Planned Features
+## 🎯 Available Scripts
 
-<table>
-<tr>
-<td width="33%">
-<h3>🌐 Web Interface</h3>
-<p>Browser-based UI for easier access and visualization capabilities.</p>
-</td>
-<td width="33%">
-<h3>📊 Advanced Analytics</h3>
-<p>Statistical insights and communication pattern discovery across emails.</p>
-</td>
-<td width="33%">
-<h3>🔄 Custom Email Input</h3>
-<p>Analyze your own emails beyond the Enron dataset.</p>
-</td>
-</tr>
-<tr>
-<td width="33%">
-<h3>🧪 Improved Models</h3>
-<p>Enhanced classification using transformer-based approaches.</p>
-</td>
-<td width="33%">
-<h3>📱 Export Capabilities</h3>
-<p>Save analyses in various formats (PDF, CSV, JSON).</p>
-</td>
-<td width="33%">
-<h3>🔌 API Integration</h3>
-<p>Connect with email services for real-time analysis.</p>
-</td>
-</tr>
-</table>
+<details>
+<summary><b>Main Package Scripts</b></summary>
 
----
+| Command               | Description                            |
+| --------------------- | -------------------------------------- |
+| `npm run dev`         | Start frontend in development mode     |
+| `npm run build`       | Build frontend for production          |
+| `npm run preview`     | Preview production build locally       |
+| `npm run tauri dev`   | Start Tauri dev environment            |
+| `npm run tauri build` | Build desktop application              |
+| `npm run lint`        | Run ESLint checks                      |
+| `npm run predeploy`   | Build before deploying to GitHub Pages |
+| `npm run deploy`      | Deploy to GitHub Pages                 |
 
-## 👤 Contributors
-
-<div align="center">
-
-| Contributor | Role | Focus Area |
-|-------------|------|------------|
-| **Noam Favier** | Project Lead | UI Integration, ML Core |
-| **Remi** | Developer | Email Summarization |
-| **Jiang** | Developer | Named Entity Recognition |
-| **Giorgos** | Developer | Auto-Reply Templates |
-| **David** | Developer | Sentiment Enhancer |
-| **Esteban** | Data Scientist | Dataset Cleanup / Metadata |
-| **Octavian** | Tester | Manual Testing / Custom Email Input |
-
-</div>
-
-> 💌 Special thanks to the Enron corpus and the open NLP community for the foundational tools.
+</details>
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions to make Enron Email Intelligence even better! Whether it's adding new features, fixing bugs, or improving documentation, your help is appreciated.
+<details>
+<summary><b>Contribution Guidelines</b></summary>
+
+We welcome contributions to make EnronClassifier even better! Please follow these steps:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -323,6 +332,33 @@ We welcome contributions to make Enron Email Intelligence even better! Whether i
 5. Open a Pull Request
 
 Please make sure to update tests as appropriate and adhere to the code style guidelines.
+
+</details>
+
+---
+
+## 👤 Contributors
+
+<div align="center">
+
+| Contributor            | Role           | Focus Area                        |
+| ---------------------- | -------------- | --------------------------------- |
+| **Project Lead**       | Lead Developer | Architecture, ML Integration      |
+| **Backend Developer**  | Developer      | Flask API, Classification         |
+| **Frontend Developer** | Developer      | React, Tauri Integration          |
+| **Go Developer**       | Developer      | Agent Daemon                      |
+| **ML Engineer**        | Data Scientist | ML Models, NLP Pipeline           |
+| **UX Designer**        | Designer       | User Interface, Experience Design |
+
+</div>
+
+> 💌 Special thanks to the Enron corpus and the open-source community for the foundational tools.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
