@@ -27,7 +27,7 @@ A powerful desktop and web application for classifying, summarizing, and analyzi
 Welcome to **EnronClassifier**, a sophisticated email analysis application! Built with advanced machine learning and NLP techniques, it provides comprehensive email classification, summarization, and emotion analysis capabilities through an elegant web and desktop interface. Whether you're a data scientist, researcher, or NLP enthusiast, this tool offers powerful insights into the Enron email dataset!
 
 <div align="center">
-  <img src="docs/images/screenshot.png" width="600" alt="EnronClassifier Screenshot"/>
+  <img src="docs/screenshots.png" width="600" alt="EnronClassifier Screenshot"/>
 </div>
 
 ---
