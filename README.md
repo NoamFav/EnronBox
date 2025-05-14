@@ -8,7 +8,7 @@
 [![TextBlob](https://img.shields.io/badge/TextBlob-Latest-green.svg)](https://textblob.readthedocs.io/)
 [![spaCy](https://img.shields.io/badge/spaCy-Latest-teal.svg)](https://spacy.io/)
 
-<img src="src<div align="center">
+<div align="center">
 
 # 📬 EnronClassifier
 
