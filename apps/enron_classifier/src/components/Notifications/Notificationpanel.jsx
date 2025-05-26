@@ -1,5 +1,4 @@
 import {
-  Bell,
   Calendar,
   Clock,
   Bookmark,
@@ -22,7 +21,7 @@ const NotificationPanel = ({
   markAllNotificationsRead,
 }) => {
   return (
-    <div>
+    <>
       {/* Notification Panel */}
       <div
         className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6 animate-fadeIn`}
@@ -33,6 +32,7 @@ const NotificationPanel = ({
           setShowNotifications={setShowNotifications}
           unreadNotifications={unreadNotifications}
         />
+
         <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
           <Calendar size={20} className="transition-transform duration-300 hover:rotate-12" />
         </button>
@@ -162,7 +162,7 @@ const NotificationPanel = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
