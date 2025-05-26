@@ -9,9 +9,9 @@ import {
   X,
   AlertTriangle,
 } from 'lucide-react';
-import NotificationBell from './NotificationBell';
+import Bell from './Bell';
 
-const NotificationPanel = ({
+const Panel = ({
   darkMode,
   toggleDarkMode,
   showNotifications,
@@ -27,7 +27,7 @@ const NotificationPanel = ({
         className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6 animate-fadeIn`}
         style={{ animationDelay: '400ms' }}
       >
-        <NotificationBell
+        <Bell
           showNotifications={showNotifications}
           setShowNotifications={setShowNotifications}
           unreadNotifications={unreadNotifications}
@@ -166,4 +166,4 @@ const NotificationPanel = ({
   );
 };
 
-export default NotificationPanel;
+export default Panel;

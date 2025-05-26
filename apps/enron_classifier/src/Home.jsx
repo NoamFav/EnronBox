@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 import Sidebar from './components/Sidebar/Sidebar';
-import NotificationPanel from './components/Notifications/Notificationpanel';
-import EmailListColumn from './components/EmailList/EmailList';
-import EmailContent from './components/Email/EmailContent';
+import NotificationPanel from './components/Notifications/Panel';
+import EmailList from './components/EmailList/List';
+import EmailContent from './components/Email/Content';
 import ToastNotification from './components/Toast';
 
 const Home = () => {
@@ -475,7 +475,7 @@ const Home = () => {
         customFolders={customFolders}
       />
       {/* Email List */}
-      <EmailListColumn
+      <EmailList
         darkMode={darkMode}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

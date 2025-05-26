@@ -1,7 +1,7 @@
 import React from 'react';
 import { File, Download } from 'lucide-react';
 
-const EmailAttachments = ({ attachments, darkMode }) => {
+const Attachments = ({ attachments, darkMode }) => {
   if (!attachments || attachments.length === 0) return null;
 
   const getAttachmentIcon = (type) => {
@@ -71,4 +71,4 @@ const EmailAttachments = ({ attachments, darkMode }) => {
   );
 };
 
-export default EmailAttachments;
+export default Attachments;

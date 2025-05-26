@@ -1,9 +1,9 @@
 import React from 'react';
 import { AlertCircle, Star, Flag } from 'lucide-react';
-import EmailLabels from './EmailLabels';
+import Labels from './Labels';
 import SenderAvatar from './SenderAvatar';
 
-const EmailHeader = ({
+const Header = ({
   selectedEmail,
   darkMode,
   getLabelById,
@@ -20,7 +20,7 @@ const EmailHeader = ({
         <h2 className={`text-xl font-bold ${darkMode ? 'text-gray-100' : ''}`}>
           {selectedEmail.subject}
         </h2>
-        <EmailLabels
+        <Labels
           labels={selectedEmail.labels}
           getLabelById={getLabelById}
           lightBadgeClassMap={lightBadgeClassMap}
@@ -86,4 +86,4 @@ const EmailHeader = ({
   );
 };
 
-export default EmailHeader;
+export default Header;

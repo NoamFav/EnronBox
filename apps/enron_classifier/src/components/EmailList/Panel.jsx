@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Star, Flag, AlertCircle, Paperclip, Archive, Trash, Eye } from 'lucide-react';
 
-const EmailListPanel = ({
+const Panel = ({
   darkMode,
   loading,
   emails,
@@ -151,4 +151,4 @@ const EmailListPanel = ({
   );
 };
 
-export default EmailListPanel;
+export default Panel;

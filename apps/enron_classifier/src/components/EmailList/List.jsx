@@ -1,10 +1,10 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 import FilterBar from './FilterBar';
-import EmailListPanel from './EmailListPanel';
-import EmailListStatusBar from './EmailListStatusBar';
+import Panel from './Panel';
+import StatusBar from './StatusBar';
 
-const EmailList = ({
+const List = ({
   darkMode,
   searchQuery,
   setSearchQuery,
@@ -45,7 +45,7 @@ const EmailList = ({
         setSort={setSort}
       />
 
-      <EmailListPanel
+      <Panel
         darkMode={darkMode}
         loading={loading}
         emails={emails}
@@ -61,7 +61,7 @@ const EmailList = ({
         colorClassMap={colorClassMap}
       />
 
-      <EmailListStatusBar
+      <StatusBar
         darkMode={darkMode}
         emails={emails}
         unreadCount={unreadCount}
@@ -71,4 +71,4 @@ const EmailList = ({
   );
 };
 
-export default EmailList;
+export default List;
