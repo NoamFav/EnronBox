@@ -1,42 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Inbox,
-  Send,
   Star,
   Trash,
   File,
-  Menu,
   Search,
-  Settings,
-  Bell,
-  User,
   Archive,
-  Clock,
-  Tag,
-  Bookmark,
   Filter,
   X,
-  ChevronDown,
-  ChevronRight,
   Reply,
   Forward,
   Flag,
   AlertCircle,
   Paperclip,
   MoreHorizontal,
-  Calendar,
   RefreshCcw,
-  Folder,
   Eye,
   Printer,
   Download,
   Mail,
-  AlertTriangle,
-  Moon,
-  Sun,
   FileText,
 } from 'lucide-react';
-import UserSelector from './UserSelector';
+
+import Sidebar from './components/Sidebar/Sidebar';
+import NotificationPanel from './components/Notifications/Notificationpanel';
 
 const Home = () => {
   // Add state for users and folders
@@ -489,215 +475,26 @@ const Home = () => {
           </button>
         </div>
       )}
-
       {/* Sidebar */}
-      <div
-        className={`w-64 ${
-          showSidebar ? 'translate-x-0' : '-translate-x-full'
-        } ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm transition-all duration-300 ease-in-out`}
-      >
-        <div
-          className={`p-4 flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
-        >
-          <h1 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-            EnronBox
-          </h1>
-          <button
-            className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transform transition-transform hover:scale-110`}
-            onClick={() => setShowSidebar(false)}
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
-
-        {/* User Selector */}
-        <div className={`px-4 py-3 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-          <UserSelector
-            onSelectUser={handleSelectUser}
-            currentUser={currentUser}
-            darkMode={darkMode}
-          />
-        </div>
-
-        <button
-          className={`mx-4 my-3 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-4 py-2 rounded-lg flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow transform hover:scale-105`}
-          onClick={composeNewEmail}
-        >
-          <Mail size={16} className="mr-2" />
-          <span>Compose</span>
-        </button>
-
-        <nav className="mt-2 flex-1 overflow-y-auto">
-          <p
-            className={`px-4 py-1 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-          >
-            Main
-          </p>
-          <ul>
-            {folders.map((folder) => (
-              <li
-                key={folder}
-                className={`flex items-center px-4 py-2 cursor-pointer ${
-                  darkMode
-                    ? `hover:bg-gray-700 ${activeFolder === folder ? 'bg-gray-700 text-blue-400' : 'text-gray-300'}`
-                    : `hover:bg-gray-100 ${activeFolder === folder ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`
-                } transition-all duration-150`}
-                onClick={() => handleSelectFolder(folder)}
-              >
-                {folder.toLowerCase() === 'inbox' && <Inbox size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'sent' && <Send size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'starred' && <Star size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'drafts' && <File size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'trash' && <Trash size={18} className="mr-3" />}
-                {folder.toLowerCase() === 'archive' && <Archive size={18} className="mr-3" />}
-                {!['inbox', 'sent', 'starred', 'drafts', 'trash', 'archive'].includes(
-                  folder.toLowerCase()
-                ) && <File size={18} className="mr-3" />}
-                <span className="text-sm">{folder}</span>
-                {folder.toLowerCase() === 'inbox' && unreadCount > 0 && (
-                  <span className="ml-auto bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          <div
-            className={`flex items-center justify-between px-4 py-1 mt-3 cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
-            onClick={() => setShowLabels(!showLabels)}
-          >
-            <p
-              className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-            >
-              Labels
-            </p>
-            <div
-              className={`transform transition-transform duration-300 ${showLabels ? 'rotate-180' : 'rotate-0'}`}
-            >
-              <ChevronDown size={14} />
-            </div>
-          </div>
-
-          {showLabels && (
-            <ul className="ml-2 animate-fadeIn">
-              {labels.map((label) => {
-                const isActive = filterOptions.byLabel === label.name;
-                const dotClass = colorClassMap[label.name] || 'bg-gray-500';
-                return (
-                  <li
-                    key={label.id}
-                    onClick={() => toggleFilterByLabel(label.name)}
-                    className={`
-                      flex items-center px-4 py-2 cursor-pointer
-                      transition-colors duration-150
-                      ${
-                        darkMode
-                          ? isActive
-                            ? 'bg-gray-600 text-white'
-                            : 'hover:bg-gray-700 text-gray-300'
-                          : isActive
-                            ? 'bg-gray-200 text-gray-900'
-                            : 'hover:bg-gray-100 text-gray-700'
-                      }
-                    `}
-                  >
-                    <div className={`w-3 h-3 rounded-full ${dotClass} mr-3`} />
-                    <span className="text-sm">{label.name}</span>
-                  </li>
-                );
-              })}
-              <li
-                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
-              >
-                <Tag size={14} className="mr-3" />
-                <span className="text-sm">Manage labels</span>
-              </li>
-            </ul>
-          )}
-
-          <p
-            className={`px-4 py-1 mt-3 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-          >
-            Folders
-          </p>
-          <ul>
-            {customFolders.map((folder) => (
-              <li
-                key={folder.id}
-                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
-              >
-                <Folder size={18} className="mr-3" />
-                <span className="text-sm">{folder.name}</span>
-              </li>
-            ))}
-            <li
-              className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
-            >
-              <Folder size={14} className="mr-3" />
-              <span className="text-sm">Create new folder</span>
-            </li>
-          </ul>
-        </nav>
-
-        <div
-          className={`p-4 ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} border-t`}
-        >
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-              <User size={16} />
-            </div>
-            <div className="ml-3">
-              <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                {currentUser?.username || 'No User'}
-              </p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                {currentUser ? `${currentUser.username}@enron.com` : ''}
-              </p>
-            </div>
-            <button
-              className={`ml-auto ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transform transition-transform hover:rotate-45`}
-            >
-              <Settings size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Collapsed sidebar toggle */}
-      {!showSidebar && (
-        <div
-          className={`w-12 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col items-center py-4 transition-all duration-300 ease-in-out`}
-        >
-          <button
-            className={`w-8 h-8 mb-4 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
-            onClick={() => setShowSidebar(true)}
-          >
-            <Menu size={20} />
-          </button>
-          <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
-          >
-            <Inbox size={20} />
-          </button>
-          <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
-          >
-            <Send size={20} />
-          </button>
-          <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
-          >
-            <Star size={20} />
-          </button>
-          <button
-            className={`w-8 h-8 mb-3 flex items-center justify-center ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'} transform transition-transform hover:scale-110`}
-          >
-            <Trash size={20} />
-          </button>
-        </div>
-      )}
-
+      <Sidebar
+        showSidebar={showSidebar}
+        setShowSidebar={setShowSidebar}
+        darkMode={darkMode}
+        currentUser={currentUser}
+        handleSelectUser={handleSelectUser}
+        composeNewEmail={composeNewEmail}
+        folders={folders}
+        activeFolder={activeFolder}
+        handleSelectFolder={handleSelectFolder}
+        unreadCount={unreadCount}
+        labels={labels}
+        showLabels={showLabels}
+        setShowLabels={setShowLabels}
+        filterOptions={filterOptions}
+        toggleFilterByLabel={toggleFilterByLabel}
+        colorClassMap={colorClassMap}
+        customFolders={customFolders}
+      />
       {/* Email List */}
       <div
         className={`w-1/3 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r overflow-hidden flex flex-col transition-colors duration-300`}
@@ -814,11 +611,11 @@ const Home = () => {
                   className={`px-4 py-3 cursor-pointer transition-all duration-200 relative animate-fadeIn
               ${
                 darkMode
-                  ? `border-b border-gray-700 hover:bg-gray-700 
-                   ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''} 
+                  ? `border-b border-gray-700 hover:bg-gray-700
+                   ${!email.read ? 'bg-blue-900 bg-opacity-20' : ''}
                    ${selectedEmail?.id === email.id ? 'bg-gray-700' : ''}`
                   : `border-b border-gray-200 hover:bg-gray-50
-                   ${!email.read ? 'bg-blue-50' : ''} 
+                   ${!email.read ? 'bg-blue-50' : ''}
                    ${selectedEmail?.id === email.id ? 'bg-gray-100' : ''}`
               }`}
                   onClick={() => handleEmailClick(email)}
@@ -1295,152 +1092,15 @@ const Home = () => {
       </div>
 
       {/* Notification Panel */}
-      <div
-        className={`w-16 ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} flex flex-col items-center py-6 animate-fadeIn`}
-        style={{ animationDelay: '400ms' }}
-      >
-        <div className="relative">
-          <button
-            className="w-10 h-10 mb-6 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110"
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
-            <Bell size={20} className={unreadNotifications > 0 ? 'animate-swing' : ''} />
-            {unreadNotifications > 0 && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
-                <span className="text-white text-xs">{unreadNotifications}</span>
-              </div>
-            )}
-          </button>
-        </div>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Calendar size={20} className="transition-transform duration-300 hover:rotate-12" />
-        </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Clock size={20} className="transition-transform duration-300 hover:rotate-45" />
-        </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Bookmark size={20} className="transition-transform duration-300 hover:translate-y-1" />
-        </button>
-        <button
-          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-          onClick={toggleDarkMode}
-          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {darkMode ? (
-            <Sun size={20} className="animate-spin-slow" />
-          ) : (
-            <Moon size={20} className="animate-pulse" />
-          )}
-        </button>
-        <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Settings size={20} className="transition-transform duration-300 hover:rotate-90" />
-        </button>
-
-        <div className="mt-auto">
-          <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-            <User size={20} className="transition-transform duration-300 hover:scale-125" />
-          </button>
-        </div>
-      </div>
-
-      {/* Notifications panel */}
-      {showNotifications && (
-        <div
-          className={`absolute right-16 top-0 w-72 ${darkMode ? 'bg-gray-800 shadow-xl border-gray-700' : 'bg-white shadow-lg border-gray-200'} rounded-lg mt-4 mr-4 z-10 border animate-slideInRight`}
-        >
-          <div
-            className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}
-          >
-            <h3
-              className={`font-medium ${darkMode ? 'text-gray-200' : ''} animate-fadeIn`}
-              style={{ animationDelay: '100ms' }}
-            >
-              Notifications
-            </h3>
-            <div className="flex items-center">
-              <button
-                className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'} transition-colors duration-300`}
-                onClick={markAllNotificationsRead}
-              >
-                Mark all read
-              </button>
-              <button
-                className={`ml-2 ${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'} transition-all duration-300 transform hover:rotate-90`}
-                onClick={() => setShowNotifications(false)}
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div
-                className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} animate-fadeIn`}
-                style={{ animationDelay: '200ms' }}
-              >
-                <p>No notifications</p>
-              </div>
-            ) : (
-              notifications.map((notification, index) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'} ${
-                    darkMode
-                      ? !notification.read
-                        ? 'bg-blue-900 bg-opacity-20 hover:bg-gray-700'
-                        : 'hover:bg-gray-700'
-                      : !notification.read
-                        ? 'bg-blue-50 hover:bg-gray-50'
-                        : 'hover:bg-gray-50'
-                  } transition-colors duration-300 animate-fadeIn`}
-                  style={{ animationDelay: `${200 + index * 100}ms` }}
-                >
-                  <div className="flex">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        !notification.read
-                          ? darkMode
-                            ? 'bg-blue-900 text-blue-300'
-                            : 'bg-blue-100 text-blue-500'
-                          : darkMode
-                            ? 'bg-gray-700 text-gray-400'
-                            : 'bg-gray-100 text-gray-500'
-                      } transform transition-transform duration-300 hover:scale-110 ${!notification.read ? 'animate-bounce-mini' : ''}`}
-                    >
-                      <AlertTriangle size={16} />
-                    </div>
-                    <div className="ml-3">
-                      <p
-                        className={`text-sm ${
-                          darkMode ? 'text-gray-300' : ''
-                        } ${!notification.read ? 'font-medium' : ''} transition-colors duration-300`}
-                      >
-                        {notification.text}
-                      </p>
-                      <p
-                        className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'} mt-1 animate-slideUp`}
-                        style={{ animationDelay: `${300 + index * 100}ms` }}
-                      >
-                        2 hours ago
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          <div
-            className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} text-center animate-fadeIn`}
-            style={{ animationDelay: '400ms' }}
-          >
-            <button
-              className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'} transition-colors duration-300 transform hover:scale-105`}
-            >
-              View all notifications
-            </button>
-          </div>
-        </div>
-      )}
+      <NotificationPanel
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        showNotifications={showNotifications}
+        setShowNotifications={setShowNotifications}
+        unreadNotifications={unreadNotifications}
+        notifications={notifications}
+        markAllNotificationsRead={markAllNotificationsRead}
+      />
     </div>
   );
 };
