@@ -1,10 +1,10 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
-import EmailHeader from './EmailHeader';
-import EmailBody from './EmailBody';
-import EmailActions from './EmailActions';
+import Header from './Header';
+import Body from './Body';
+import Actions from './Actions';
 
-const EmailContent = ({
+const Content = ({
   selectedEmail,
   darkMode,
   activeFolder,
@@ -27,7 +27,7 @@ const EmailContent = ({
     >
       {selectedEmail ? (
         <>
-          <EmailHeader
+          <Header
             selectedEmail={selectedEmail}
             darkMode={darkMode}
             getLabelById={getLabelById}
@@ -37,13 +37,9 @@ const EmailContent = ({
             toggleFlag={toggleFlag}
           />
 
-          <EmailBody
-            selectedEmail={selectedEmail}
-            darkMode={darkMode}
-            emailSummary={emailSummary}
-          />
+          <Body selectedEmail={selectedEmail} darkMode={darkMode} emailSummary={emailSummary} />
 
-          <EmailActions
+          <Actions
             selectedEmail={selectedEmail}
             darkMode={darkMode}
             summarizing={summarizing}
@@ -79,4 +75,4 @@ const EmailContent = ({
   );
 };
 
-export default EmailContent;
+export default Content;

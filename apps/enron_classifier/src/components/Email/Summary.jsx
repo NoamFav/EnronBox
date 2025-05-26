@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 
-const EmailSummary = ({ emailSummary, darkMode }) => {
+const Summary = ({ emailSummary, darkMode }) => {
   if (!emailSummary) return null;
 
   return (
@@ -19,4 +19,4 @@ const EmailSummary = ({ emailSummary, darkMode }) => {
   );
 };
 
-export default EmailSummary;
+export default Summary;

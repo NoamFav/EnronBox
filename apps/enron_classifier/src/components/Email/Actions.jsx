@@ -1,7 +1,7 @@
 import React from 'react';
 import { Reply, Forward, Trash, FileText, Printer, MoreHorizontal } from 'lucide-react';
 
-const EmailActions = ({
+const Actions = ({
   selectedEmail,
   darkMode,
   summarizing,
@@ -102,4 +102,4 @@ const EmailActions = ({
   );
 };
 
-export default EmailActions;
+export default Actions;

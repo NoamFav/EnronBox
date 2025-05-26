@@ -1,6 +1,6 @@
 import { Bell } from 'lucide-react';
 
-const NotificationBell = ({ showNotifications, setShowNotifications, unreadNotifications }) => {
+const Icon = ({ showNotifications, setShowNotifications, unreadNotifications }) => {
   return (
     <div className="relative">
       <button
@@ -18,4 +18,4 @@ const NotificationBell = ({ showNotifications, setShowNotifications, unreadNotif
   );
 };
 
-export default NotificationBell;
+export default Icon;

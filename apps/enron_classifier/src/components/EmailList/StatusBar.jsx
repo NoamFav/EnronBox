@@ -1,7 +1,7 @@
 import React from 'react';
 import { RefreshCcw } from 'lucide-react';
 
-const EmailListStatusBar = ({ darkMode, emails, unreadCount, refreshEmails }) => {
+const StatusBar = ({ darkMode, emails, unreadCount, refreshEmails }) => {
   return (
     <div
       className={`px-4 py-2 ${
@@ -28,4 +28,4 @@ const EmailListStatusBar = ({ darkMode, emails, unreadCount, refreshEmails }) =>
   );
 };
 
-export default EmailListStatusBar;
+export default StatusBar;

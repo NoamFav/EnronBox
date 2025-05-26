@@ -1,6 +1,6 @@
 import React from 'react';
 
-const EmailLabels = ({ labels, getLabelById, lightBadgeClassMap, darkBadgeClassMap, darkMode }) => {
+const Labels = ({ labels, getLabelById, lightBadgeClassMap, darkBadgeClassMap, darkMode }) => {
   return (
     <div className="flex items-center space-x-1">
       {labels.map((labelId) => {
@@ -21,4 +21,4 @@ const EmailLabels = ({ labels, getLabelById, lightBadgeClassMap, darkBadgeClassM
   );
 };
 
-export default EmailLabels;
+export default Labels;
