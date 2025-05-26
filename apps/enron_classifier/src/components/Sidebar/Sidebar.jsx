@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, Mail, User, Settings } from 'lucide-react';
-import UserSelector from '../../UserSelector';
+import UserSelector from './UserSelector';
 import LabelList from './LabelList';
 import FolderList from './FolderList';
 import CollapsedSidebarToggle from './CollapsedSidebarToggle';
