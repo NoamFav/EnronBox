@@ -21,9 +21,12 @@
       "csp": null
     }
   },
+
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": ["bin/flask-backend"],
+
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
