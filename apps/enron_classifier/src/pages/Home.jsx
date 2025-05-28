@@ -21,7 +21,9 @@ const HomeContent = () => {
     showSidebar,
     setShowSidebar,
     showLabels,
+    showFolders,
     setShowLabels,
+    setShowFolders,
     showNotifications,
     setShowNotifications,
     showToast,
@@ -93,6 +95,8 @@ const HomeContent = () => {
         composeNewEmail={emailActions.composeNewEmail}
         folders={state.folders}
         activeFolder={state.activeFolder}
+        showFolders={showFolders}
+        setShowFolders={setShowFolders}
         handleSelectFolder={userActions.handleSelectFolder}
         unreadCount={unreadCount}
         labels={state.labels}

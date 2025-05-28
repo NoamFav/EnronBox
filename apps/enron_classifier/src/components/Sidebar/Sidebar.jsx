@@ -15,6 +15,8 @@ const Sidebar = ({
   composeNewEmail,
   folders,
   activeFolder,
+  showFolders,
+  setShowFolders,
   handleSelectFolder,
   unreadCount,
   labels,
@@ -67,14 +69,11 @@ const Sidebar = ({
 
         {/* Navigation */}
         <nav className="mt-2 flex-1 overflow-y-auto">
-          {/* Main Folders */}
-          <p
-            className={`px-4 py-1 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-          >
-            Main
-          </p>
+          {/* Folders */}
           <FolderList
             folders={folders}
+            showFolders={showFolders}
+            setShowFolders={setShowFolders}
             activeFolder={activeFolder}
             handleSelectFolder={handleSelectFolder}
             unreadCount={unreadCount}
@@ -91,30 +90,6 @@ const Sidebar = ({
             colorClassMap={colorClassMap}
             darkMode={darkMode}
           />
-
-          {/* Custom Folders */}
-          <p
-            className={`px-4 py-1 mt-3 text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}
-          >
-            Folders
-          </p>
-          <ul>
-            {customFolders.map((folder) => (
-              <li
-                key={folder.id}
-                className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'} transition-colors duration-150`}
-              >
-                <Folder size={18} className="mr-3" />
-                <span className="text-sm">{folder.name}</span>
-              </li>
-            ))}
-            <li
-              className={`flex items-center px-4 py-2 cursor-pointer ${darkMode ? 'hover:bg-gray-700 text-blue-400' : 'hover:bg-gray-100 text-blue-500'} transition-colors duration-150`}
-            >
-              <Folder size={14} className="mr-3" />
-              <span className="text-sm">Create new folder</span>
-            </li>
-          </ul>
         </nav>
 
         {/* User Info Footer */}

@@ -23,7 +23,7 @@ const LabelList = ({
           Labels
         </p>
         <div
-          className={`transform transition-transform duration-300 ${showLabels ? 'rotate-180' : 'rotate-0'}`}
+          className={`transform transition-transform duration-300 ${showLabels ? 'rotate-180' : 'rotate-0'} ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
         >
           <ChevronDown size={14} />
         </div>

@@ -12,7 +12,8 @@ export const UIProvider = ({ children }) => {
   });
 
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showLabels, setShowLabels] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
+  const [showFolders, setShowFolders] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -46,7 +47,9 @@ export const UIProvider = ({ children }) => {
         showSidebar,
         setShowSidebar,
         showLabels,
+        showFolders,
         setShowLabels,
+        setShowFolders,
         showNotifications,
         setShowNotifications,
         showToast,
