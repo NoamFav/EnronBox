@@ -33,25 +33,28 @@ const Panel = ({
           unreadNotifications={unreadNotifications}
         />
 
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Calendar size={20} className="transition-transform duration-300 hover:rotate-12" />
-        </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Clock size={20} className="transition-transform duration-300 hover:rotate-45" />
-        </button>
-        <button className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-          <Bookmark size={20} className="transition-transform duration-300 hover:translate-y-1" />
-        </button>
         <button
-          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+          className="w-10 h-10 mb-4 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12 relative overflow-hidden"
           onClick={toggleDarkMode}
           title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {darkMode ? (
-            <Sun size={20} className="animate-spin-slow" />
-          ) : (
-            <Moon size={20} className="animate-pulse" />
-          )}
+          <div className="relative w-5 h-5">
+            {/* Sun Icon */}
+            <Sun
+              size={20}
+              className={`absolute inset-0 transition-all duration-500 transform ${
+                darkMode ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-180 scale-75'
+              }`}
+            />
+
+            {/* Moon Icon */}
+            <Moon
+              size={20}
+              className={`absolute inset-0 transition-all duration-500 transform ${
+                !darkMode ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-180 scale-75'
+              }`}
+            />
+          </div>
         </button>
         <button className="w-10 h-10 text-gray-400 hover:text-white flex items-center justify-center transition-all duration-300 transform hover:scale-110">
           <Settings size={20} className="transition-transform duration-300 hover:rotate-90" />
