@@ -40,6 +40,34 @@ const FilterBar = ({ darkMode, filterOptions, toggleFilterOption, setSort }) => 
       >
         Attachments
       </button>
+      <button
+        className={`mr-3 px-2 py-0.5 rounded transition-all duration-300 ${
+          filterOptions.byFlag
+            ? darkMode
+              ? 'bg-blue-800 text-blue-200'
+              : 'bg-blue-100 text-blue-600'
+            : darkMode
+              ? 'text-gray-300'
+              : 'text-gray-600'
+        }`}
+        onClick={() => toggleFilterOption('byFlag')}
+      >
+        Flag
+      </button>
+      <button
+        className={`mr-3 px-2 py-0.5 rounded transition-all duration-300 ${
+          filterOptions.byStar
+            ? darkMode
+              ? 'bg-blue-800 text-blue-200'
+              : 'bg-blue-100 text-blue-600'
+            : darkMode
+              ? 'text-gray-300'
+              : 'text-gray-600'
+        }`}
+        onClick={() => toggleFilterOption('byStar')}
+      >
+        Star
+      </button>
       <div className="ml-auto flex items-center">
         <span className={darkMode ? 'text-gray-300 mr-1' : 'text-gray-600 mr-1'}>Sort:</span>
         <select

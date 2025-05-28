@@ -107,6 +107,14 @@ export const applyFilters = (emails, filterOptions, labels) => {
     });
   }
 
+  if (filterOptions.byStar) {
+    filtered = filtered.filter((e) => e.starred);
+  }
+
+  if (filterOptions.byFlag) {
+    filtered = filtered.filter((e) => e.flagged);
+  }
+
   // Sort emails
   switch (filterOptions.sortBy) {
     case 'sender':

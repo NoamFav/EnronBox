@@ -18,8 +18,6 @@ const HomeContent = () => {
   const { state } = useEmail();
   const {
     darkMode,
-    showSidebar,
-    setShowSidebar,
     showLabels,
     showFolders,
     setShowLabels,
@@ -67,6 +65,8 @@ const HomeContent = () => {
     state.filterOptions.hasAttachments,
     state.filterOptions.byLabel,
     state.filterOptions.sortBy,
+    state.filterOptions.byStar,
+    state.filterOptions.byFlag,
   ]);
 
   // Helper functions
@@ -87,8 +87,6 @@ const HomeContent = () => {
       />
 
       <Sidebar
-        showSidebar={showSidebar}
-        setShowSidebar={setShowSidebar}
         darkMode={darkMode}
         currentUser={state.currentUser}
         handleSelectUser={userActions.handleSelectUser}
@@ -105,7 +103,6 @@ const HomeContent = () => {
         filterOptions={state.filterOptions}
         toggleFilterByLabel={filters.toggleFilterByLabel}
         colorClassMap={COLOR_CLASS_MAP}
-        customFolders={state.customFolders}
       />
 
       <EmailList

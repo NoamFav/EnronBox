@@ -11,7 +11,6 @@ export const UIProvider = ({ children }) => {
     return false;
   });
 
-  const [showSidebar, setShowSidebar] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showFolders, setShowFolders] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -44,8 +43,6 @@ export const UIProvider = ({ children }) => {
         darkMode,
         setDarkMode,
         toggleDarkMode,
-        showSidebar,
-        setShowSidebar,
         showLabels,
         showFolders,
         setShowLabels,

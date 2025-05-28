@@ -1,14 +1,10 @@
 import React from 'react';
-import { ChevronRight, Mail, User, Settings } from 'lucide-react';
+import { Mail, User, Settings } from 'lucide-react';
 import UserSelector from './UserSelector';
 import LabelList from './LabelList';
 import FolderList from './FolderList';
-import CollapsedSidebarToggle from './CollapsedSidebarToggle';
-import { Folder } from 'lucide-react';
 
 const Sidebar = ({
-  showSidebar,
-  setShowSidebar,
   darkMode,
   currentUser,
   handleSelectUser,
@@ -25,28 +21,19 @@ const Sidebar = ({
   filterOptions,
   toggleFilterByLabel,
   colorClassMap,
-  customFolders,
 }) => {
   return (
     <>
       <div
-        className={`w-64 ${
-          showSidebar ? 'translate-x-0' : '-translate-x-full'
-        } ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm transition-all duration-300 ease-in-out`}
+        className={`w-64 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col shadow-sm transition-all duration-300 ease-in-out`}
       >
         {/* Header */}
         <div
-          className={`p-4 flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
+          className={`p-4 flex items-center justify-center ${darkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}
         >
           <h1 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
             EnronBox
           </h1>
-          <button
-            className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} transform transition-transform hover:scale-110`}
-            onClick={() => setShowSidebar(false)}
-          >
-            <ChevronRight size={20} />
-          </button>
         </div>
 
         {/* User Selector */}
@@ -116,10 +103,6 @@ const Sidebar = ({
           </div>
         </div>
       </div>
-
-      {!showSidebar && (
-        <CollapsedSidebarToggle darkMode={darkMode} setShowSidebar={setShowSidebar} />
-      )}
     </>
   );
 };
