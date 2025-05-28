@@ -10,16 +10,14 @@ const initialState = {
   activeFolder: 'inbox',
   loading: true,
   searchQuery: '',
-  customFolders: [
-    { id: 1, name: 'Projects', icon: 'Folder' },
-    { id: 2, name: 'Newsletters', icon: 'Mail' },
-  ],
   labels: [],
   filterOptions: {
     unreadOnly: false,
     hasAttachments: false,
     sortBy: 'date',
     byLabel: null,
+    byStar: false,
+    byFlag: false,
   },
   emailSummary: '',
   summarizing: false,

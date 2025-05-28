@@ -1,7 +1,9 @@
 import React from 'react';
 import { Menu, Inbox, Send, Star, Trash } from 'lucide-react';
 
-const CollapsedSidebarToggle = ({ darkMode, setShowSidebar }) => {
+const folders = ['inbox', 'sent', 'star', 'trash'];
+
+const CollapsedSidebarToggle = ({ darkMode, setShowSidebar, handleSelectFolder }) => {
   return (
     <div
       className={`w-12 ${
@@ -22,6 +24,12 @@ const CollapsedSidebarToggle = ({ darkMode, setShowSidebar }) => {
           className={`w-8 h-8 mb-3 flex items-center justify-center ${
             darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-blue-500'
           } transform transition-transform hover:scale-110`}
+          onClick={() => {
+            if (index === 0 || index === 1) {
+              handleSelectFolder(index);
+            } else {
+            }
+          }}
         >
           <Icon size={20} />
         </button>

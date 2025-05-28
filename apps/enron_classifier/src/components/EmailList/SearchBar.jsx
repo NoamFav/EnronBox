@@ -17,6 +17,11 @@ const SearchBar = ({ darkMode, searchQuery, setSearchQuery, refreshEmails }) => 
           } border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              refreshEmails();
+            }
+          }}
         />
         <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
       </div>
