@@ -6,6 +6,7 @@ import pandas as pd
 import traceback
 import os, pickle
 from pathlib import Path
+import sqlite3  #
 
 classify_bp = Blueprint("classify", __name__)
 classifier = EnronEmailClassifier()
@@ -19,6 +20,15 @@ emotion_enhancer = EmotionEnhancer()
 def classify_email(email_id):
     """Classify a single email by ID"""
     try:
+        # Check if model is trained
+        if classifier.ensemble_model is None:
+            return (
+                jsonify(
+                    {"error": "Model not trained yet. Please train the model first."}
+                ),
+                400,
+            )
+
         # Get the email from database
         email = get_email_by_id(email_id)
 
@@ -27,7 +37,7 @@ def classify_email(email_id):
 
         # Convert to a format the classifier expects
         email_data = {
-            "subject": email.get("subject", ""),
+            "subject": email["subject"] if "subject" in email.keys() else "",
             "body": email.get("body", ""),
             "sender": email.get("sender", ""),
             "has_attachment": email.get("has_attachment", False),
@@ -38,8 +48,10 @@ def classify_email(email_id):
         # Predict using the classifier
         prediction = classifier.predict(email_data)
 
-        # Store prediction result in database
-        prediction_data = serialize_prediction(str(email_id), prediction)
+        # Store prediction result in database using the classifier's serialize method
+        prediction_data = EnronEmailClassifier.serialize_prediction(
+            str(email_id), prediction
+        )
         store_data("email_classifications", [prediction_data])
 
         return jsonify({"email_id": email_id, "classification": prediction})
@@ -60,6 +72,15 @@ def classify_email(email_id):
 def classify_batch():
     """Classify a batch of emails provided in the request"""
     try:
+        # Check if model is trained
+        if classifier.ensemble_model is None:
+            return (
+                jsonify(
+                    {"error": "Model not trained yet. Please train the model first."}
+                ),
+                400,
+            )
+
         data = request.get_json()
 
         if not data or not isinstance(data, list):
@@ -67,26 +88,27 @@ def classify_batch():
 
         results = []
         for email_data in data:
+            # Defensive coding: handle sqlite3.Row or dict
+            if isinstance(email_data, sqlite3.Row):
+                email_data = dict(email_data)
+
             # Ensure time_sent is in datetime format
             if "time_sent" in email_data:
                 email_data["time_sent"] = pd.to_datetime(email_data["time_sent"])
 
             prediction = classifier.predict(email_data)
 
-            # Prepare result
             result = {
                 "email_id": email_data.get("id", "unknown"),
                 "classification": prediction,
             }
             results.append(result)
 
-            # TODO save the thing inside the DB
-            # Store prediction if email_id is provided
-            # if "id" in email_data:
-            # prediction_data = serialize_prediction(
-            #       str(email_data["id"]), prediction
-            #  )
-            # store_data("email_classifications", [prediction_data])
+            if "id" in email_data:
+                prediction_data = EnronEmailClassifier.serialize_prediction(
+                    str(email_data["id"]), prediction
+                )
+                store_data("email_classifications", [prediction_data])
 
         return jsonify(results)
 
@@ -108,6 +130,15 @@ def classify_folder(username, folder):
     from app.services.db import get_emails
 
     try:
+        # Check if model is trained
+        if classifier.ensemble_model is None:
+            return (
+                jsonify(
+                    {"error": "Model not trained yet. Please train the model first."}
+                ),
+                400,
+            )
+
         emails = get_emails(username, folder)
 
         if not emails:
@@ -137,7 +168,9 @@ def classify_folder(username, folder):
 
             # Store result
             email_id = str(email.get("id", "unknown"))
-            prediction_data = serialize_prediction(email_id, prediction)
+            prediction_data = EnronEmailClassifier.serialize_prediction(
+                email_id, prediction
+            )
             store_data("email_classifications", [prediction_data])
 
             # Add to results
@@ -210,7 +243,7 @@ def train_classifier():
                 400,
             )
 
-        # We’re really passing the .db file here
+        # We're really passing the .db file here
         enron_db = data["enron_dir"]
         max_emails = data.get("max_emails", 5000)
 
@@ -218,14 +251,8 @@ def train_classifier():
         email_df, labels = classifier.load_enron_emails(enron_db, max_emails=max_emails)
         classifier.train(email_df, labels)
 
-        # Persist the pickled models
-        model_dir = os.environ.get("MODEL_DIR", "/app/models")
-        Path(model_dir).mkdir(parents=True, exist_ok=True)
-
-        with open(Path(model_dir) / "text_model.pkl", "wb") as f:
-            pickle.dump(classifier.text_model, f)
-        with open(Path(model_dir) / "num_model.pkl", "wb") as f:
-            pickle.dump(classifier.numerical_model, f)
+        # The model is already saved by the train() method in EnronEmailClassifier
+        # No need to manually save individual components
 
         return jsonify(
             {
@@ -251,9 +278,7 @@ def train_classifier():
 @classify_bp.route("/model/status", methods=["GET"])
 def model_status():
     """Get the current status of the classifier model"""
-    is_trained = (
-        classifier.text_model is not None and classifier.numerical_model is not None
-    )
+    is_trained = classifier.ensemble_model is not None
 
     return jsonify(
         {
@@ -293,25 +318,3 @@ def get_dominant_tone(analysis):
             return "neutral"
 
     return dominant_tone
-
-
-def serialize_prediction(email_id: str, prediction):
-    """
-    Serialize model prediction results for storage.
-
-    Args:
-        email_id (str): The ID of the email.
-        prediction (Dict[str, Any]): The prediction result from the model.
-
-    Returns:
-        Dict[str, Any]: A dictionary ready for storage in the database.
-    """
-    return {
-        "email_id": email_id,
-        "category": prediction["category"],
-        "confidence": prediction["confidence"],
-        "polarity": prediction["emotion"]["polarity"],
-        "subjectivity": prediction["emotion"]["subjectivity"],
-        "stress_score": prediction["emotion"]["stress_score"],
-        "relaxation_score": prediction["emotion"]["relaxation_score"],
-    }

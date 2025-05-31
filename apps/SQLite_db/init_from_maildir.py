@@ -61,6 +61,26 @@ def init_schema(cursor):
         );
     """
     )
+    # Add the email_classifications table for storing ML predictions
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS email_classifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email_id TEXT NOT NULL,
+            category TEXT NOT NULL,
+            category_name TEXT NOT NULL,
+            confidence REAL NOT NULL,
+            transformer_category TEXT,
+            transformer_confidence REAL,
+            polarity REAL,
+            subjectivity REAL,
+            stress_score REAL,
+            relaxation_score REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(email_id) ON CONFLICT REPLACE
+        );
+    """
+    )
 
 
 def get_user_id(cursor, username):
@@ -92,16 +112,12 @@ def populate_db(cursor):
             rel_parts = os.path.relpath(path, MAILDIR_PATH).split(os.sep)
             if len(rel_parts) < 3:
                 continue
-
             username = rel_parts[0]
             folder = rel_parts[1]
             filename = rel_parts[2]
-
             from_addr, to_addr, subject, date, body = parse_email(path)
-
             user_id = get_user_id(cursor, username)
             folder_id = get_folder_id(cursor, user_id, folder)
-
             cursor.execute(
                 """
                 INSERT INTO emails (folder_id, filename, subject, body, from_address, to_address, date)
@@ -115,14 +131,12 @@ def main():
     if not os.path.exists(MAILDIR_PATH):
         print(f"❌ Maildir not found at '{MAILDIR_PATH}'")
         return
-
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     init_schema(cursor)
     populate_db(cursor)
     conn.commit()
     conn.close()
-
     print(f"✅ Successfully created nested {DB_PATH} from {MAILDIR_PATH}")
 
 
