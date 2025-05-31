@@ -184,7 +184,7 @@ class EnronEmailClassifier:
             # Classification pipeline for zero-shot classification
             self.classifier_pipeline = pipeline(
                 "zero-shot-classification",
-                model="facebook/bart-large-mnli",
+                model="facebook/bart-base",
                 device=0 if torch.cuda.is_available() else -1,
             )
 
