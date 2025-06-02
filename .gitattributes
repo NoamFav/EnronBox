@@ -4,3 +4,4 @@ apps/SQLite_db/personal.db filter=lfs diff=lfs merge=lfs -text
 apps/flask_api/models/text_model.pkl filter=lfs diff=lfs merge=lfs -text
 apps/flask_api/models/num_model.pkl filter=lfs diff=lfs merge=lfs -text
 apps/enron_classifier/src-tauri/bin/flask-backend filter=lfs diff=lfs merge=lfs -text
+apps/flask_api/models/email_classifier.pkl filter=lfs diff=lfs merge=lfs -text

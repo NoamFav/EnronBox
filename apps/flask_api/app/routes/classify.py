@@ -4,8 +4,7 @@ from app.services.emotion_enhancer import EmotionEnhancer
 from app.services.db import get_email_by_id, store_data
 import pandas as pd
 import traceback
-import os, pickle
-from pathlib import Path
+import concurrent.futures
 import sqlite3  #
 
 classify_bp = Blueprint("classify", __name__)
@@ -68,11 +67,37 @@ def classify_email(email_id):
         )
 
 
+def classify_single_email(email_data):
+    try:
+        # Defensive coding as before
+        if isinstance(email_data, sqlite3.Row):
+            email_data = dict(email_data)
+
+        if "time_sent" in email_data:
+            email_data["time_sent"] = pd.to_datetime(email_data["time_sent"])
+
+        prediction = classifier.predict(email_data)
+
+        result = {
+            "email_id": email_data.get("id", "unknown"),
+            "classification": prediction,
+        }
+
+        if "id" in email_data:
+            prediction_data = EnronEmailClassifier.serialize_prediction(
+                str(email_data["id"]), prediction
+            )
+            store_data("email_classifications", [prediction_data])
+
+        return result
+    except Exception as e:
+        return {"error": f"Error processing email: {str(e)}"}
+
+
 @classify_bp.route("/batch", methods=["POST"])
 def classify_batch():
     """Classify a batch of emails provided in the request"""
     try:
-        # Check if model is trained
         if classifier.ensemble_model is None:
             return (
                 jsonify(
@@ -82,33 +107,12 @@ def classify_batch():
             )
 
         data = request.get_json()
-
         if not data or not isinstance(data, list):
             return jsonify({"error": "Expected a list of email objects"}), 400
 
         results = []
-        for email_data in data:
-            # Defensive coding: handle sqlite3.Row or dict
-            if isinstance(email_data, sqlite3.Row):
-                email_data = dict(email_data)
-
-            # Ensure time_sent is in datetime format
-            if "time_sent" in email_data:
-                email_data["time_sent"] = pd.to_datetime(email_data["time_sent"])
-
-            prediction = classifier.predict(email_data)
-
-            result = {
-                "email_id": email_data.get("id", "unknown"),
-                "classification": prediction,
-            }
-            results.append(result)
-
-            if "id" in email_data:
-                prediction_data = EnronEmailClassifier.serialize_prediction(
-                    str(email_data["id"]), prediction
-                )
-                store_data("email_classifications", [prediction_data])
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(classify_single_email, data))
 
         return jsonify(results)
 
@@ -246,20 +250,71 @@ def train_classifier():
         # We're really passing the .db file here
         enron_db = data["enron_dir"]
         max_emails = data.get("max_emails", 5000)
+        analyze_only = data.get(
+            "analyze_only", False
+        )  # New parameter to just analyze without training
 
-        # This will now call your SQLite loader
+        print(f"Loading emails from {enron_db} (max: {max_emails})")
+
+        # Load emails from the database
         email_df, labels = classifier.load_enron_emails(enron_db, max_emails=max_emails)
-        classifier.train(email_df, labels)
 
-        # The model is already saved by the train() method in EnronEmailClassifier
-        # No need to manually save individual components
+        # Analyze the dataset
+        analysis = classifier.analyze_dataset(email_df, labels)
+        classifier.print_dataset_analysis(analysis)
+
+        # If only analyzing, return the analysis
+        if analyze_only:
+            return jsonify(
+                {
+                    "status": "analysis_complete",
+                    "analysis": analysis,
+                    "message": "Dataset analysis completed. Set 'analyze_only': false to proceed with training.",
+                }
+            )
+
+        # Check if we have enough data to train
+        if analysis["total_emails"] < 10:
+            return (
+                jsonify(
+                    {
+                        "error": "Not enough emails to train the model. Need at least 10 emails.",
+                        "analysis": analysis,
+                    }
+                ),
+                400,
+            )
+
+        if analysis["categories_to_filter"] == analysis["total_categories"]:
+            return (
+                jsonify(
+                    {
+                        "error": "All categories have insufficient samples. Cannot train model.",
+                        "analysis": analysis,
+                    }
+                ),
+                400,
+            )
+
+        # Train the classifier
+        print("Starting training process...")
+        classifier.train(email_df, labels)
 
         return jsonify(
             {
                 "status": "success",
-                "message": f"Classifier trained on {len(email_df)} emails",
+                "message": f"Classifier trained successfully",
+                "training_stats": {
+                    "total_emails_loaded": len(email_df),
+                    "categories_available": len(classifier.categories),
+                    "model_categories": (
+                        len(classifier.label_encoder.classes_)
+                        if hasattr(classifier.label_encoder, "classes_")
+                        else 0
+                    ),
+                },
+                "analysis": analysis,
                 "categories": classifier.categories,
-                "email_count": len(email_df),
             }
         )
 

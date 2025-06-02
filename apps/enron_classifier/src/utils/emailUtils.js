@@ -1,3 +1,5 @@
+import { COLOR_CLASS_MAP } from './constants';
+
 export const formatDate = (dateStr) => {
   if (!dateStr) return 'Unknown';
 
@@ -44,27 +46,13 @@ export const processEmails = (rawEmails) => {
 };
 
 export const processClassificationResults = (emails, results) => {
-  const byCategory = new Map(results.map((r) => [Number(r.email_id), r.classification.category]));
+  // Map email ID to category name (from results)
+  const byCategory = new Map(
+    results.map((r) => [Number(r.email_id), r.classification.category_name])
+  );
 
-  const allCategories = [
-    'Work',
-    'Urgent',
-    'Business',
-    'Personal',
-    'Meeting',
-    'External',
-    'Newsletter',
-  ];
-
-  const colorMap = {
-    Work: 'blue',
-    Urgent: 'red',
-    Business: 'orange',
-    Personal: 'green',
-    Meeting: 'teal',
-    External: 'gray',
-    Newsletter: 'purple',
-  };
+  // Use the keys from COLOR_CLASS_MAP as our categories
+  const allCategories = Object.keys(COLOR_CLASS_MAP);
 
   const usedNames = Array.from(
     new Set(Array.from(byCategory.values()).filter((c) => allCategories.includes(c)))
@@ -73,7 +61,7 @@ export const processClassificationResults = (emails, results) => {
   const labels = usedNames.map((name, i) => ({
     id: i + 1,
     name,
-    color: colorMap[name] || 'gray',
+    color: COLOR_CLASS_MAP[name] || 'bg-gray-500', // fallback color
   }));
 
   const nameToId = new Map(labels.map((l) => [l.name, l.id]));
