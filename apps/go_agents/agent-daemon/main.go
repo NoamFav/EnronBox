@@ -9,12 +9,12 @@ import (
 func main() {
 	log.Println("👑 Unified Go Agent Daemon starting...")
 
-	go runSummarizerAgent()
-	go runClassifierAgent()
-	go runCleanupAgent()
-	go runVacuumAgent()
-	go runHealthcheckAgent()
-	go runMetricsAgent()
+	//go runSummarizerAgent()
+	//go runClassifierAgent()
+	//go runCleanupAgent()
+	//go runVacuumAgent()
+	//go runHealthcheckAgent()
+	//go runMetricsAgent()
 	// Add more as needed
 
 	select {} // Keeps the main goroutine alive

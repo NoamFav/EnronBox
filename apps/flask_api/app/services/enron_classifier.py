@@ -1,22 +1,16 @@
 from app.services.emotion_enhancer import EmotionEnhancer
-from app.services.db import store_data
 import sqlite3
 import pandas as pd
 import numpy as np
 import re
-import os
 import pickle
-import email
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Modern NLP imports
 from transformers import (
     AutoTokenizer,
-    AutoModel,
-    AutoModelForSequenceClassification,
     pipeline,
 )
 import torch
@@ -24,7 +18,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 import warnings
 
@@ -393,22 +387,171 @@ class EnronEmailClassifier:
 
     def map_folder_to_category(self, folder_name: str) -> str:
         """Map folder names to categories using keyword matching"""
-        folder_lower = folder_name.lower()
-
-        # Direct keyword matching
-        for category_key, category_data in self.categories.items():
-            for keyword in category_data["keywords"]:
-                if keyword in folder_lower:
-                    return category_key
-
-        # Fallback mapping
-        if any(word in folder_lower for word in ["sent", "outbox"]):
-            return "client_external"
-        elif any(word in folder_lower for word in ["inbox", "received"]):
+        if pd.isna(folder_name) or not folder_name:
             return "operational"
-        elif any(word in folder_lower for word in ["deleted", "trash"]):
+
+        folder_lower = folder_name.lower().strip()
+
+        # Enhanced keyword matching with more comprehensive patterns
+        folder_mappings = {
+            "strategic_planning": [
+                "strategy",
+                "strategic",
+                "planning",
+                "acquisition",
+                "merger",
+                "corporate",
+                "vision",
+                "roadmap",
+                "business_plan",
+                "growth",
+            ],
+            "operational": [
+                "operations",
+                "daily",
+                "routine",
+                "procedure",
+                "process",
+                "workflow",
+                "inbox",
+                "received",
+                "general",
+                "main",
+                "default",
+            ],
+            "financial": [
+                "budget",
+                "financial",
+                "accounting",
+                "expense",
+                "revenue",
+                "cost",
+                "profit",
+                "finance",
+                "money",
+                "payment",
+                "invoice",
+            ],
+            "legal_compliance": [
+                "legal",
+                "compliance",
+                "regulation",
+                "contract",
+                "agreement",
+                "policy",
+                "law",
+                "regulatory",
+                "audit",
+                "risk",
+            ],
+            "client_external": [
+                "client",
+                "customer",
+                "external",
+                "partner",
+                "vendor",
+                "supplier",
+                "sent",
+                "outbox",
+                "public",
+                "marketing",
+            ],
+            "hr_personnel": [
+                "hr",
+                "hiring",
+                "employee",
+                "personnel",
+                "recruitment",
+                "performance",
+                "human",
+                "staff",
+                "team",
+                "people",
+            ],
+            "meetings_events": [
+                "meeting",
+                "appointment",
+                "schedule",
+                "event",
+                "conference",
+                "calendar",
+                "agenda",
+                "meeting_notes",
+                "call",
+            ],
+            "urgent_critical": [
+                "urgent",
+                "emergency",
+                "critical",
+                "asap",
+                "immediate",
+                "deadline",
+                "priority",
+                "important",
+                "alert",
+            ],
+            "personal_informal": [
+                "personal",
+                "informal",
+                "casual",
+                "chat",
+                "social",
+                "family",
+                "deleted",
+                "trash",
+                "private",
+                "personal_notes",
+            ],
+            "technical_it": [
+                "technical",
+                "system",
+                "software",
+                "hardware",
+                "server",
+                "network",
+                "it",
+                "tech",
+                "computer",
+                "database",
+            ],
+        }
+
+        # Score each category based on keyword matches
+        category_scores = {}
+        for category, keywords in folder_mappings.items():
+            score = 0
+            for keyword in keywords:
+                if keyword in folder_lower:
+                    # Give higher score for exact matches
+                    if keyword == folder_lower:
+                        score += 10
+                    # Give medium score for word boundaries
+                    elif (
+                        f"_{keyword}_" in f"_{folder_lower}_"
+                        or f" {keyword} " in f" {folder_lower} "
+                    ):
+                        score += 5
+                    # Give lower score for partial matches
+                    else:
+                        score += 1
+            category_scores[category] = score
+
+        # Find the best matching category
+        if category_scores:
+            best_category = max(category_scores.items(), key=lambda x: x[1])
+            if best_category[1] > 0:  # Only return if there's at least one match
+                return best_category[0]
+
+        # Enhanced fallback logic
+        if any(word in folder_lower for word in ["sent", "outbox", "out"]):
+            return "client_external"
+        elif any(word in folder_lower for word in ["inbox", "received", "in"]):
+            return "operational"
+        elif any(word in folder_lower for word in ["deleted", "trash", "delete"]):
             return "personal_informal"
-        elif any(word in folder_lower for word in ["draft", "unsent"]):
+        elif any(word in folder_lower for word in ["draft", "unsent", "temp"]):
+            return "operational"
+        elif any(word in folder_lower for word in ["archive", "old", "backup"]):
             return "operational"
         else:
             return "operational"  # Default category
@@ -450,6 +593,33 @@ class EnronEmailClassifier:
         """Train the classifier with modern ensemble approach"""
         print("Training modern email classifier...")
 
+        # Print label distribution for debugging
+        from collections import Counter
+
+        label_counts = Counter(labels)
+        print(f"Label distribution: {dict(label_counts)}")
+
+        # Filter out categories with very few samples (less than 2)
+        min_samples = 2
+        valid_indices = []
+        filtered_labels = []
+
+        for i, label in enumerate(labels):
+            if label_counts[label] >= min_samples:
+                valid_indices.append(i)
+                filtered_labels.append(label)
+
+        if len(valid_indices) < len(labels):
+            print(
+                f"Filtering out {len(labels) - len(valid_indices)} samples from categories with < {min_samples} samples"
+            )
+            email_data = email_data.iloc[valid_indices].reset_index(drop=True)
+            labels = np.array(filtered_labels)
+
+            # Update label counts after filtering
+            label_counts = Counter(labels)
+            print(f"Filtered label distribution: {dict(label_counts)}")
+
         # Encode labels
         encoded_labels = self.label_encoder.fit_transform(labels)
 
@@ -457,19 +627,48 @@ class EnronEmailClassifier:
         print("Extracting features...")
         features = self.extract_features(email_data)
 
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            features,
-            encoded_labels,
-            test_size=0.2,
-            random_state=42,
-            stratify=encoded_labels,
-        )
+        # Check if we have enough samples for stratified split
+        unique_labels, label_counts = np.unique(encoded_labels, return_counts=True)
+        min_count = np.min(label_counts)
+
+        if min_count < 2:
+            print(
+                f"Warning: Some classes still have only {min_count} sample(s). Using random split instead of stratified."
+            )
+            # Use random split without stratification
+            X_train, X_test, y_train, y_test = train_test_split(
+                features,
+                encoded_labels,
+                test_size=0.2,
+                random_state=42,
+                # Remove stratify parameter
+            )
+        else:
+            # Use stratified split
+            X_train, X_test, y_train, y_test = train_test_split(
+                features,
+                encoded_labels,
+                test_size=0.2,
+                random_state=42,
+                stratify=encoded_labels,
+            )
+
+        print(f"Training set size: {len(X_train)}")
+        print(f"Test set size: {len(X_test)}")
 
         # Create ensemble model
         print("Training ensemble model...")
-        rf_model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-        lr_model = LogisticRegression(random_state=42, max_iter=1000)
+        rf_model = RandomForestClassifier(
+            n_estimators=100,
+            random_state=42,
+            n_jobs=-1,
+            class_weight="balanced",  # Handle class imbalance
+        )
+        lr_model = LogisticRegression(
+            random_state=42,
+            max_iter=1000,
+            class_weight="balanced",  # Handle class imbalance
+        )
 
         self.ensemble_model = VotingClassifier(
             estimators=[("rf", rf_model), ("lr", lr_model)], voting="soft"
@@ -485,7 +684,13 @@ class EnronEmailClassifier:
         pred_categories = self.label_encoder.inverse_transform(y_pred)
 
         print("\nClassification Report:")
-        print(classification_report(test_categories, pred_categories))
+        print(classification_report(test_categories, pred_categories, zero_division=0))
+
+        # Print final model info
+        print(
+            f"\nModel trained on {len(features)} emails across {len(unique_labels)} categories"
+        )
+        print(f"Categories: {list(self.label_encoder.classes_)}")
 
         # Save model
         self._save_models()
@@ -554,3 +759,129 @@ class EnronEmailClassifier:
             "stress_score": prediction["emotion"]["stress_score"],
             "relaxation_score": prediction["emotion"]["relaxation_score"],
         }
+
+    def analyze_dataset(
+        self, email_data: pd.DataFrame, labels: np.ndarray
+    ) -> Dict[str, Any]:
+        """Analyze the dataset to identify potential training issues"""
+        from collections import Counter
+        import matplotlib.pyplot as plt
+
+        analysis = {}
+
+        # Basic statistics
+        analysis["total_emails"] = len(labels)
+        analysis["total_categories"] = len(set(labels))
+
+        # Label distribution
+        label_counts = Counter(labels)
+        analysis["label_distribution"] = dict(label_counts)
+
+        # Categories with insufficient samples
+        min_samples_needed = 2
+        insufficient_categories = {
+            k: v for k, v in label_counts.items() if v < min_samples_needed
+        }
+        analysis["insufficient_categories"] = insufficient_categories
+        analysis["categories_to_filter"] = len(insufficient_categories)
+
+        # Data quality checks
+        null_subjects = email_data["subject"].isna().sum()
+        null_bodies = email_data["body"].isna().sum()
+        empty_subjects = (email_data["subject"].str.strip() == "").sum()
+        empty_bodies = (email_data["body"].str.strip() == "").sum()
+
+        analysis["data_quality"] = {
+            "null_subjects": int(null_subjects),
+            "null_bodies": int(null_bodies),
+            "empty_subjects": int(empty_subjects),
+            "empty_bodies": int(empty_bodies),
+            "emails_with_content": int(
+                len(email_data)
+                - max(null_subjects + empty_subjects, null_bodies + empty_bodies)
+            ),
+        }
+
+        # Text length statistics
+        combined_text = (
+            email_data["subject"].fillna("").astype(str)
+            + " "
+            + email_data["body"].fillna("").astype(str)
+        )
+        text_lengths = [len(text) for text in combined_text]
+
+        analysis["text_statistics"] = {
+            "avg_text_length": float(np.mean(text_lengths)),
+            "median_text_length": float(np.median(text_lengths)),
+            "min_text_length": int(np.min(text_lengths)),
+            "max_text_length": int(np.max(text_lengths)),
+            "very_short_emails": int(sum(1 for length in text_lengths if length < 50)),
+            "very_long_emails": int(sum(1 for length in text_lengths if length > 5000)),
+        }
+
+        # Recommendations
+        recommendations = []
+
+        if len(insufficient_categories) > 0:
+            recommendations.append(
+                f"Filter out {len(insufficient_categories)} categories with < {min_samples_needed} samples"
+            )
+
+        if analysis["data_quality"]["emails_with_content"] < len(email_data) * 0.8:
+            recommendations.append("Consider filtering emails with very little content")
+
+        if analysis["text_statistics"]["very_short_emails"] > len(email_data) * 0.1:
+            recommendations.append(
+                "Many emails are very short - consider combining subject and body text"
+            )
+
+        analysis["recommendations"] = recommendations
+
+        return analysis
+
+    def print_dataset_analysis(self, analysis: Dict[str, Any]):
+        """Print a formatted dataset analysis report"""
+        print("=" * 60)
+        print("DATASET ANALYSIS REPORT")
+        print("=" * 60)
+
+        print(f"\n📊 BASIC STATISTICS")
+        print(f"Total emails: {analysis['total_emails']:,}")
+        print(f"Total categories: {analysis['total_categories']}")
+
+        print(f"\n📈 CATEGORY DISTRIBUTION")
+        sorted_categories = sorted(
+            analysis["label_distribution"].items(), key=lambda x: x[1], reverse=True
+        )
+        for category, count in sorted_categories:
+            print(f"  {category}: {count:,} emails")
+
+        if analysis["insufficient_categories"]:
+            print(f"\n⚠️  CATEGORIES WITH INSUFFICIENT SAMPLES (< 2)")
+            for category, count in analysis["insufficient_categories"].items():
+                print(f"  {category}: {count} email(s)")
+
+        print(f"\n🔍 DATA QUALITY")
+        dq = analysis["data_quality"]
+        print(f"  Null subjects: {dq['null_subjects']:,}")
+        print(f"  Null bodies: {dq['null_bodies']:,}")
+        print(f"  Empty subjects: {dq['empty_subjects']:,}")
+        print(f"  Empty bodies: {dq['empty_bodies']:,}")
+        print(f"  Emails with content: {dq['emails_with_content']:,}")
+
+        print(f"\n📝 TEXT STATISTICS")
+        ts = analysis["text_statistics"]
+        print(f"  Average text length: {ts['avg_text_length']:.1f} characters")
+        print(f"  Median text length: {ts['median_text_length']:.1f} characters")
+        print(
+            f"  Text length range: {ts['min_text_length']} - {ts['max_text_length']} characters"
+        )
+        print(f"  Very short emails (< 50 chars): {ts['very_short_emails']:,}")
+        print(f"  Very long emails (> 5000 chars): {ts['very_long_emails']:,}")
+
+        if analysis["recommendations"]:
+            print(f"\n💡 RECOMMENDATIONS")
+            for i, rec in enumerate(analysis["recommendations"], 1):
+                print(f"  {i}. {rec}")
+
+        print("=" * 60)
