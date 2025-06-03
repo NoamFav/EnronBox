@@ -4,13 +4,18 @@ import json
 from typing import List, Dict, Any
 
 print("DB_PATH:", os.getenv("DB_PATH"))
-DB_PATH = os.getenv("DB_PATH", "/app/data/enron.db")
+DB_PATH = os.getenv("DB_PATH", "apps/SQLite_db/enron.db")
 
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        print(f"Attempting to connect to database at: {DB_PATH}")
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"Failed to connect to database: {str(e)}")
+        raise
 
 
 def get_all_users():
@@ -41,11 +46,12 @@ def get_emails(username, folder_name):
     conn = get_db_connection()
     cursor = conn.execute(
         """
-        SELECT emails.id, emails.subject, emails.body, emails.from_address, emails.to_address, emails.date
+        SELECT emails.id, emails.subject, emails.body, emails.from_address, emails.to_address, emails.date,
+               emails.starred, emails.flagged, emails.deleted, emails.archived, emails.read
         FROM emails
         JOIN folders ON emails.folder_id = folders.id
         JOIN users ON folders.user_id = users.id
-        WHERE users.username = ? AND folders.name = ?
+        WHERE users.username = ? AND folders.name = ? AND emails.deleted = 0
         ORDER BY emails.date DESC
         LIMIT 100
         """,
@@ -61,6 +67,7 @@ def get_email_by_id(email_id):
     cursor = conn.execute(
         """
         SELECT emails.id, emails.subject, emails.body, emails.from_address, emails.to_address, emails.date,
+               emails.starred, emails.flagged, emails.deleted, emails.archived, emails.read,
                folders.name as folder_name, users.username
         FROM emails
         JOIN folders ON emails.folder_id = folders.id
@@ -110,6 +117,14 @@ def initialize_table():
 
 
 def store_data(table: str, data: List[Dict[str, Any]]):
+    """
+    Generic function to store data into a specified table. Remember to initialize the table in initialize_table function.
+
+    Args:
+        table (str): The name of the table to store data into.
+        data (List[Dict[str, Any]]): A list of dictionaries containing the data to store.
+    """
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
@@ -126,36 +141,6 @@ def store_data(table: str, data: List[Dict[str, Any]]):
                 """
                 INSERT INTO entities (email_id, entity_type, entity_value)
                 VALUES (:email_id, :entity_type, :entity_value)
-            """,
-                data,
-            )
-        elif table == "email_classifications":
-            cursor.executemany(
-                """
-                INSERT INTO email_classifications (
-                    email_id,
-                    category,
-                    category_name,
-                    confidence,
-                    transformer_category,
-                    transformer_confidence,
-                    polarity,
-                    subjectivity,
-                    stress_score,
-                    relaxation_score
-                )
-                VALUES (
-                    :email_id,
-                    :category,
-                    :category_name,
-                    :confidence,
-                    :transformer_category,
-                    :transformer_confidence,
-                    :polarity,
-                    :subjectivity,
-                    :stress_score,
-                    :relaxation_score
-                )
             """,
                 data,
             )
@@ -202,3 +187,25 @@ def store_entities(email_id: str, entities: Dict[str, List[str]]):
             )
 
     store_data("entities", entity_data)
+
+def store_email_status(email_id: str, status_update: Dict[str, int]):
+    """
+    Store email status updates in the database.
+    
+    Args:
+        email_id (str): email ID
+        status_update (Dict[str, int]): status such as {'starred': 1} or {'flagged': 0}
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            for field, value in status_update.items():
+                cursor.execute(
+                    f"UPDATE emails SET {field} = ? WHERE id = ?",
+                    (value, email_id)
+                )
+            conn.commit()
+            return True
+    except Exception as e:
+        print(f"Error updating email status: {str(e)}")
+        return False
