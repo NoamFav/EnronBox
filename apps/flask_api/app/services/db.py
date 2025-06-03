@@ -106,6 +106,27 @@ def initialize_table():
             )
         """
         )
+
+        # Table for storing emails
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS emails (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                folder_id INTEGER,
+                filename TEXT,
+                subject TEXT,
+                body TEXT,
+                from_address TEXT,
+                to_address TEXT,
+                date TEXT,
+                read INTEGER DEFAULT 0,
+                starred INTEGER DEFAULT 0,
+                important INTEGER DEFAULT 0,
+                deleted INTEGER DEFAULT 0,
+                FOREIGN KEY(folder_id) REFERENCES folders(id)
+            );
+        """
+        )
         conn.commit()
 
 
@@ -180,3 +201,50 @@ def store_entities(email_id: str, entities: Dict[str, List[str]]):
             )
 
     store_data("entities", entity_data)
+
+
+def update_email_flags(email_id: int, read: bool = None, starred: bool = None, important: bool = None, deleted: bool = None):
+    """
+    Update email flags (read, starred, important, deleted) in the database.
+    Only updates the fields that are not None.
+    """
+    fields = []
+    values = []
+    if read is not None:
+        fields.append("read = ?")
+        values.append(int(read))
+    if starred is not None:
+        fields.append("starred = ?")
+        values.append(int(starred))
+    if important is not None:
+        fields.append("important = ?")
+        values.append(int(important))
+    if deleted is not None:
+        fields.append("deleted = ?")
+        values.append(int(deleted))
+    if not fields:
+        return
+    values.append(email_id)
+    sql = f"UPDATE emails SET {', '.join(fields)} WHERE id = ?"
+    with get_db_connection() as conn:
+        conn.execute(sql, values)
+        conn.commit()
+
+
+def get_email_flags(email_id: int):
+    """
+    Get the flags (read, starred, important, deleted) for a given email.
+    """
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "SELECT read, starred, important, deleted FROM emails WHERE id = ?", (email_id,)
+        )
+        row = cursor.fetchone()
+        if row:
+            return {
+                "read": bool(row["read"]),
+                "starred": bool(row["starred"]),
+                "important": bool(row["important"]),
+                "deleted": bool(row["deleted"]),
+            }
+        return None
