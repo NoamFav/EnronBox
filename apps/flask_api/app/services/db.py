@@ -110,14 +110,6 @@ def initialize_table():
 
 
 def store_data(table: str, data: List[Dict[str, Any]]):
-    """
-    Generic function to store data into a specified table. Remember to initialize the table in initialize_table function.
-
-    Args:
-        table (str): The name of the table to store data into.
-        data (List[Dict[str, Any]]): A list of dictionaries containing the data to store.
-    """
-
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
@@ -134,6 +126,36 @@ def store_data(table: str, data: List[Dict[str, Any]]):
                 """
                 INSERT INTO entities (email_id, entity_type, entity_value)
                 VALUES (:email_id, :entity_type, :entity_value)
+            """,
+                data,
+            )
+        elif table == "email_classifications":
+            cursor.executemany(
+                """
+                INSERT INTO email_classifications (
+                    email_id,
+                    category,
+                    category_name,
+                    confidence,
+                    transformer_category,
+                    transformer_confidence,
+                    polarity,
+                    subjectivity,
+                    stress_score,
+                    relaxation_score
+                )
+                VALUES (
+                    :email_id,
+                    :category,
+                    :category_name,
+                    :confidence,
+                    :transformer_category,
+                    :transformer_confidence,
+                    :polarity,
+                    :subjectivity,
+                    :stress_score,
+                    :relaxation_score
+                )
             """,
                 data,
             )
