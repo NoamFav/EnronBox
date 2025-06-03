@@ -3,24 +3,15 @@ from flask_cors import CORS
 
 
 def create_app():
+    print("=== Flask create_app called ===")
     app = Flask(__name__)
     CORS(
-        app,
-        resources={
-            r"/api/*": {
-                "origins": [
-                    "http://localhost:1420",
-                    "tauri://localhost",
-                    "file://",
-                    "null",
-                    "*",
-                ]
-            }
-        },
-        supports_credentials=True,
-        allow_headers=["Content-Type"],
-        methods=["POST", "OPTIONS"],
-    )
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    supports_credentials=True,
+    allow_headers=["Content-Type"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+)
 
     from app.routes.summarize import summarize_bp
     from app.routes.ner import ner_bp
