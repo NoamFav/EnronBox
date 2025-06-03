@@ -59,12 +59,14 @@ const Panel = ({
                   <button
                     className={`hover:text-yellow-400 transition-colors duration-300 transform hover:scale-110 ${email.starred ? 'text-yellow-400' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                     onClick={(e) => toggleStarred(email.id, e)}
+                    title={email.starred ? 'Unstar' : 'Star'}
                   >
                     <Star size={16} fill={email.starred ? 'currentColor' : 'none'} />
                   </button>
                   <button
                     className={`hover:text-red-500 transition-colors duration-300 transform hover:scale-110 ${email.flagged ? 'text-red-500' : darkMode ? 'text-gray-500' : 'text-gray-400'}`}
                     onClick={(e) => toggleFlag(email.id, e)}
+                    title={email.flagged ? 'Unflag' : 'Flag'}
                   >
                     <Flag size={16} fill={email.flagged ? 'currentColor' : 'none'} />
                   </button>
