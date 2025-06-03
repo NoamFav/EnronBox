@@ -20,6 +20,7 @@ from app.services.responder import EmailResponder
 from app.services.summarizer import EmailSummarizer
 
 from app.services.ner_engine import Extractor
+from app.services.db import update_email_flags, get_email_flags
 
 
 class EnronMailShell:
@@ -55,7 +56,7 @@ class EnronMailShell:
         try:
             # Load emails and train the model
             email_df, labels = self.classifier.load_enron_emails(
-                self.maildir_path, max_emails=max_emails
+                enron_db_path=self.maildir_path, max_emails=max_emails
             )
             self.classifier.train(email_df, labels)
             self.console.print(
@@ -287,7 +288,7 @@ Body: {self.current_email.get('body', '')}
             return None
         except (KeyError, ValueError) as e:
             # Handle specific exceptions for missing keys or invalid values
-            self.console.print(f"[bold red]Error processing email data: {e}[/bold red]")
+            self.console.print(f"[bold red]Error processing email data: {e}", style="red")
             return None
 
     def user_stats(self):
@@ -422,6 +423,27 @@ Body: {self.current_email.get('body', '')}
                     border_style="red",
                 )
             )
+
+    def sync_email_flags(
+        self,
+        email_id: int,
+        read=None,
+        starred=None,
+        important=None,
+        deleted=None,
+    ):
+        """
+        Sync email flags to the database.
+        """
+        update_email_flags(
+            email_id, read=read, starred=starred, important=important, deleted=deleted
+        )
+
+    def fetch_email_flags(self, email_id: int):
+        """
+        Fetch email flags from the database.
+        """
+        return get_email_flags(email_id)
 
     def run(self):
         """Main shell loop"""
