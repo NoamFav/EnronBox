@@ -57,6 +57,10 @@ def init_schema(cursor):
             from_address TEXT,
             to_address TEXT,
             date TEXT,
+            read INTEGER DEFAULT 0,
+            starred INTEGER DEFAULT 0,
+            important INTEGER DEFAULT 0,
+            deleted INTEGER DEFAULT 0,
             FOREIGN KEY(folder_id) REFERENCES folders(id)
         );
     """
@@ -104,8 +108,8 @@ def populate_db(cursor):
 
             cursor.execute(
                 """
-                INSERT INTO emails (folder_id, filename, subject, body, from_address, to_address, date)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO emails (folder_id, filename, subject, body, from_address, to_address, date, read, starred, important, deleted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
             """,
                 (folder_id, filename, subject, body, from_addr, to_addr, date),
             )
