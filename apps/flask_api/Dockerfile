@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Install build tools & required libraries for spaCy and others
 RUN apt-get update && apt-get install -y \
     gcc \
     build-essential \
@@ -16,18 +15,19 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy only requirements first for caching
 COPY apps/flask_api/requirements.txt .
 
-# Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the app
 COPY apps/flask_api/ .
 
 RUN python3 postinstall.py
 
 EXPOSE 5050
 
-CMD ["python3", "-m", "app.server"]
+# Add these lines
+ENV FLASK_ENV=development
+ENV FLASK_APP=app.server
+
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5050"]

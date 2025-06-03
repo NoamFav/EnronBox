@@ -1,6 +1,16 @@
+import axios from 'axios';
 import { useEmail } from '../contexts/EmailContext';
 import { useUI } from '../contexts/UIContext';
 import { processEmails, processClassificationResults, applyFilters } from '../utils/emailUtils';
+
+// Create axios instance with base configuration
+const api = axios.create({
+  baseURL: 'http://localhost:5050/api',
+  timeout: 2400000, // 60 second timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const useEmailAPI = () => {
   const { state, dispatch } = useEmail();
@@ -9,23 +19,17 @@ export const useEmailAPI = () => {
   const fetchFolders = async (username) => {
     try {
       console.log('Fetching folders for:', username);
-      const response = await fetch(`http://localhost:5050/api/users/${username}/folders`);
+      const response = await api.get(`/users/${username}/folders`);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Folders received:', data);
-        dispatch({ type: 'SET_FOLDERS', payload: data });
+      console.log('Folders received:', response.data);
+      dispatch({ type: 'SET_FOLDERS', payload: response.data });
 
-        // Set first folder as active if current active folder doesn't exist
-        if (data.length > 0 && !data.includes(state.activeFolder)) {
-          dispatch({ type: 'SET_ACTIVE_FOLDER', payload: data[0] });
-        }
-      } else {
-        console.error('Failed to fetch folders:', response.status, response.statusText);
-        displayToast('Failed to load folders', 'error');
+      // Set first folder as active if current active folder doesn't exist
+      if (response.data.length > 0 && !response.data.includes(state.activeFolder)) {
+        dispatch({ type: 'SET_ACTIVE_FOLDER', payload: response.data[0] });
       }
     } catch (error) {
-      console.error('Error fetching folders:', error);
+      console.error('Error fetching folders:', error.response?.data || error.message);
       displayToast('Failed to load folders', 'error');
     }
   };
@@ -48,15 +52,9 @@ export const useEmailAPI = () => {
 
     try {
       // Fetch emails
-      const emailResponse = await fetch(
-        `http://localhost:5050/api/users/${username}/folders/${folder}/emails`
-      );
+      const emailResponse = await api.get(`/users/${username}/folders/${folder}/emails`);
+      const rawEmails = emailResponse.data;
 
-      if (!emailResponse.ok) {
-        throw new Error(`Email fetch failed: ${emailResponse.status} ${emailResponse.statusText}`);
-      }
-
-      const rawEmails = await emailResponse.json();
       console.log('Raw emails received:', rawEmails.length);
 
       if (!Array.isArray(rawEmails)) {
@@ -66,7 +64,7 @@ export const useEmailAPI = () => {
       const processedEmails = processEmails(rawEmails);
       console.log('Processed emails:', processedEmails.length);
 
-      // Try to classify emails (optional - if this fails, just use processed emails)
+      // Try to classify emails
       let finalEmails = processedEmails;
       let labels = [];
 
@@ -81,28 +79,25 @@ export const useEmailAPI = () => {
           time_sent: e.rawTime,
         }));
 
-        const classifyResponse = await fetch('http://localhost:5050/api/classify/batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(classificationPayload),
-        });
+        const classifyResponse = await api.post('/classify/batch', classificationPayload);
+        const classificationResults = classifyResponse.data;
 
-        if (classifyResponse.ok) {
-          const classificationResults = await classifyResponse.json();
-          console.log('Classification results:', classificationResults);
+        console.log('Classification results:', classificationResults);
 
-          const { emails: classifiedEmails, labels: extractedLabels } =
-            processClassificationResults(processedEmails, classificationResults);
+        const { emails: classifiedEmails, labels: extractedLabels } = processClassificationResults(
+          processedEmails,
+          classificationResults
+        );
 
-          finalEmails = classifiedEmails;
-          labels = extractedLabels;
+        finalEmails = classifiedEmails;
+        labels = extractedLabels;
 
-          dispatch({ type: 'SET_LABELS', payload: labels });
-        } else {
-          console.warn('Classification failed, using emails without labels');
-        }
+        dispatch({ type: 'SET_LABELS', payload: labels });
       } catch (classifyError) {
-        console.warn('Classification error (non-fatal):', classifyError);
+        console.warn(
+          'Classification error (non-fatal):',
+          classifyError.response?.data || classifyError.message
+        );
       }
 
       // Apply filters
@@ -112,8 +107,11 @@ export const useEmailAPI = () => {
       dispatch({ type: 'SET_EMAILS', payload: filteredEmails });
       displayToast(`Loaded ${filteredEmails.length} emails`);
     } catch (error) {
-      console.error('Error fetching emails:', error);
-      displayToast(`Failed to load emails: ${error.message}`, 'error');
+      console.error('Error fetching emails:', error.response?.data || error.message);
+      displayToast(
+        `Failed to load emails: ${error.response?.data?.message || error.message}`,
+        'error'
+      );
 
       // Set empty array to stop loading state
       dispatch({ type: 'SET_EMAILS', payload: [] });
@@ -137,23 +135,15 @@ export const useEmailAPI = () => {
 
     try {
       // Perform IR search using the search query
-      const searchResponse = await fetch('http://localhost:5050/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: state.searchQuery.trim(),
-          username: username,
-          folder: folder,
-          search_fields: ['subject', 'body'], // Search both title and body
-          max_results: 100, // Adjust as needed
-        }),
+      const searchResponse = await api.post('/search', {
+        query: state.searchQuery.trim(),
+        username: username,
+        folder: folder,
+        search_fields: ['subject', 'body'], // Search both title and body
+        max_results: 100,
       });
 
-      if (!searchResponse.ok) {
-        throw new Error(`Search failed: ${searchResponse.status} ${searchResponse.statusText}`);
-      }
-
-      const searchResults = await searchResponse.json();
+      const searchResults = searchResponse.data;
       console.log('IR search results:', searchResults);
 
       // Check if we got results in the expected format
@@ -208,24 +198,21 @@ export const useEmailAPI = () => {
             time_sent: e.rawTime,
           }));
 
-          const classifyResponse = await fetch('http://localhost:5050/api/classify/batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(classificationPayload),
-          });
+          const classifyResponse = await api.post('/classify/batch', classificationPayload);
+          const classificationResults = classifyResponse.data;
 
-          if (classifyResponse.ok) {
-            const classificationResults = await classifyResponse.json();
-            const { emails: classifiedEmails, labels: extractedLabels } =
-              processClassificationResults(processedEmails, classificationResults);
+          const { emails: classifiedEmails, labels: extractedLabels } =
+            processClassificationResults(processedEmails, classificationResults);
 
-            finalEmails = classifiedEmails;
-            labels = extractedLabels;
+          finalEmails = classifiedEmails;
+          labels = extractedLabels;
 
-            dispatch({ type: 'SET_LABELS', payload: labels });
-          }
+          dispatch({ type: 'SET_LABELS', payload: labels });
         } catch (classifyError) {
-          console.warn('Classification error for search results (non-fatal):', classifyError);
+          console.warn(
+            'Classification error for search results (non-fatal):',
+            classifyError.response?.data || classifyError.message
+          );
         }
       }
 
@@ -236,8 +223,8 @@ export const useEmailAPI = () => {
       dispatch({ type: 'SET_EMAILS', payload: filteredEmails });
       displayToast(`Found ${filteredEmails.length} emails matching "${state.searchQuery}"`);
     } catch (error) {
-      console.error('Error performing IR search:', error);
-      displayToast(`Search failed: ${error.message}`, 'error');
+      console.error('Error performing IR search:', error.response?.data || error.message);
+      displayToast(`Search failed: ${error.response?.data?.message || error.message}`, 'error');
 
       // Fallback to client-side search if IR fails
       console.log('Falling back to client-side search');
@@ -251,15 +238,8 @@ export const useEmailAPI = () => {
   const performClientSideSearch = async (username, folder) => {
     try {
       // First fetch all emails
-      const emailResponse = await fetch(
-        `http://localhost:5050/api/users/${username}/folders/${folder}/emails`
-      );
-
-      if (!emailResponse.ok) {
-        throw new Error(`Email fetch failed: ${emailResponse.status} ${emailResponse.statusText}`);
-      }
-
-      const rawEmails = await emailResponse.json();
+      const emailResponse = await api.get(`/users/${username}/folders/${folder}/emails`);
+      const rawEmails = emailResponse.data;
       const processedEmails = processEmails(rawEmails);
 
       // Perform client-side search
@@ -298,7 +278,7 @@ export const useEmailAPI = () => {
         `Found ${filteredEmails.length} emails matching "${state.searchQuery}" (client-side search)`
       );
     } catch (error) {
-      console.error('Client-side search also failed:', error);
+      console.error('Client-side search also failed:', error.response?.data || error.message);
       displayToast('Search failed completely', 'error');
       dispatch({ type: 'SET_EMAILS', payload: [] });
     }
@@ -314,24 +294,15 @@ export const useEmailAPI = () => {
     dispatch({ type: 'SET_EMAIL_SUMMARY', payload: '' });
 
     try {
-      const response = await fetch('http://localhost:5050/api/summarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email_text: state.selectedEmail.content,
-          num_sentences: 3,
-        }),
+      const response = await api.post('/summarize', {
+        email_text: state.selectedEmail.content,
+        num_sentences: 3,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        dispatch({ type: 'SET_EMAIL_SUMMARY', payload: data.summary });
-        displayToast('Email summarized successfully');
-      } else {
-        displayToast('Failed to summarize email', 'error');
-      }
+      dispatch({ type: 'SET_EMAIL_SUMMARY', payload: response.data.summary });
+      displayToast('Email summarized successfully');
     } catch (error) {
-      console.error('Error summarizing email:', error);
+      console.error('Error summarizing email:', error.response?.data || error.message);
       displayToast('Failed to summarize email', 'error');
     } finally {
       dispatch({ type: 'SET_SUMMARIZING', payload: false });
