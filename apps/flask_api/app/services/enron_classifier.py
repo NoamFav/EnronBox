@@ -32,6 +32,10 @@ class EnronEmailClassifier:
         self.model_dir = Path(model_dir)
         self.model_dir.mkdir(exist_ok=True)
 
+        # Device detection and setup
+        self.device = self._get_optimal_device()
+        print(f"Using device: {self.device}")
+
         # New category system from paste.txt
         self.categories = {
             "strategic_planning": {
@@ -166,26 +170,96 @@ class EnronEmailClassifier:
         self._initialize_models()
         self._load_models()
 
+    def _get_optimal_device(self):
+        """Detect and return the best available device"""
+        if torch.cuda.is_available():
+            device = "cuda"
+            print(f"CUDA detected: {torch.cuda.get_device_name()}")
+            # Set memory growth to avoid OOM issues
+            torch.cuda.empty_cache()
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            device = "mps"
+            print("Apple Metal Performance Shaders (MPS) detected")
+        else:
+            device = "cpu"
+            print("Using CPU (no GPU acceleration available)")
+
+        return device
+
+    def _get_device_id(self):
+        """Get device ID for transformers pipeline"""
+        if self.device == "cuda":
+            return 0  # Use first CUDA device
+        elif self.device == "mps":
+            return 0  # MPS also uses device 0
+        else:
+            return -1  # CPU
+
     def _initialize_models(self):
-        """Initialize transformer models"""
+        """Initialize transformer models with optimal device settings"""
         try:
-            # Sentence transformer for embeddings
-            self.sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
-
-            # BERT tokenizer for text processing
-            self.tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-
-            # Classification pipeline for zero-shot classification
-            self.classifier_pipeline = pipeline(
-                "zero-shot-classification",
-                model="facebook/bart-base",
-                device=0 if torch.cuda.is_available() else -1,
+            # Sentence transformer for embeddings with device optimization
+            print("Loading sentence transformer model...")
+            self.sentence_model = SentenceTransformer(
+                "aall-MiniLM-L6-v2ll-MiniLM-L6-v2", device=self.device
             )
 
+            # For MPS, we might need to handle some edge cases
+            if self.device == "mps":
+                # Ensure the model is properly moved to MPS
+                self.sentence_model = self.sentence_model.to(self.device)
+
+            # BERT tokenizer for text processing (CPU is fine for tokenization)
+            print("Loading tokenizer...")
+            self.tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+
+            # Classification pipeline for zero-shot classification with device optimization
+            print("Loading classification pipeline...")
+            device_id = self._get_device_id()
+
+            # For MPS, we need to be more careful with pipeline initialization
+            if self.device == "mps":
+                # Create pipeline and manually move to MPS
+                self.classifier_pipeline = pipeline(
+                    "zero-shot-classification",
+                    model="facebook/bart-base",
+                    device=-1,  # Start on CPU
+                )
+                # Move the model to MPS after initialization
+            # if hasattr(self.classifier_pipeline.model, "to"):
+            #  self.classifier_pipeline.model = self.classifier_pipeline.model.to(
+            #      "mps"
+            #  )
+            else:
+                self.classifier_pipeline = pipeline(
+                    "zero-shot-classification",
+                    model="facebook/bart-base",
+                    device=device_id,
+                )
+
+            print(f"All models loaded successfully on {self.device}")
+
         except Exception as e:
-            print(f"Warning: Could not initialize all transformer models: {e}")
-            self.sentence_model = None
-            self.classifier_pipeline = None
+            print(
+                f"Warning: Could not initialize all transformer models on {self.device}: {e}"
+            )
+            print("Falling back to CPU...")
+            # Fallback to CPU
+            try:
+                self.sentence_model = SentenceTransformer(
+                    "all-MiniLM-L6-v2", device="cpu"
+                )
+                self.classifier_pipeline = pipeline(
+                    "zero-shot-classification",
+                    model="facebook/bart-base",
+                    device=-1,
+                )
+                self.device = "cpu"
+                print("Successfully initialized models on CPU")
+            except Exception as fallback_e:
+                print(f"Error even with CPU fallback: {fallback_e}")
+                self.sentence_model = None
+                self.classifier_pipeline = None
 
     def _load_models(self):
         """Load pre-trained models if they exist"""
@@ -237,16 +311,49 @@ class EnronEmailClassifier:
         return text
 
     def extract_embeddings(self, texts: List[str]) -> np.ndarray:
-        """Extract sentence embeddings using transformer model"""
+        """Extract sentence embeddings using transformer model with GPU acceleration"""
         if self.sentence_model is None:
             # Fallback to simple text features
             return self._extract_simple_features(texts)
 
         try:
-            embeddings = self.sentence_model.encode(texts, show_progress_bar=False)
-            return embeddings
+            # Use batch processing for better GPU utilization
+            batch_size = 32 if self.device in ["cuda", "mps"] else 16
+
+            print(
+                f"Extracting embeddings for {len(texts)} texts using {self.device}..."
+            )
+
+            # Process in batches to optimize GPU memory usage
+            embeddings = []
+            for i in range(0, len(texts), batch_size):
+                batch_texts = texts[i : i + batch_size]
+
+                # Clear GPU cache before processing each batch
+                if self.device == "cuda":
+                    torch.cuda.empty_cache()
+                elif self.device == "mps":
+                    torch.mps.empty_cache()
+
+                batch_embeddings = self.sentence_model.encode(
+                    batch_texts,
+                    show_progress_bar=False,
+                    convert_to_numpy=True,
+                    device=self.device,
+                )
+                embeddings.append(batch_embeddings)
+
+            # Concatenate all batch results
+            final_embeddings = np.vstack(embeddings)
+
+            print(
+                f"Successfully extracted embeddings with shape: {final_embeddings.shape}"
+            )
+            return final_embeddings
+
         except Exception as e:
-            print(f"Error extracting embeddings: {e}")
+            print(f"Error extracting embeddings on {self.device}: {e}")
+            print("Falling back to simple features...")
             return self._extract_simple_features(texts)
 
     def _extract_simple_features(self, texts: List[str]) -> np.ndarray:
@@ -294,7 +401,9 @@ class EnronEmailClassifier:
         return np.array(features)
 
     def extract_features(self, email_data: pd.DataFrame) -> np.ndarray:
-        """Extract comprehensive features from email data"""
+        """Extract comprehensive features from email data with GPU acceleration"""
+        print(f"Extracting features using {self.device}...")
+
         # Combine subject and body
         combined_text = (
             email_data["subject"].fillna("").astype(str)
@@ -305,10 +414,11 @@ class EnronEmailClassifier:
         # Preprocess text
         processed_texts = [self.preprocess_text(text) for text in combined_text]
 
-        # Get embeddings
+        # Get embeddings with GPU acceleration
         text_embeddings = self.extract_embeddings(processed_texts)
 
-        # Extract metadata features
+        # Extract metadata features (this stays on CPU as it's lightweight)
+        print("Extracting metadata features...")
         metadata_features = []
         for _, row in email_data.iterrows():
             # Get emotion analysis
@@ -341,10 +451,11 @@ class EnronEmailClassifier:
         else:
             features = metadata_features
 
+        print(f"Final feature shape: {features.shape}")
         return features
 
     def classify_with_transformers(self, texts: List[str]) -> List[Dict]:
-        """Use zero-shot classification with transformers"""
+        """Use zero-shot classification with transformers and GPU acceleration"""
         if self.classifier_pipeline is None:
             return [{"category": "operational", "confidence": 0.5} for _ in texts]
 
@@ -354,30 +465,47 @@ class EnronEmailClassifier:
             ]
             results = []
 
-            for text in texts:
-                if not text.strip():
-                    results.append({"category": "operational", "confidence": 0.5})
-                    continue
+            print(f"Running transformer classification on {self.device}...")
 
-                try:
-                    prediction = self.classifier_pipeline(text, candidate_labels)
-                    best_label = prediction["labels"][0]
-                    confidence = prediction["scores"][0]
+            # Process texts in batches for better GPU utilization
+            batch_size = 8 if self.device in ["cuda", "mps"] else 4
 
-                    # Map back to category key
-                    category_key = next(
-                        (
-                            key
-                            for key, value in self.categories.items()
-                            if value["name"] == best_label
-                        ),
-                        "operational",
-                    )
+            for i in range(0, len(texts), batch_size):
+                batch_texts = texts[i : i + batch_size]
 
-                    results.append({"category": category_key, "confidence": confidence})
-                except Exception as e:
-                    print(f"Error in transformer classification: {e}")
-                    results.append({"category": "operational", "confidence": 0.5})
+                # Clear GPU cache before each batch
+                if self.device == "cuda":
+                    torch.cuda.empty_cache()
+                elif self.device == "mps":
+                    torch.mps.empty_cache()
+
+                for text in batch_texts:
+                    if not text.strip():
+                        results.append({"category": "operational", "confidence": 0.5})
+                        continue
+
+                    try:
+                        # The pipeline will use the device it was initialized with
+                        prediction = self.classifier_pipeline(text, candidate_labels)
+                        best_label = prediction["labels"][0]
+                        confidence = prediction["scores"][0]
+
+                        # Map back to category key
+                        category_key = next(
+                            (
+                                key
+                                for key, value in self.categories.items()
+                                if value["name"] == best_label
+                            ),
+                            "operational",
+                        )
+
+                        results.append(
+                            {"category": category_key, "confidence": confidence}
+                        )
+                    except Exception as e:
+                        print(f"Error in transformer classification: {e}")
+                        results.append({"category": "operational", "confidence": 0.5})
 
             return results
 
@@ -590,8 +718,8 @@ class EnronEmailClassifier:
         return df, np.array(labels)
 
     def train(self, email_data: pd.DataFrame, labels: np.ndarray):
-        """Train the classifier with modern ensemble approach"""
-        print("Training modern email classifier...")
+        """Train the classifier with modern ensemble approach and GPU acceleration"""
+        print(f"Training modern email classifier on {self.device}...")
 
         # Print label distribution for debugging
         from collections import Counter
@@ -623,8 +751,8 @@ class EnronEmailClassifier:
         # Encode labels
         encoded_labels = self.label_encoder.fit_transform(labels)
 
-        # Extract features
-        print("Extracting features...")
+        # Extract features with GPU acceleration
+        print("Extracting features with GPU acceleration...")
         features = self.extract_features(email_data)
 
         # Check if we have enough samples for stratified split
@@ -656,18 +784,20 @@ class EnronEmailClassifier:
         print(f"Training set size: {len(X_train)}")
         print(f"Test set size: {len(X_test)}")
 
-        # Create ensemble model
+        # Create ensemble model with optimized parameters for GPU-extracted features
         print("Training ensemble model...")
         rf_model = RandomForestClassifier(
-            n_estimators=100,
+            n_estimators=200,  # Increased since we have better features
             random_state=42,
             n_jobs=-1,
             class_weight="balanced",  # Handle class imbalance
+            max_depth=15,  # Prevent overfitting with high-dim features
         )
         lr_model = LogisticRegression(
             random_state=42,
-            max_iter=1000,
+            max_iter=2000,  # Increased for convergence with high-dim features
             class_weight="balanced",  # Handle class imbalance
+            C=0.1,  # L2 regularization for high-dim features
         )
 
         self.ensemble_model = VotingClassifier(
@@ -691,6 +821,14 @@ class EnronEmailClassifier:
             f"\nModel trained on {len(features)} emails across {len(unique_labels)} categories"
         )
         print(f"Categories: {list(self.label_encoder.classes_)}")
+        print(f"Feature dimensionality: {features.shape[1]}")
+        print(f"Device used: {self.device}")
+
+        # Clear GPU cache after training
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+        elif self.device == "mps":
+            torch.mps.empty_cache()
 
         # Save model
         self._save_models()
@@ -698,7 +836,7 @@ class EnronEmailClassifier:
         return self
 
     def predict(self, message: Dict[str, Any]) -> Dict[str, Any]:
-        """Predict category for a single email"""
+        """Predict category for a single email with GPU acceleration"""
         if self.ensemble_model is None:
             raise ValueError("Model not trained yet. Please train the model first.")
 
@@ -708,7 +846,7 @@ class EnronEmailClassifier:
         else:
             email_df = message
 
-        # Extract features
+        # Extract features with GPU acceleration
         features = self.extract_features(email_df)
 
         # Get ensemble prediction
@@ -724,9 +862,15 @@ class EnronEmailClassifier:
             str(message.get("body", ""))
         )
 
-        # Try transformer classification as additional signal
+        # Try transformer classification as additional signal with GPU acceleration
         combined_text = f"{message.get('subject', '')} {message.get('body', '')}"
         transformer_results = self.classify_with_transformers([combined_text])
+
+        # Clear GPU cache after prediction
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+        elif self.device == "mps":
+            torch.mps.empty_cache()
 
         return {
             "category": category_key,
@@ -740,6 +884,7 @@ class EnronEmailClassifier:
                 "stress_score": emotion_data.get("stress_score", 0),
                 "relaxation_score": emotion_data.get("relaxation_score", 0),
             },
+            "device_used": self.device,
         }
 
     @staticmethod
