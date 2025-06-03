@@ -29,7 +29,6 @@ export const useEmailActions = () => {
 
   try {
     const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
-      mode: 'no-cors',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ starred: isStarred ? 1 : 0 }),
@@ -59,7 +58,6 @@ export const useEmailActions = () => {
 
   try {
     const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
-      mode: 'no-cors',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ flagged: isFlagged ? 1 : 0 }),
@@ -84,62 +82,68 @@ export const useEmailActions = () => {
 
   const markAsUnread = async (id, e) => {
     e?.stopPropagation();
-    dispatch({
-      type: 'UPDATE_EMAIL',
-      payload: { id, updates: { read: false } },
-    });
-    // Sync with backend
     try {
-      await fetch(`http://localhost:5050/api/emails/${id}/status`, {
+      const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ read: false }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to mark as unread');
+      }
+      dispatch({
+        type: 'UPDATE_EMAIL',
+        payload: { id, updates: { read: false } },
+      });
+      displayToast('Email marked as unread');
       refreshEmails();
     } catch (err) {
       displayToast('Failed to mark as unread', 'error');
     }
-    displayToast('Email marked as unread');
   };
 
   const deleteEmail = async (id, e) => {
     e?.stopPropagation();
-    dispatch({
-      type: 'UPDATE_EMAIL',
-      payload: { id, updates: { deleted: true } },
-    });
-    // Sync with backend
     try {
-      await fetch(`http://localhost:5050/api/emails/${id}/status`, {
+      const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deleted: true }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to delete email');
+      }
+      dispatch({
+        type: 'UPDATE_EMAIL',
+        payload: { id, updates: { deleted: true } },
+      });
+      displayToast('Email moved to trash');
       refreshEmails();
     } catch (err) {
       displayToast('Failed to delete email', 'error');
     }
-    displayToast('Email moved to trash');
   };
 
   const archiveEmail = async (id, e) => {
     e?.stopPropagation();
-    dispatch({
-      type: 'UPDATE_EMAIL',
-      payload: { id, updates: { archived: true } },
-    });
-    // Sync with backend
     try {
-      await fetch(`http://localhost:5050/api/emails/${id}/status`, {
+      const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ archived: true }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to archive email');
+      }
+      dispatch({
+        type: 'UPDATE_EMAIL',
+        payload: { id, updates: { archived: true } },
+      });
+      displayToast('Email archived');
       refreshEmails();
     } catch (err) {
       displayToast('Failed to archive email', 'error');
     }
-    displayToast('Email archived');
   };
 
   const refreshEmails = () => {
