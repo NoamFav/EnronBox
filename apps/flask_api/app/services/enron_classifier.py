@@ -201,7 +201,7 @@ class EnronEmailClassifier:
             # Sentence transformer for embeddings with device optimization
             print("Loading sentence transformer model...")
             self.sentence_model = SentenceTransformer(
-                "aall-MiniLM-L6-v2ll-MiniLM-L6-v2", device=self.device
+                "all-MiniLM-L6-v2", device=self.device
             )
 
             # For MPS, we might need to handle some edge cases

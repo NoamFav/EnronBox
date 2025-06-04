@@ -4,7 +4,7 @@ import json
 from typing import List, Dict, Any
 
 print("DB_PATH:", os.getenv("DB_PATH"))
-DB_PATH = os.getenv("DB_PATH", "/app/data/enron.db")
+DB_PATH = os.getenv("DB_PATH", "../SQLite_db/enron.db")
 
 
 def get_db_connection():
