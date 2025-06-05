@@ -6,12 +6,12 @@
 [![Flask](https://img.shields.io/badge/Flask-3.1-green.svg)](https://flask.palletsprojects.com/)
 [![Tauri](https://img.shields.io/badge/Tauri-Latest-purple.svg)](https://tauri.app/)
 [![Docker](https://img.shields.io/badge/Docker-Compatible-blue.svg)](https://www.docker.com/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-Latest-orange.svg)](https://scikit-learn.org/)
+[![Transformers](https://img.shields.io/badge/🤗_Transformers-Latest-yellow.svg)](https://huggingface.co/transformers/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue.svg)](https://www.typescriptlang.org/)
 
 <img src="apps/enron_classifier/src-tauri/icons/icon.png" width="250" alt="EnronClassifier Logo"/>
 
-A powerful desktop and web application for classifying, summarizing, and analyzing emotion in Enron emails. Built with React, Flask API, and Tauri for cross-platform support.
+A powerful desktop and web application for classifying, summarizing, and analyzing emotion in Enron emails. Built with React, Flask API, and Tauri for cross-platform support, featuring advanced transformer models with GPU acceleration.
 
 [Quick Start](#-quick-start) •
 [Features](#-features) •
@@ -24,7 +24,7 @@ A powerful desktop and web application for classifying, summarizing, and analyzi
 
 ## 📋 Overview
 
-Welcome to **EnronClassifier**, a sophisticated email analysis application! Built with advanced machine learning and NLP techniques, it provides comprehensive email classification, summarization, and emotion analysis capabilities through an elegant web and desktop interface. Whether you're a data scientist, researcher, or NLP enthusiast, this tool offers powerful insights into the Enron email dataset!
+Welcome to **EnronClassifier**, a sophisticated email analysis application! Built with cutting-edge transformer models and NLP techniques, it provides comprehensive email classification, summarization, and emotion analysis capabilities through an elegant web and desktop interface. Whether you're a data scientist, researcher, or NLP enthusiast, this tool offers powerful insights into the Enron email dataset!
 
 <div align="center">
   <img src="docs/screenshots.png" width="600" alt="EnronClassifier Screenshot"/>
@@ -37,13 +37,13 @@ Welcome to **EnronClassifier**, a sophisticated email analysis application! Buil
 <div style="display: flex; flex-wrap: wrap;">
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🧠 Email Classification</h3>
-<p>Uses machine learning to categorize emails with high accuracy using a Python ML pipeline.</p>
+<h3>🧠 Advanced Email Classification</h3>
+<p>Uses state-of-the-art transformer models including BART and DistilBERT for zero-shot classification with 10 comprehensive categories.</p>
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
 <h3>📄 Smart Summarization</h3>
-<p>Extractive summarization of lengthy emails using NLP libraries (NLTK, spaCy, Sumy).</p>
+<p>Extractive summarization of lengthy emails using advanced NLP libraries (NLTK, spaCy, Sumy).</p>
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
@@ -57,8 +57,8 @@ Welcome to **EnronClassifier**, a sophisticated email analysis application! Buil
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🔄 Agent Daemon</h3>
-<p>Background Go service for asynchronous tasks and seamless integrations.</p>
+<h3>⚡ GPU Acceleration</h3>
+<p>Full CUDA support for high-performance inference, with limited MPS support for Apple Silicon.</p>
 </div>
 
 <div style="flex: 1; min-width: 250px; padding: 10px;">
@@ -67,6 +67,25 @@ Welcome to **EnronClassifier**, a sophisticated email analysis application! Buil
 </div>
 
 </div>
+
+---
+
+## 🏷️ Classification Categories
+
+The system classifies emails into 10 comprehensive categories:
+
+| Category | Description |
+|----------|-------------|
+| **Strategic Planning** | Long-term business strategy, corporate planning, acquisitions |
+| **Daily Operations** | Day-to-day operations, routine tasks, procedures |
+| **Financial** | Budget, accounting, financial reports, expenses |
+| **Legal & Compliance** | Legal matters, regulatory compliance, contracts |
+| **Client & External** | External communications, client relations, partnerships |
+| **HR & Personnel** | Human resources, hiring, employee matters |
+| **Meetings & Events** | Meeting scheduling, event planning, appointments |
+| **Urgent & Critical** | Time-sensitive, emergency, critical issues |
+| **Personal & Informal** | Personal communications, informal chats, non-work related |
+| **Technical & IT** | Technical issues, IT support, system problems |
 
 ---
 
@@ -83,26 +102,38 @@ Before diving into the email analysis, ensure your system meets these requiremen
 | **Docker & Docker Compose** | Latest  | [Get Docker](https://www.docker.com/products/docker-desktop/) |
 | **Rust toolchain**          | Latest  | Required for Tauri builds                                     |
 | **Python**                  | 3.10+   | For local development of Flask API                            |
-| **Go**                      | 1.20+   | For agent-daemon development                                  |
+
+**Hardware Acceleration Support:**
+- **CUDA GPU**: Full acceleration support for NVIDIA GPUs
+- **Apple Silicon (M1/M2)**: Limited MPS acceleration (native Flask recommended)
+- **CPU**: Fallback support for all systems
 
 </details>
 
 <details open>
-<summary><b>Docker Setup (Backend)</b></summary>
+<summary><b>Backend Setup</b></summary>
+
+### Docker Setup (Recommended for Linux/Windows)
 
 Launch the backend services quickly with Docker Compose:
 
 ```bash
-# Start the Flask API and Agent Daemon
+# Start the Flask API
 docker compose up --build
 ```
 
-This will start:
+This will start the **Flask API** on port 5050 with the pre-loaded Enron SQLite database.
 
-- **Flask API** on port 5050
-- **Agent Daemon** working in the background
+### Native Flask Setup (Recommended for macOS)
 
-Both services will connect to the pre-loaded Enron SQLite database.
+For optimal performance on macOS with Apple Silicon, run Flask natively to leverage MPS acceleration:
+
+```bash
+# Run the Flask API setup script (handles dependencies and execution)
+./bin/flask-api.sh
+```
+
+> **Note for macOS users**: Docker doesn't support MPS acceleration, so running Flask natively provides significantly better performance on Apple Silicon devices.
 
 </details>
 
@@ -146,28 +177,35 @@ Access the web app at http://localhost:5173
 ```
 ┌──────────────┐    HTTP    ┌───────────────┐
 │   Frontend   │──────────▶│  Flask API     │
-│ (React +     │◀──────────│  (apps/flask_api)│
-│  Tauri)      │           └───────────────┘
-└──────────────┘                ▲
-                                │
+│ (React +     │◀──────────│  (Advanced NLP │
+│  Tauri)      │           │   Pipeline)    │
+└──────────────┘           └───────────────┘
+                                ▲
                                 │
                            ┌──────────┐
                            │ SQLite   │
                            │ (enron.db)│
                            └──────────┘
-                                ▲
-                                │
-                           ┌──────────┐
-                           │Agent     │
-                           │Daemon    │
-                           └──────────┘
 ```
 
-The system uses a modern architecture with three main components:
+The system uses a modern architecture with two main components:
 
 1. **Frontend**: React-based UI with Tauri integration for desktop deployment
-2. **Flask API**: Python backend for ML and NLP processing
-3. **Agent Daemon**: Go service for background tasks and database maintenance
+2. **Flask API**: Python backend with transformer models for advanced ML and NLP processing
+
+### Advanced ML Pipeline
+
+The classification system uses state-of-the-art transformer models:
+
+- **Sentence Transformer**: `all-MiniLM-L6-v2` for semantic embeddings
+- **Zero-shot Classification**: `facebook/bart-base` for flexible email categorization
+- **Tokenization**: `distilbert-base-uncased` for efficient text processing
+
+**Device Optimization:**
+- Automatic GPU detection and optimization
+- CUDA support for NVIDIA GPUs
+- MPS support for Apple Silicon (with fallback handling)
+- Intelligent CPU fallback for unsupported configurations
 
 </details>
 
@@ -178,11 +216,13 @@ The Flask API exposes these endpoints for frontend integration:
 
 | Route                     | Method | Description                      |
 | ------------------------- | ------ | -------------------------------- |
-| `/classify`               | POST   | Classify email content           |
+| `/classify`               | POST   | Classify email content using transformers |
 | `/summarize`              | POST   | Summarize email text             |
 | `/emotion-enhance`        | POST   | Analyze & enhance emotional tone |
 | `/users`                  | GET    | List available Enron users       |
 | `/users/<user_id>/emails` | GET    | Fetch emails for a specific user |
+| `/ner`                    | POST   | Named entity recognition         |
+| `/respond`                | POST   | AI-powered email response generation |
 
 </details>
 
@@ -195,8 +235,8 @@ The Flask API exposes these endpoints for frontend integration:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/EnronClassifier.git
-cd EnronClassifier
+git clone https://github.com/NoamFav/NLP_project.git
+cd NLP_project
 
 # Install dependencies
 npm --prefix ./apps/enron_classifier install
@@ -226,10 +266,25 @@ The UI is built with:
 <details>
 <summary><b>Backend Development</b></summary>
 
-Run the Flask API with Docker:
+### Using Docker (Linux/Windows)
 
 ```bash
 docker compose up --build
+```
+
+### Using Native Flask (macOS recommended)
+
+```bash
+# Setup and run Flask API
+./bin/flask-api.sh
+```
+
+### Manual Setup
+
+```bash
+cd apps/flask_api
+pip install -r requirements.txt
+python -m app.server
 ```
 
 </details>
@@ -239,26 +294,58 @@ docker compose up --build
 ## 📁 Project Structure
 
 ```
-EnronClassifier/
+NLP_project/
 ├── apps/
 │   ├── flask_api/            # Flask backend & Dockerfile
-│   │   ├── app.py
-│   │   ├── models/
-│   │   └── services/
-│   ├── go_agents/            # Go agent-daemon service
-│   │   └── agent-daemon/
-│   └── enron_classifier/     # Frontend code
-│       ├── src/
-│       │   ├── components/
-│       │   ├── pages/
-│       │   └── services/
-│       └── src-tauri/        # Tauri configuration
-├── SQLite_db/
-│   └── enron.db              # Pre-loaded Enron dataset
-├── package.json
-├── requirements.txt          # Python dependencies
-└── docker-compose.yml        # Service definitions
+│   │   ├── app/
+│   │   │   ├── main.py
+│   │   │   ├── routes/       # API endpoints
+│   │   │   ├── services/     # ML/NLP services
+│   │   │   │   ├── enron_classifier.py  # Advanced transformer pipeline
+│   │   │   │   ├── emotion_enhancer.py
+│   │   │   │   ├── summarizer.py
+│   │   │   │   └── ner_engine.py
+│   │   │   ├── tests/        # Evaluation scripts
+│   │   │   └── ui/           # CLI interface
+│   │   ├── data/
+│   │   │   └── enron.db      # Pre-loaded Enron dataset
+│   │   ├── models/           # Trained ML models
+│   │   └── requirements.txt  # Python dependencies
+│   ├── enron_classifier/     # Frontend code
+│   │   ├── src/
+│   │   │   ├── components/   # React components
+│   │   │   ├── contexts/     # React contexts
+│   │   │   ├── hooks/        # Custom hooks
+│   │   │   ├── pages/        # Application pages
+│   │   │   └── utils/        # Utility functions
+│   │   └── src-tauri/        # Tauri configuration
+│   └── SQLite_db/            # Database initialization
+├── bin/
+│   ├── flask-api.sh          # Native Flask runner for macOS
+│   └── download_enron.*      # Data download scripts
+├── docker-compose.yml        # Service definitions
+└── README.md
 ```
+
+---
+
+## ⚡ Performance Notes
+
+### GPU Acceleration
+
+- **CUDA**: Full support with automatic device detection
+- **Apple Silicon (MPS)**: Limited support due to Hugging Face compatibility issues
+- **Docker on macOS**: Does not support MPS - use native Flask for better performance
+
+### Recommended Setup by Platform
+
+| Platform | Backend Setup | Performance |
+|----------|---------------|-------------|
+| **Linux with NVIDIA GPU** | Docker | Excellent (Full CUDA) |
+| **Windows with NVIDIA GPU** | Docker | Excellent (Full CUDA) |
+| **macOS (Intel)** | Docker or Native | Good (CPU) |
+| **macOS (Apple Silicon)** | Native Flask | Good (Limited MPS) |
+| **Any other** | Docker or Native | Fair (CPU fallback) |
 
 ---
 
@@ -275,8 +362,16 @@ EnronClassifier/
 | `npm run tauri dev`   | Start Tauri dev environment            |
 | `npm run tauri build` | Build desktop application              |
 | `npm run lint`        | Run ESLint checks                      |
-| `npm run predeploy`   | Build before deploying to GitHub Pages |
-| `npm run deploy`      | Deploy to GitHub Pages                 |
+
+</details>
+
+<details>
+<summary><b>Backend Scripts</b></summary>
+
+| Command                    | Description                            |
+| -------------------------- | -------------------------------------- |
+| `./bin/flask-api.sh`       | Run Flask API natively (macOS recommended) |
+| `docker compose up --build` | Run Flask API in Docker               |
 
 </details>
 
@@ -308,26 +403,25 @@ Please make sure to update tests as appropriate and adhere to the code style gui
 | Contributor            | Role           | Focus Area                        |
 | ---------------------- | -------------- | --------------------------------- |
 | **Project Lead**       | Lead Developer | Architecture, ML Integration      |
-| **Backend Developer**  | Developer      | Flask API, Classification         |
+| **Backend Developer**  | Developer      | Flask API, Transformer Models    |
 | **Frontend Developer** | Developer      | React, Tauri Integration          |
-| **Go Developer**       | Developer      | Agent Daemon                      |
-| **ML Engineer**        | Data Scientist | ML Models, NLP Pipeline           |
+| **ML Engineer**        | Data Scientist | Advanced NLP Pipeline, GPU Optimization |
 | **UX Designer**        | Designer       | User Interface, Experience Design |
 
 </div>
 
-> 💌 Special thanks to the Enron corpus and the open-source community for the foundational tools.
+> 💌 Special thanks to the Enron corpus, Hugging Face, and the open-source community for the foundational tools.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
 
 ---
 
 <div align="center">
 
-### 📧 Happy Email Analysis! 📧
+### 📧 Happy Email Analysis with AI! 📧
 
 </div>
