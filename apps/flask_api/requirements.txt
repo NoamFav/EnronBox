@@ -5,6 +5,7 @@ nltk==3.9.1
 numpy==2.2.6
 pandas==2.3.0
 prompt_toolkit==3.0.48
+requests==2.31.0
 rich==14.0.0
 rouge==1.0.1
 scikit_learn==1.6.1
