@@ -15,3 +15,5 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - DB_PATH=/app/data/enron.db
+      - OLLAMA_URL=http://host.docker.internal:11434
+
