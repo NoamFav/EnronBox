@@ -11,6 +11,7 @@ def create_app():
                 "origins": [
                     "http://localhost:1420",
                     "tauri://localhost",
+                    "http://localhost:11434",
                     "file://",
                     "null",
                     "*",

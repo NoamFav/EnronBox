@@ -1,314 +1,104 @@
-import random
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from app.services.ollama_service import OllamaService
+import requests.exceptions
+import os
 
 
 class EmailResponder:
-    def __init__(self, classifier):
-        """Initialize with an EnronEmailClassifier instance"""
-        self.classifier = classifier
+    """Service for generating auto-replies to emails."""
 
-        # Configure response templates
-        self.templates = {
-            "work": self._init_work_templates(),
-            "personal": self._init_personal_templates(),
-            "default": self._init_default_templates(),
-        }
-
-    def generate_reply(self, email: Dict[str, Any]) -> str:  #todo add test for this
+    def __init__(self, ollama_url: str = None):
         """
-        Ensure all required keys are present in the email dictionary
+        Initialize the email responder.
 
-        Expected keys from enron_shell:
-        - subject
-        - body
-        - sender
-        - has_attachment
-        - num_recipients
-        - recipients
-        - time_sent
+        Args:
+            ollama_url: The URL for the Ollama API
         """
+        # Use environment variable if available, otherwise use default
+        if ollama_url is None:
+            ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+
+        # Strip any quotes that might be present in the URL
+        if isinstance(ollama_url, str):
+            ollama_url = ollama_url.strip('"\'')
+
+        self.ollama_service = OllamaService(base_url=ollama_url)
+
+    def generate_reply(self,
+                      email_content: str,
+                      email_subject: Optional[str] = None,
+                      sender_name: Optional[str] = None,
+                      model: str = "llama3.2",
+                      temperature: float = 0.7) -> Dict[str, Any]:
+        """
+        Generate an auto-reply for the given email.
+
+        Args:
+            email_content: The content of the email to reply to
+            email_subject: Optional subject of the email
+            sender_name: Optional name of the sender
+            model: The Ollama model to use
+            temperature: Controls randomness in generation
+
+        Returns:
+            Dict containing the generated reply and metadata
+
+        Raises:
+            requests.exceptions.ConnectionError: If cannot connect to Ollama
+            requests.exceptions.Timeout: If the request times out
+        """
+        # Format the prompt with all available information
+        prompt = self._format_prompt(email_content, email_subject, sender_name)
+
+        # Generate system prompt
+        system_prompt = self._create_system_prompt(email_subject)
+
         try:
-            # Prepare a complete email dictionary with fallback values
-            complete_email = {
-                "subject": email.get("subject", "No Subject"),
-                "body": email.get("body", ""),
-                "sender": email.get("sender", "Unknown Sender"),
-                "has_attachment": email.get("has_attachment", False),
-                "num_recipients": email.get("num_recipients", 1),
-                "recipients": email.get("recipients", []),
-                "time_sent": email.get("time_sent", None),
-            }
+            # Call Ollama service to generate the reply
+            result = self.ollama_service.generate_reply(
+                email_content=prompt,
+                model=model,
+                system_prompt=system_prompt,
+                temperature=temperature
+            )
 
-            # Use the original prediction logic
-            prediction = self.classifier.predict(complete_email)
+            return result
 
-            # Rest of the method remains the same
-            category = prediction.get("category", "default").lower()
-            sentiment = self._analyze_sentiment(prediction.get("sentiment", {}))
-            is_urgent = prediction.get("urgency", False)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            # Re-raise these specific exceptions to be handled by the route
+            raise e
 
-            context = self._prepare_context(complete_email, prediction)
-            template = self._select_template(category, sentiment, is_urgent)
+    def _format_prompt(self,
+                      content: str,
+                      subject: Optional[str] = None,
+                      sender: Optional[str] = None) -> str:
+        """Format the prompt for the LLM with all available email information."""
+        prompt_parts = []
 
-            # Ensure we return the formatted template
-            return template.format(**context)
+        if subject:
+            prompt_parts.append(f"Subject: {subject}")
 
-        except (KeyError, ValueError, TypeError, AttributeError) as e:
-            # Handle expected exceptions related to data processing
-            error_msg = f"Error processing email data: {e}"
-            return error_msg
+        if sender:
+            prompt_parts.append(f"From: {sender}")
 
-    # Analysis and template selection methods
-    def _analyze_sentiment(self, sentiment_data: Dict[str, float]) -> str:  #todo update and test this and if possible connect with sentiment anlaysis
-        """Convert polarity score to sentiment category"""
-        polarity = sentiment_data.get("polarity", 0)
-        if polarity > 0.3:
-            return "positive"
-        elif polarity < -0.3:
-            return "negative"
-        return "neutral"
+        prompt_parts.append("\n" + content)
+        prompt_parts.append("\n\nPlease generate a professional and appropriate reply to this email.")
 
-    def _select_template(self, category, sentiment, is_urgent) -> str:
-        """Select template with fallback logic"""
-        # Try category-specific template first
-        templates = self.templates.get(category, self.templates["default"])
+        return "\n".join(prompt_parts)
 
-        # Handle urgent messages specially
-        if is_urgent:
-            # Retrieve the template dynamically
-            urgent_template = getattr(self, f"_urgent_{category}_template", None)
-
-            # Check if the template is callable (i.e., a function)
-            if urgent_template:
-                return str(urgent_template)
-            else:
-                return "No urgent template available."
-
-        # Fallback to neutral if no sentiment templates exist
-        return random.choice(templates.get(sentiment, templates["neutral"]))
-
-    def _prepare_context(self, email, prediction) -> Dict[str, str]:
-        """Prepare variables for template formatting"""
-        # Extract first name or use a fallback
-        first_name = self._extract_name(email.get("sender", "")).split()[0]
-
-        return {
-            "sender": self._extract_name(email.get("sender", "")),
-            "subject": email.get("subject", "your message"),
-            "signature": "Best regards,\nEnron Team",
-            "timeframe": (
-                "within 24 hours"
-                if prediction.get("urgency")
-                else "in 2-3 business days"
-            ),
-            "positive_phrase": self._extract_phrase(
-                email.get("body", ""), ["great", "excellent", "thank"]
-            ),
-            "negative_phrase": self._extract_phrase(
-                email.get("body", ""), ["problem", "issue", "concern"]
-            ),
-            # Add fallback keys for templates
-            "first_name": first_name,
-            "reference_number": f"REF-{random.randint(10000, 99999)}",
-            "contact": "support@enron.com",
-            "suggestion": "catch up",
-            "makeup_idea": "grab coffee",
-            "corrective_action": "resolve the issue",
-        }
-
-    # Template definitions
-    def _init_work_templates(self):#todo add more of this and make it connect to the sentiment analysis
-        return {
-            "positive": [
-                "Dear {sender},\n\n"
-                "Thank you for your positive feedback about {subject}.\n"
-                "We're delighted that {positive_phrase} and will continue to maintain\n"
-                "this standard of service.\n\n"
-                "Best regards,\n{signature}",
-                "Hello {sender},\n\n"
-                "We appreciate your kind words regarding {subject}.\n"
-                "It's rewarding to know that {positive_phrase}. Should you need\n"
-                "anything further, don't hesitate to reach out.\n\n"
-                "Kind regards,\n{signature}",
-            ],
-            "neutral": [
-                "Dear {sender},\n\n"
-                "We acknowledge receipt of your email regarding {subject}.\n"
-                "This matter has been logged (Ref: {reference_number}) and will be\n"
-                "addressed within {timeframe}.\n\n"
-                "Sincerely,\n{signature}",
-                "Hello {sender},\n\n"
-                "Your message about {subject} has been received.\n"
-                "Our team is reviewing your inquiry and will respond by\n"
-                "{timeframe}.\n\n"
-                "Regards,\n{signature}",
-            ],
-            "negative": [
-                "Dear {sender},\n\n"
-                "We sincerely apologize for {negative_phrase}.\n"
-                "This is not our standard, and we're taking immediate steps to\n"
-                "{corrective_action}. For direct assistance, contact {contact}.\n\n"
-                "Our apologies,\n{signature}",
-                "Hello {sender},\n\n"
-                "We regret the inconvenience caused by {negative_phrase}.\n"
-                "A resolution team has been assigned and will update you by\n"
-                "{timeframe}.\n\n"
-                "Sincerely,\n{signature}",
-            ],
-            "urgent": [
-                "URGENT: {subject}\n\n"
-                "Dear {sender},\n\nWe've prioritized your request and\n"
-                "are addressing it urgently. Expect an update by {timeframe}.\n"
-                "For immediate support: {contact}.\n\n"
-                "Best regards,\n{signature}"
-            ],
-        }
-
-    def _init_personal_templates(self): # todo add templataes
-        return {
-            "positive": [
-                "Hi {first_name},\n\n"
-                "Thanks for your lovely message! I'm really glad\n"
-                "you enjoyed {positive_phrase}. Let's {suggestion} soon!\n\n"
-                "Cheers,\n{signature}",
-                "Hey {first_name},\n\nGreat to hear from you! I'm thrilled you liked\n"
-                "{positive_phrase}."
-                "We should definitely {suggestion} when you're free.\n\n"
-                "Best,\n{signature}",
-            ],
-            "neutral": [
-                "Hi {first_name},\n\nThanks for your note about {subject}.\n"
-                "I'll look into this and get back to you soon.\n\n"
-                "Talk soon,\n{signature}",
-                "Hey {first_name},\n\nGot your message about {subject}.\n"
-                "Let me check and I'll circle back to you.\n\n"
-                "Best,\n{signature}",
-            ],
-            "negative": [
-                "Hi {first_name},\n\nI'm really sorry about {negative_phrase}.\n"
-                "Let me know how I can make this right.\n\n"
-                "Take care,\n{signature}",
-                "Hey {first_name},\n\nMy apologies for {negative_phrase}.\n"
-                "How about we {makeup_idea} to make up for it?\n\n"
-                "My best,\n{signature}",
-            ],
-        }
-
-    def _init_default_templates(self):
-        return {
-            "positive": [
-                """Dear {sender},
-
-    Thank you for your message regarding {subject}. We're pleased to hear about
-    {positive_phrase} and appreciate you taking the time to share this feedback.
-
-    Should you require any further assistance, please don't hesitate to contact us.
-
-    Best regards,
-    {signature}""",
-                """Hello {sender},
-
-    We acknowledge your positive comments about {subject}. It's rewarding to know that
-    {positive_phrase}.
-
-    We value your input and will share this with the relevant team.
-
-    Kind regards,
-    {signature}""",
-            ],
-            "neutral": [
-                """Dear {sender},
-
-    We confirm receipt of your communication concerning {subject}. This matter has been
-    forwarded to the appropriate department and will receive attention within
-    {timeframe}.
-
-    For reference, your case number is: {reference_number}
-
-    Sincerely,
-    {signature}""",
-                """Hello {sender},
-
-    Thank you for your email about {subject}. We're currently reviewing your inquiry
-    and will provide a response by {timeframe}.
-
-    If you need immediate assistance, please contact {contact}.
-
-    Regards,
-    {signature}""",
-            ],
-            "negative": [
-                """Dear {sender},
-
-    We sincerely regret to hear about your experience with {negative_phrase}. Please
-    accept our apologies for any inconvenience caused.
-
-    Our team is looking into this matter and will update you by {timeframe}.
-
-    For direct assistance, you may reach us at {contact}.
-
-    With apologies,
-    {signature}""",
-            ],
-        }
-
-    def _extract_name(self, email_address: str) -> str:
-        if not email_address:
-            return "Sir/Madam"
-
-        # Extract username if it's an email
-        username = (
-            email_address.split("@")[0] if "@" in email_address else email_address
+    def _create_system_prompt(self, subject: Optional[str] = None) -> str:
+        """Create a system prompt based on email context."""
+        base_prompt = (
+            "You are a research email assistant that generates professional, concise, "
+            "and appropriate replies to emails. Keep your responses clear, "
+            "relevant, and to the point, also ignore controversy that a company might've been implied to"
+            ". Format your response as a proper email reply "
+            "without including any email headers like 'To:', 'From:', or 'Subject:'."
+            " When specifying the sender's regards at the end of the response make sure to always say your"
+            " name as [Your Name] and the company as [Company Name]. "
         )
 
-        # Remove any domain parts if present (e.g., 'kaminski-v@domain' -> 'kaminski-v')
-        username = username.split("@")[0]
+        if subject and "urgent" in subject.lower():
+            base_prompt += " This is an urgent email, so acknowledge the urgency in your response."
 
-        # Common Enron username patterns:
-        # 1. lastname-firstinitial (kaminski-v)
-        # 2. firstname_lastname (jeff.skilling)
-        # 3. firstinitiallastname (jskilling)
-
-        # lastname-firstinitial
-        if "-" in username:
-            lastname, firstinitial = username.split("-", 1)
-            return f"{firstinitial.upper()} {lastname.capitalize()}"
-
-        # firstname.lastname
-        elif "." in username:
-            firstname, lastname = username.split(".", 1)
-            return f"{firstname.capitalize()} {lastname.capitalize()}"
-
-        # firstinitial + lastname (jskilling)
-        elif len(username) > 1 and not username[1].isupper():
-            return f"{username[0].upper()} {username[1:].capitalize()}"
-
-        # Fallback for other patterns
-        return username.replace(".", " ").replace("_", " ").title()
-
-    def _extract_phrase(self, text: str, phrase_list: list) -> str:
-        if not text or not phrase_list:
-            return ""
-
-        text_lower = str(text).lower()
-        found_phrases = []
-
-        # Find all matching phrases
-        for phrase in phrase_list:
-            if phrase.lower() in text_lower:
-                # Find the actual occurrence in original text
-                start = text_lower.find(phrase.lower())
-                end = start + len(phrase)
-                found_phrases.append(text[start:end])
-
-        # Return the longest matching phrase for better context
-        if found_phrases:
-            return max(found_phrases, key=len)
-
-        # Smart fallbacks based on phrase list type
-        if any(p in ["great", "excellent", "thank"] for p in phrase_list):
-            return "your positive feedback"
-        elif any(p in ["problem", "issue", "concern"] for p in phrase_list):
-            return "this situation"
-
-        return "this matter"  # Ultimate fallback
+        return base_prompt
