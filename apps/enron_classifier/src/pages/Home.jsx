@@ -143,6 +143,8 @@ const HomeContent = () => {
         deleteEmail={emailActions.deleteEmail}
         summarizeEmail={summarizeEmail}
         printEmail={emailActions.printEmail}
+        showReplyPopup={emailActions.showReplyPopup}
+        closeReplyPopup={emailActions.closeReplyPopup}
       />
 
       <NotificationPanel

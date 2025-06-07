@@ -3,6 +3,7 @@ import { Mail } from 'lucide-react';
 import Header from './Header';
 import Body from './Body';
 import Actions from './Actions';
+import ReplyPopup from './ReplyPopup';
 
 const Content = ({
   selectedEmail,
@@ -20,6 +21,8 @@ const Content = ({
   deleteEmail,
   summarizeEmail,
   printEmail,
+  showReplyPopup,
+  closeReplyPopup
 }) => {
   return (
     <div
@@ -49,6 +52,14 @@ const Content = ({
             summarizeEmail={summarizeEmail}
             printEmail={printEmail}
           />
+          
+          {showReplyPopup && selectedEmail && (
+            <ReplyPopup 
+              email={selectedEmail} 
+              onClose={closeReplyPopup} 
+              darkMode={darkMode} 
+            />
+          )}
         </>
       ) : (
         <div

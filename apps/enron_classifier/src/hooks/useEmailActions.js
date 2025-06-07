@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useEmail } from '../contexts/EmailContext';
 import { useUI } from '../contexts/UIContext';
 import { useEmailAPI } from './useEmailAPI';
@@ -6,6 +7,7 @@ export const useEmailActions = () => {
   const { state, dispatch } = useEmail();
   const { displayToast } = useUI();
   const { fetchEmails } = useEmailAPI();
+  const [showReplyPopup, setShowReplyPopup] = useState(false);
 
   const handleEmailClick = (email) => {
     dispatch({ type: 'SET_SELECTED_EMAIL', payload: email });
@@ -70,7 +72,12 @@ export const useEmailActions = () => {
   };
 
   const replyToEmail = () => {
-    displayToast('Reply window opened');
+    setShowReplyPopup(true);
+    displayToast('Generating auto-reply...');
+  };
+  
+  const closeReplyPopup = () => {
+    setShowReplyPopup(false);
   };
 
   const forwardEmail = () => {
@@ -97,5 +104,7 @@ export const useEmailActions = () => {
     forwardEmail,
     printEmail,
     composeNewEmail,
+    showReplyPopup,
+    closeReplyPopup
   };
 };
