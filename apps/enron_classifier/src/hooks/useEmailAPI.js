@@ -309,10 +309,37 @@ export const useEmailAPI = () => {
     }
   };
 
+  const extractEntities = async () => {
+    if (!state.selectedEmail?.content) {
+      displayToast('No content to extract entities from', 'error');
+      return;
+    }
+
+    // turn on spinner + clear previous entities
+    dispatch({ type: 'SET_ENTITY_EXTRACTING', payload: true });
+    dispatch({ type: 'SET_EMAIL_ENTITIES', payload: null });
+
+    try {
+      const res = await api.post('/ner', {
+        email_text: state.selectedEmail.content,
+        email_id: state.selectedEmail.id, // optional for persistence
+      });
+
+      dispatch({ type: 'SET_EMAIL_ENTITIES', payload: res.data.entities });
+      displayToast('Entities extracted successfully');
+    } catch (err) {
+      console.error('Error extracting entities:', err.response?.data || err.message);
+      displayToast('Failed to extract entities', 'error');
+    } finally {
+      dispatch({ type: 'SET_ENTITY_EXTRACTING', payload: false });
+    }
+  };
+
   return {
     fetchFolders,
     fetchEmails,
     fetchEmailsIR,
     summarizeEmail,
+    extractEntities,
   };
 };

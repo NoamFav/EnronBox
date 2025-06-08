@@ -1,15 +1,17 @@
 import React from 'react';
-import { Reply, Forward, Trash, FileText, Printer, MoreHorizontal } from 'lucide-react';
+import { Reply, Forward, Trash, FileText, Printer, MoreHorizontal, Tag } from 'lucide-react';
 
 const Actions = ({
   selectedEmail,
   darkMode,
   summarizing,
+  entityExtracting,
   replyToEmail,
   forwardEmail,
   deleteEmail,
   summarizeEmail,
   printEmail,
+  extractEntitiesEmail,
 }) => {
   return (
     <div
@@ -69,6 +71,19 @@ const Actions = ({
         >
           <FileText size={16} className="mr-2" />
           {summarizing ? 'Summarizing...' : 'Summarize'}
+        </button>
+
+        <button
+          className={`px-4 py-2 border rounded-lg flex items-center transition-colors ${
+            darkMode
+              ? 'border-gray-600 hover:bg-gray-600 text-gray-200'
+              : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+          }`}
+          onClick={extractEntitiesEmail}
+          disabled={entityExtracting}
+        >
+          <Tag size={16} className="mr-2" />
+          {entityExtracting ? 'Extracting...' : 'Entity Extraction'}
         </button>
       </div>
 

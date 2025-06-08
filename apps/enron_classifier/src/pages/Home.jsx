@@ -32,7 +32,7 @@ const HomeContent = () => {
   } = useUI();
 
   const emailActions = useEmailActions();
-  const { fetchFolders, fetchEmails, summarizeEmail } = useEmailAPI();
+  const { fetchFolders, fetchEmails, summarizeEmail, extractEntities } = useEmailAPI();
   const filters = useFilters();
   const userActions = useUserActions();
   const notifications = useNotifications();
@@ -70,6 +70,24 @@ const HomeContent = () => {
   ]);
 
   // Helper functions
+
+  const handleEntityExtraction = async () => {
+    if (!state.selectedEmail) return;
+    try {
+      setEntityExtracting(true);
+      const { entities } = await extractEntities(
+        state.selectedEmail.body,
+        state.selectedEmail.id
+      );
+      setEmailEntities(entities);
+    } catch (e) {
+      console.error(e);
+      displayToast('Entity extraction failed');
+    } finally {
+      setEntityExtracting(false);
+    }
+  };
+
   const getLabelById = (id) => {
     return state.labels.find((label) => label.id === id) || null;
   };
@@ -145,6 +163,10 @@ const HomeContent = () => {
         printEmail={emailActions.printEmail}
         showReplyPopup={emailActions.showReplyPopup}
         closeReplyPopup={emailActions.closeReplyPopup}
+
+        emailEntities={emailEntities}
+        entityExtracting={entityExtracting}
+        extractEntitiesEmail={handleEntityExtraction}
       />
 
       <NotificationPanel
@@ -169,5 +191,6 @@ const Home = () => {
     </UIProvider>
   );
 };
+
 
 export default Home;

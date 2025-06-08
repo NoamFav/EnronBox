@@ -4,6 +4,8 @@ import Header from './Header';
 import Body from './Body';
 import Actions from './Actions';
 import ReplyPopup from './ReplyPopup';
+import Entities from './Entities';
+
 
 const Content = ({
   selectedEmail,
@@ -11,15 +13,21 @@ const Content = ({
   activeFolder,
   emailSummary,
   summarizing,
+
+  emailEntities,
+  entityExtracting,
+
   getLabelById,
   lightBadgeClassMap,
   darkBadgeClassMap,
   toggleStarred,
   toggleFlag,
+
   replyToEmail,
   forwardEmail,
   deleteEmail,
   summarizeEmail,
+  extractEntitiesEmail,
   printEmail,
   showReplyPopup,
   closeReplyPopup
@@ -42,14 +50,25 @@ const Content = ({
 
           <Body selectedEmail={selectedEmail} darkMode={darkMode} emailSummary={emailSummary} />
 
+          {entityExtracting && (
+            <div className="p-4 text-sm italic text-gray-500 animate-pulse">
+              Extracting entities…
+            </div>
+          )}
+          {emailEntities && !entityExtracting && (
+            <Entities entities={emailEntities} darkMode={darkMode} />
+          )}
+
           <Actions
             selectedEmail={selectedEmail}
             darkMode={darkMode}
             summarizing={summarizing}
+            entityExtracting={entityExtracting}
             replyToEmail={replyToEmail}
             forwardEmail={forwardEmail}
             deleteEmail={deleteEmail}
             summarizeEmail={summarizeEmail}
+            extractEntitiesEmail={extractEntitiesEmail}
             printEmail={printEmail}
           />
           
