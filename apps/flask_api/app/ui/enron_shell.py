@@ -37,7 +37,7 @@ class EnronMailShell:
         self.summarizer = EmailSummarizer()
         self.console = Console()
 
-        self.extrator = Extractor()
+        self.extractor = Extractor()
 
         # Style for prompt toolkit
         self.style = Style.from_dict(
@@ -249,7 +249,7 @@ Body: {self.current_email.get('body', '')}
 
             table.add_row("🎭 Emotional Tone", emotions_text)
 
-            entities = self.extrator.extract_entities(email_data["body"])
+            entities = self.extractor.extract_entities(email_data["body"])
             entities_str = (
                 f"Names: {entities['names']}\nOrgs:"
                 "{entities['orgs']}\nDates: {entities['dates']}"
@@ -401,7 +401,7 @@ Body: {self.current_email.get('body', '')}
         """Extract named entities from email"""
         if self.current_email is not None:
             email_body = self.current_email["body"]
-            entities = self.extrator.extract_entities(email_body)
+            entities = self.extractor.extract_entities(email_body)
             extracted_entities = f"""
         👤 Names:  {entities['names']}
         🏢 Orgs:   {entities['orgs']}
