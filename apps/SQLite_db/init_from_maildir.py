@@ -3,7 +3,7 @@ import sqlite3
 from email import message_from_file
 
 MAILDIR_PATH = "maildir"
-DB_PATH = "enron.db"
+DB_PATH = "apps/SQLite_db/enron.db"
 
 
 def parse_email(file_path):
@@ -57,6 +57,10 @@ def init_schema(cursor):
             from_address TEXT,
             to_address TEXT,
             date TEXT,
+            read INTEGER DEFAULT 0,
+            starred INTEGER DEFAULT 0,
+            important INTEGER DEFAULT 0,
+            deleted INTEGER DEFAULT 0,
             FOREIGN KEY(folder_id) REFERENCES folders(id)
         );
     """
@@ -81,6 +85,20 @@ def init_schema(cursor):
         );
     """
     )
+
+    # Add columns for email status if they don't exist. This part works normally
+    cursor.execute("PRAGMA table_info(emails);")
+    columns = [row[1] for row in cursor.fetchall()]
+    new_fields = [
+        ("starred", "INTEGER DEFAULT 0"),
+        ("flagged", "INTEGER DEFAULT 0"),
+        ("deleted", "INTEGER DEFAULT 0"),
+        ("archived", "INTEGER DEFAULT 0"),
+        ("read", "INTEGER DEFAULT 0"),
+    ]
+    for col, col_type in new_fields:
+        if col not in columns:
+            cursor.execute(f"ALTER TABLE emails ADD COLUMN {col} {col_type};")
 
 
 def get_user_id(cursor, username):
@@ -112,16 +130,20 @@ def populate_db(cursor):
             rel_parts = os.path.relpath(path, MAILDIR_PATH).split(os.sep)
             if len(rel_parts) < 3:
                 continue
+
             username = rel_parts[0]
             folder = rel_parts[1]
             filename = rel_parts[2]
+
             from_addr, to_addr, subject, date, body = parse_email(path)
+
             user_id = get_user_id(cursor, username)
             folder_id = get_folder_id(cursor, user_id, folder)
+
             cursor.execute(
                 """
-                INSERT INTO emails (folder_id, filename, subject, body, from_address, to_address, date)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO emails (folder_id, filename, subject, body, from_address, to_address, date, read, starred, important, deleted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
             """,
                 (folder_id, filename, subject, body, from_addr, to_addr, date),
             )
