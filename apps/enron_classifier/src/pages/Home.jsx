@@ -32,7 +32,7 @@ const HomeContent = () => {
   } = useUI();
 
   const emailActions = useEmailActions();
-  const { fetchFolders, fetchEmails, summarizeEmail } = useEmailAPI();
+  const { fetchFolders, fetchEmails, summarizeEmail, extractEntities } = useEmailAPI();
   const filters = useFilters();
   const userActions = useUserActions();
   const notifications = useNotifications();
@@ -87,7 +87,7 @@ const HomeContent = () => {
       setEntityExtracting(false);
     }
   };
-  
+
   const getLabelById = (id) => {
     return state.labels.find((label) => label.id === id) || null;
   };
