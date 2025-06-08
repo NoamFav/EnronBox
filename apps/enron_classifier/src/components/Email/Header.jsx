@@ -76,7 +76,7 @@ const Header = ({
                   : 'text-gray-400 hover:text-red-500'
             } transform hover:scale-110`}
             onClick={(e) => toggleFlag(selectedEmail.id, e)}
-            title={selectedEmail.flagged ? 'Remove flag' : 'Flag'}
+            title={selectedEmail.flagged ? 'Unflag' : 'Flag'}
           >
             <Flag size={18} fill={selectedEmail.flagged ? 'currentColor' : 'none'} />
           </button>
