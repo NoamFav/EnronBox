@@ -27,13 +27,15 @@ export const processEmails = (rawEmails) => {
     sender: e.from_address,
     subject: e.subject || '(No Subject)',
     content: e.body,
-    read: Math.random() > 0.5,
-    starred: Math.random() > 0.7,
+    read: !!e.read,
+    starred: !!e.starred,
+    flagged: !!e.flagged,
+    deleted: !!e.deleted,
+    archived: !!e.archived,
     time: formatDate(e.date),
     rawTime: e.date,
     hasAttachments: Math.random() > 0.7,
     priority: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'normal',
-    flagged: Math.random() > 0.85,
     attachments:
       Math.random() > 0.7
         ? [
