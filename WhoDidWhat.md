@@ -2,7 +2,7 @@
 
 ## Individual Contributions
 
-| **Student**    | **Primary Focus**                              | **Detailed Contributions (Phase 2)**                                                                                                                                                                                                                                     | **Detailed Contributions (Phase 3)**                                                                                                                                                                                                                                                                                             |
+| **Student Name**    | **Primary Focus**                              | **Coding Tasks Phase 2**                                                                                                                                                                                                                                     | **Coding Tasks Phase 3**                                                                                                                                                                                                                                                                                             |
 | -------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Giorgos**    | Code Quality & AI Development                  | - Emotion Enhancer (80%)<br>- Responder (80%)                                                                                                                                                                                     | - AI Responder Development (20%)<br>- Code Review and Testing (50%)<br>- Documentation Contributions (50%)<br>- Pipeline Integration Support (20%)<br>- User Interface Development (5%)                                                                                                                                |
 | **Noam**       | NLP Pipeline & Classification Systems          | - Designed the frontend of app (100%)<br>- Front-end user integration (85%)<br>- Implemented SQLite database (50%)                                                                                                                 | - NLP Pipeline Development (100%)<br>- Classification System Development (100%)<br>- Label Engineering (100%)<br>- Development Environment Setup (npm, docker, flask, tauri, bash) (100%)<br>- Classification Experiments (100%)<br>- Pipeline Integration Support (80%)<br>- User Interface Development (75%)<br>- Database Schema Design Support (30%) |
@@ -16,7 +16,7 @@
 
 ### Coding
 
-| **Student**     | **Phase 2** | **Phase 3** |
+| **Student Name**     | **Phase 2** | **Phase 3** |
 |-----------------|-------------|-------------|
 | **Noam**        | 50%         | 50%         |
 | **Giorgos**     | 5%          | 5%          |
@@ -29,7 +29,7 @@
 
 ### Presentation
 
-| **Student**     | **Phase 2** | **Phase 3** |
+| **Student Name**     | **Phase 2** | **Phase 3** |
 |-----------------|-------------|-------------|
 | **Noam**        | 0%          | 10%         |
 | **Giorgos**     | 0%          | 15%         |
@@ -42,7 +42,7 @@
 
 ### Report
 
-| **Student**     | **Phase 2** | **Phase 3** |
+| **Student Name**     | **Phase 2** | **Phase 3** |
 |-----------------|-------------|-------------|
 | **Noam**        | 5%          | 10%         |
 | **Giorgos**     | 5%          | 10%         |
@@ -53,9 +53,9 @@
 
 ---
 
-### Project Management
+### Project management tasks
 
-| **Student**     | **Phase 2** | **Phase 3** |
+| **Student Name**     | **Phase 2** | **Phase 3** |
 |-----------------|-------------|-------------|
 | **Noam**        | 20%         | 25%         |
 | **Giorgos**     | 15%         | 15%         |
