@@ -65,12 +65,3 @@
 | **Octavian**   | 15%            |
 | **Geer Jiang** | 15%            |
 
----
-
-## 📌 Notes
-
-- **All task percentages add up to 100% for each task.**
-- **Roles reflect each team member’s main focus and contribution based on GitHub data and project milestones.**
-- **Development Environment Setup** includes Docker configuration, npm integration, GitHub management, and Bash scripting.
-
----
