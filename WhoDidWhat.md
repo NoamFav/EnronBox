@@ -1,6 +1,6 @@
-# 📊 Project Contributions and Roles
+# Project Contributions and Roles
 
-## 📝 Individual Contributions
+## Individual Contributions
 
 | **Student**    | **Primary Focus**                              | **Detailed Contributions**                                                                                                                                                                                                                                                                                             |
 | -------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -13,7 +13,7 @@
 
 ---
 
-## 📌 Task Allocation Summary
+## Task Allocation Summary
 
 ### Coding Contributions
 
