@@ -15,53 +15,13 @@
 
 ## Task Allocation Summary
 
-### Coding Contributions
 
-| **Student**    | **Percentage** |
-| -------------- | -------------- |
-| **Noam**       | 50%            |
-| **Geer Jiang** | 15%            |
-| **Esteban**    | 10%            |
-| **Remi**       | 10%            |
-| **Octavian**   | 10%            |
-| **Giorgos**    | 5%             |
-
----
-
-### Presentation Contributions
-
-| **Student**    | **Percentage** |
-| -------------- | -------------- |
-| **Noam**       | 10%            |
-| **Giorgos**    | 15%            |
-| **Esteban**    | 15%            |
-| **Remi**       | 25%            |
-| **Octavian**   | 15%            |
-| **Geer Jiang** | 20%            |
-
----
-
-### Report Contributions
-
-| **Student**    | **Percentage** |
-| -------------- | -------------- |
-| **Noam**       | 10%            |
-| **Giorgos**    | 10%            |
-| **Esteban**    | 50%            |
-| **Remi**       | 10%            |
-| **Octavian**   | 10%            |
-| **Geer Jiang** | 10%            |
-
----
-
-### Project Management Contributions
-
-| **Student**    | **Percentage** |
-| -------------- | -------------- |
-| **Noam**       | 25%            |
-| **Giorgos**    | 15%            |
-| **Esteban**    | 15%            |
-| **Remi**       | 15%            |
-| **Octavian**   | 15%            |
-| **Geer Jiang** | 15%            |
+| **Student** | **Coding** | **Presentation** | **Report** | **Project Management** |
+|-------------|------------|------------------|------------|-------------------------|
+| **Noam** | 50% | 10% | 10% | 25% |
+| **Giorgos** | 5% | 15% | 10% | 15% |
+| **Esteban** | 10% | 15% | 50% | 15% |
+| **Remi** | 10% | 25% | 10% | 15% |
+| **Geer Jiang** | 15% | 20% | 10% | 15% |
+| **Octavian** | 10% | 15% | 10% | 15% |
 
