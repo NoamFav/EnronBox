@@ -17,7 +17,6 @@ export const useEmailActions = () => {
     });
     // Sync with backend
     fetch(`http://localhost:5050/api/emails/${email.id}/status`, {
-      mode: 'no-cors',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ read: true }),
@@ -25,62 +24,62 @@ export const useEmailActions = () => {
   };
 
   const toggleStarred = async (id, e) => {
-  e?.stopPropagation();
-  const email = state.emails.find((e) => e.id === id);
-  const isStarred = !email.starred;
+    e?.stopPropagation();
+    const email = state.emails.find((e) => e.id === id);
+    const isStarred = !email.starred;
 
-  try {
-    const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ starred: isStarred ? 1 : 0 }),
-    });
+    try {
+      const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ starred: isStarred ? 1 : 0 }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to update star status');
+      if (!response.ok) {
+        throw new Error('Failed to update star status');
+      }
+
+      // update local state
+      dispatch({
+        type: 'UPDATE_EMAIL',
+        payload: { id, updates: { starred: isStarred } },
+      });
+
+      displayToast(`Email ${isStarred ? 'starred' : 'unstarred'}`);
+    } catch (err) {
+      console.error('Error updating star status:', err);
+      displayToast('Failed to update star status', 'error');
     }
-
-    // update local state
-    dispatch({
-      type: 'UPDATE_EMAIL',
-      payload: { id, updates: { starred: isStarred } },
-    });
-
-    displayToast(`Email ${isStarred ? 'starred' : 'unstarred'}`);
-  } catch (err) {
-    console.error('Error updating star status:', err);
-    displayToast('Failed to update star status', 'error');
-  }
-};
+  };
 
   const toggleFlag = async (id, e) => {
-  e?.stopPropagation();
-  const email = state.emails.find((e) => e.id === id);
-  const isFlagged = !email.flagged;
+    e?.stopPropagation();
+    const email = state.emails.find((e) => e.id === id);
+    const isFlagged = !email.flagged;
 
-  try {
-    const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flagged: isFlagged ? 1 : 0 }),
-    });
+    try {
+      const response = await fetch(`http://localhost:5050/api/emails/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flagged: isFlagged ? 1 : 0 }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to update flag status');
+      if (!response.ok) {
+        throw new Error('Failed to update flag status');
+      }
+
+      // update local state
+      dispatch({
+        type: 'UPDATE_EMAIL',
+        payload: { id, updates: { flagged: isFlagged } },
+      });
+
+      displayToast(`Email ${isFlagged ? 'flagged' : 'unflagged'}`);
+    } catch (err) {
+      console.error('Error updating flag status:', err);
+      displayToast('Failed to update flag status', 'error');
     }
-
-    // update local state
-    dispatch({
-      type: 'UPDATE_EMAIL',
-      payload: { id, updates: { flagged: isFlagged } },
-    });
-
-    displayToast(`Email ${isFlagged ? 'flagged' : 'unflagged'}`);
-  } catch (err) {
-    console.error('Error updating flag status:', err);
-    displayToast('Failed to update flag status', 'error');
-  }
-};
+  };
 
   const markAsUnread = async (id, e) => {
     e?.stopPropagation();
@@ -159,7 +158,7 @@ export const useEmailActions = () => {
     setShowReplyPopup(true);
     displayToast('Generating auto-reply...');
   };
-  
+
   const closeReplyPopup = () => {
     setShowReplyPopup(false);
   };
@@ -189,6 +188,6 @@ export const useEmailActions = () => {
     printEmail,
     composeNewEmail,
     showReplyPopup,
-    closeReplyPopup
+    closeReplyPopup,
   };
 };

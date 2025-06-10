@@ -21,6 +21,8 @@ const initialState = {
   },
   emailSummary: '',
   summarizing: false,
+  emailEntities: [],
+  entityExtracting: false,
 };
 
 function emailReducer(state, action) {
@@ -32,7 +34,12 @@ function emailReducer(state, action) {
     case 'SET_EMAILS':
       return { ...state, emails: action.payload };
     case 'SET_SELECTED_EMAIL':
-      return { ...state, selectedEmail: action.payload, emailSummary: '' };
+      return {
+        ...state,
+        selectedEmail: action.payload,
+        emailSummary: '',
+        emailEntities: [],
+      };
     case 'SET_ACTIVE_FOLDER':
       return { ...state, activeFolder: action.payload, selectedEmail: null };
     case 'SET_LOADING':
@@ -60,6 +67,10 @@ function emailReducer(state, action) {
       return { ...state, emailSummary: action.payload };
     case 'SET_SUMMARIZING':
       return { ...state, summarizing: action.payload };
+    case 'SET_EMAIL_ENTITIES':
+      return { ...state, emailEntities: action.payload };
+    case 'SET_ENTITY_EXTRACTING':
+      return { ...state, entityExtracting: action.payload };
     default:
       return state;
   }
