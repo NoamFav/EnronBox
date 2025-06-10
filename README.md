@@ -76,7 +76,7 @@
 ### 🤖 **AI Response Generation**
 - **Ollama integration** for intelligent replies
 - **Context-aware responses** based on email content
-- **Multiple LLM options** (Llama, CodeLlama, etc.)
+- **Multiple LLM options** (Llama, CodeLlama, Mistral)
 - **Customizable tone** and style
 
 </td>
@@ -140,7 +140,7 @@ Our advanced classification system categorizes emails into **10 distinct categor
 | **Docker** | `Latest` | [Get Docker](https://www.docker.com/products/docker-desktop/) |
 | **Rust** | `Latest` | Required for Tauri builds |
 | **Python** | `3.10+` | For local Flask development |
-| **Ollama** | `Latest` | [Install Ollama](https://ollama.com) for AI features |
+| **Ollama** | `Latest` | **Required** - [Install Ollama](https://ollama.com) |
 
 </div>
 
@@ -162,6 +162,7 @@ Our advanced classification system categorizes emails into **10 distinct categor
 - 📥 Downloads Enron dataset
 - 🗄️ Builds SQLite database  
 - 🎨 Installs frontend dependencies
+- 🤖 Sets up Ollama models
 - 🚀 Starts Flask API
 - 💻 Launches desktop app
 
@@ -189,21 +190,47 @@ npm --prefix ./apps/enron_classifier run tauri dev
 </tr>
 </table>
 
-### 🤖 AI Setup (Optional)
+### 🤖 Ollama Setup
 
-Enable intelligent email response generation:
+<details>
+<summary><b>AI Response Generation Setup</b></summary>
+
+For AI-powered email response generation, you need to install and configure Ollama:
 
 ```bash
-# Install Ollama from https://ollama.com
+# 1. Install Ollama from https://ollama.com
 
-# Choose your preferred model
-ollama pull llama3.2:3b        # 🏃‍♂️ Fast & lightweight
-ollama pull llama3.1:8b        # ⚖️ Balanced performance  
-ollama pull codellama:7b       # 💻 Technical emails
+# 2. Pull a recommended model (choose one)
+ollama pull llama3.2:3b        # Lightweight, fast responses
+ollama pull llama3.1:8b        # Balanced performance
+ollama pull codellama:7b       # For technical emails
+ollama pull mistral            # Default model
 
-# Verify installation
+# 3. Verify installation
 ollama list
 ```
+
+By default, the shell script `./bin/enron_classifier.sh` checks whether the default model (configured in the app) is installed using `ollama list`. If the model is missing, the script automatically pulls it using `ollama pull`.
+
+You can change the default model by editing the file:
+```javascript
+// apps/enron_classifier/src/config.js
+
+// API configuration
+export const API_URL = 'http://localhost:5050/api';
+
+// Timeout configuration (in milliseconds)
+export const API_TIMEOUT = 240000; // 4 minutes
+
+// Model configuration
+export const DEFAULT_MODEL = 'mistral';   
+export const DEFAULT_TEMPERATURE = 0.7;
+```
+
+⚠️ **Important:**
+The application uses only the configured default model defined in `config.js` for response generation. It does not automatically select other models even if they're installed.
+
+</details>
 
 ---
 
@@ -264,7 +291,7 @@ graph TB
 | **🔗 API** | Flask 3.1, Python 3.10+ | RESTful backend services |
 | **🧠 ML/NLP** | Transformers, BART, DistilBERT, NLTK, spaCy | Advanced language processing |
 | **🗄️ Database** | SQLite | Efficient email data storage |
-| **🤖 AI** | Ollama, Llama models | Intelligent response generation |
+| **🤖 AI** | Ollama, Llama models, Mistral | Intelligent response generation |
 
 </div>
 
