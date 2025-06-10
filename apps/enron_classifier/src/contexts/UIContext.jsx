@@ -16,6 +16,7 @@ export const UIProvider = ({ children }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [entityExtracting, setEntityExtracting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -54,6 +55,8 @@ export const UIProvider = ({ children }) => {
         toastMessage,
         setToastMessage,
         displayToast,
+        entityExtracting,
+        setEntityExtracting,
       }}
     >
       {children}

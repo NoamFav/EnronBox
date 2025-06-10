@@ -29,6 +29,7 @@ const HomeContent = () => {
     toastMessage,
     displayToast,
     toggleDarkMode,
+    setEntityExtracting,
   } = useUI();
 
   const emailActions = useEmailActions();
@@ -75,10 +76,7 @@ const HomeContent = () => {
     if (!state.selectedEmail) return;
     try {
       setEntityExtracting(true);
-      const { entities } = await extractEntities(
-        state.selectedEmail.body,
-        state.selectedEmail.id
-      );
+      const { entities } = await extractEntities(state.selectedEmail.body, state.selectedEmail.id);
       setEmailEntities(entities);
     } catch (e) {
       console.error(e);
@@ -163,9 +161,8 @@ const HomeContent = () => {
         printEmail={emailActions.printEmail}
         showReplyPopup={emailActions.showReplyPopup}
         closeReplyPopup={emailActions.closeReplyPopup}
-
-        emailEntities={emailEntities}
-        entityExtracting={entityExtracting}
+        emailEntities={state.emailEntities}
+        entityExtracting={state.entityExtracting}
         extractEntitiesEmail={handleEntityExtraction}
       />
 
@@ -191,6 +188,5 @@ const Home = () => {
     </UIProvider>
   );
 };
-
 
 export default Home;

@@ -4,8 +4,6 @@ import Header from './Header';
 import Body from './Body';
 import Actions from './Actions';
 import ReplyPopup from './ReplyPopup';
-import Entities from './Entities';
-
 
 const Content = ({
   selectedEmail,
@@ -30,7 +28,7 @@ const Content = ({
   extractEntitiesEmail,
   printEmail,
   showReplyPopup,
-  closeReplyPopup
+  closeReplyPopup,
 }) => {
   return (
     <div
@@ -48,16 +46,13 @@ const Content = ({
             toggleFlag={toggleFlag}
           />
 
-          <Body selectedEmail={selectedEmail} darkMode={darkMode} emailSummary={emailSummary} />
-
-          {entityExtracting && (
-            <div className="p-4 text-sm italic text-gray-500 animate-pulse">
-              Extracting entities…
-            </div>
-          )}
-          {emailEntities && !entityExtracting && (
-            <Entities entities={emailEntities} darkMode={darkMode} />
-          )}
+          <Body
+            selectedEmail={selectedEmail}
+            darkMode={darkMode}
+            emailSummary={emailSummary}
+            emailEntities={emailEntities}
+            entityExtracting={entityExtracting}
+          />
 
           <Actions
             selectedEmail={selectedEmail}
@@ -71,13 +66,9 @@ const Content = ({
             extractEntitiesEmail={extractEntitiesEmail}
             printEmail={printEmail}
           />
-          
+
           {showReplyPopup && selectedEmail && (
-            <ReplyPopup 
-              email={selectedEmail} 
-              onClose={closeReplyPopup} 
-              darkMode={darkMode} 
-            />
+            <ReplyPopup email={selectedEmail} onClose={closeReplyPopup} darkMode={darkMode} />
           )}
         </>
       ) : (
