@@ -7,7 +7,7 @@
 [![Tauri](https://img.shields.io/badge/Tauri-Latest-24C8DB.svg?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
 [![Docker](https://img.shields.io/badge/Docker-Compatible-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![HuggingFace](https://img.shields.io/badge/🤗_Transformers-Latest-FFD21E.svg?style=for-the-badge)](https://huggingface.co/transformers/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Latest-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Latest-3178C6.svg?style=for-the-badge&logo=JavaScript&logoColor=white)](https://www.JavaScriptlang.org/)
 
 <img src="apps/enron_classifier/src-tauri/icons/icon.png" width="200" alt="EnronClassifier Logo" style="border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);"/>
 
@@ -241,7 +241,7 @@ The application uses only the configured default model defined in `config.js` fo
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        A[React + TypeScript UI]
+        A[React + JavaScript UI]
         B[Tauri Desktop Wrapper]
         C[Web Application]
     end
@@ -286,7 +286,7 @@ graph TB
 
 | Layer | Technologies | Purpose |
 |-------|-------------|---------|
-| **🎨 Frontend** | React 18, TypeScript, Tailwind CSS, Framer Motion | Modern, responsive user interface |
+| **🎨 Frontend** | React 18, JavaScript, Tailwind CSS, Framer Motion | Modern, responsive user interface |
 | **🖥️ Desktop** | Tauri, Rust | Cross-platform desktop application |
 | **🔗 API** | Flask 3.1, Python 3.10+ | RESTful backend services |
 | **🧠 ML/NLP** | Transformers, BART, DistilBERT, NLTK, spaCy | Advanced language processing |
@@ -463,7 +463,7 @@ npm install
 |------|-------|-----------|
 | **🚀 Lead Developer** | Architecture & Integration | Full-stack, ML Pipeline |
 | **🧠 ML Engineer** | NLP & AI Models | Transformers, GPU Optimization |
-| **🎨 Frontend Developer** | UI/UX & React | TypeScript, Modern Web |
+| **🎨 Frontend Developer** | UI/UX & React | JavaScript, Modern Web |
 | **🐍 Backend Developer** | API & Services | Flask, Python, Databases |
 | **📊 Data Scientist** | Analytics & Insights | Statistics, Visualization |
 
