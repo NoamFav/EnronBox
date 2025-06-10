@@ -420,7 +420,35 @@ curl -i -X POST http://localhost:5050/api/classify/train \
 
 ⚠️ Note: The initial label generation step can take time (e.g. ~10 minutes per 10k emails on CPU), but it runs automatically as part of the training process — no manual labeling required!
 
----
+## 🧪 Running the Enron Email Classifier Test Suite
+
+This test suite evaluates the **Enron Email Classifier** on a **small subset of emails** to ensure the training pipeline, model creation, and classification process work correctly.
+
+### 📝 What the Test Does:
+
+- Loads **3,000 emails** from the Enron dataset.
+- Uses the **zero-shot labeler** (embedding-based or BART) to generate initial labels for these emails.
+- Trains a **fresh model from scratch** on this small dataset using an ensemble classifier.
+- Evaluates performance on a 600-email test set and generates:
+  - A **confusion matrix** heatmap
+  - A **detailed classification report**
+  - A **CSV** file with per-email predictions and confidences.
+- Saves all results in the `test_results/` directory.
+
+### ⚡ Why Such a Small Dataset?
+
+- Training on the full dataset (~500k emails) would take **hours**, even on a powerful machine.
+- This test uses **only 3,000 emails** to keep the test fast and manageable—roughly **10–15 seconds** to run.
+- Performance on this small test set is **expected to be low (accuracy ~10–20%)** due to the limited data.
+
+### 🚀 How to Run It:
+
+```bash
+python3 -m app.tests.classification_test
+```
+
+**Note**: The test always trains a new model from scratch on the 3,000-email sample.
+For production, train the model on a larger dataset (100k+ emails) using the training endpoint (recommended).
 
 ## 🛠️ Troubleshooting
 
