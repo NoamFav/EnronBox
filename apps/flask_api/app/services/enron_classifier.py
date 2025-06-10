@@ -513,6 +513,70 @@ class EnronEmailClassifier:
             print(f"Error in transformer pipeline: {e}")
             return [{"category": "operational", "confidence": 0.5} for _ in texts]
 
+    def label_with_zero_shot(
+        self,
+        texts: List[str],
+        threshold: float = 0.5,
+        chunk_size: int = 64,
+    ) -> List[str]:
+        """
+        Zero-shot label a list of texts in manageable chunks, guaranteeing
+        no sequence exceeds the model's positional-embedding limit.
+        """
+        # 1) Prepare label names
+        candidate_labels = [c["name"] for c in self.categories.values()]
+
+        # 2) Maximum tokens BART can handle (usually 1024)
+        max_len = self.tokenizer.model_max_length
+
+        labels: List[str] = []
+
+        # 3) Process in chunks
+        for i in range(0, len(texts), chunk_size):
+            raw_batch = texts[i : i + chunk_size]
+
+            # 3a) Hard-truncate each email to <= max_len tokens
+            truncated_batch = []
+            for txt in raw_batch:
+                tok = self.tokenizer(
+                    txt,
+                    truncation=True,
+                    max_length=max_len,
+                    return_tensors="pt",
+                )
+                truncated = self.tokenizer.decode(
+                    tok.input_ids[0],
+                    skip_special_tokens=True,
+                )
+                truncated_batch.append(truncated)
+
+            # 3b) Run zero-shot pipeline with truncation & padding
+            preds = self.classifier_pipeline(
+                truncated_batch,
+                candidate_labels,
+                multi_label=False,
+                truncation=True,  # pipeline-level safety
+                padding=True,
+                max_length=max_len,
+                batch_size=chunk_size,
+            )
+
+            # 3c) Map predictions back to internal keys
+            for pred in preds:
+                top_score = pred["scores"][0]
+                if top_score >= threshold:
+                    # find the matching category key
+                    lbl = next(
+                        key
+                        for key, val in self.categories.items()
+                        if val["name"] == pred["labels"][0]
+                    )
+                else:
+                    lbl = "operational"
+                labels.append(lbl)
+
+        return labels
+
     def map_folder_to_category(self, folder_name: str) -> str:
         """Map folder names to categories using keyword matching"""
         if pd.isna(folder_name) or not folder_name:
@@ -710,7 +774,8 @@ class EnronEmailClassifier:
         df["time_sent"] = pd.to_datetime(df["time_sent"], errors="coerce")
 
         # Map folders to categories
-        labels = [self.map_folder_to_category(folder) for folder in df["folder_name"]]
+        texts = (df.subject.fillna("") + " " + df.body.fillna("")).tolist()
+        labels = self.label_with_zero_shot(texts)
 
         # Drop folder_name column
         df = df.drop(columns=["folder_name"])
