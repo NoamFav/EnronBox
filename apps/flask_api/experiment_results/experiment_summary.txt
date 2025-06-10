@@ -1,0 +1,47 @@
+ENRON EMAIL CLASSIFICATION EXPERIMENT SUMMARY
+==================================================
+
+Total Execution Time: 38.89 seconds
+Experiments Completed: 5/5
+Database: enron_emails.db
+Max Emails Processed: 1000
+
+EXPERIMENT 1: Dataset Analysis
+------------------------------
+Total Emails: 120
+Unique Categories: N/A
+Avg Text Length: 112.975
+Execution Time: 0.96s
+
+EXPERIMENT 2: Training Performance
+------------------------------
+Device Used: mps
+Training Time: 0.93s
+Emails Processed: 120
+Categories: 8
+
+EXPERIMENT 3: Prediction Accuracy
+------------------------------
+Overall Accuracy: 1.000
+Average Confidence: 0.728
+Avg Prediction Time: 0.3220s
+Test Size: 100
+
+EXPERIMENT 4: Device Performance
+------------------------------
+Device: mps
+Features/sec: 505.23
+Embeddings/sec: 1338.30
+
+EXPERIMENT 5: Real-world Scenarios
+------------------------------
+Scenario Accuracy: 0.333
+Average Confidence: 0.382
+
+Scenario Results:
+  ✓ Urgent Client Issue: 0.575
+  ✗ Weekly Team Meeting: 0.296
+  ✗ Budget Approval Request: 0.342
+  ✓ Personal Lunch Invitation: 0.449
+  ✗ Legal Contract Review: 0.268
+  ✗ System Maintenance Notice: 0.365
