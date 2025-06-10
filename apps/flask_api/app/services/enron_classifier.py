@@ -6,6 +6,7 @@ import re
 import pickle
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
+from sentence_transformers import util
 import logging
 
 # Modern NLP imports
@@ -169,6 +170,17 @@ class EnronEmailClassifier:
         # Initialize models
         self._initialize_models()
         self._load_models()
+
+        category_names = [v["name"] for v in self.categories.values()]
+
+        self._category_keys = list(self.categories.keys())
+        self._category_embeds = self.sentence_model.encode(
+            category_names,
+            convert_to_tensor=True,
+            device="cpu",  # CPU-only
+            batch_size=16,
+            show_progress_bar=False,
+        )
 
     def _get_optimal_device(self):
         """Detect and return the best available device"""
@@ -516,65 +528,42 @@ class EnronEmailClassifier:
     def label_with_zero_shot(
         self,
         texts: List[str],
-        threshold: float = 0.5,
-        chunk_size: int = 64,
+        chunk_size: int = 256,
     ) -> List[str]:
         """
-        Zero-shot label a list of texts in manageable chunks, guaranteeing
-        no sequence exceeds the model's positional-embedding limit.
+        Fast “zero-shot” by embedding + cosine similarity.
         """
-        # 1) Prepare label names
-        candidate_labels = [c["name"] for c in self.categories.values()]
-
-        # 2) Maximum tokens BART can handle (usually 1024)
-        max_len = self.tokenizer.model_max_length
-
         labels: List[str] = []
+        print(f"[EmbedZeroShot] Encoding {len(texts)} texts in chunks of {chunk_size}")
 
-        # 3) Process in chunks
+        # 1) Embed all emails in batches
+        email_embeds = []
         for i in range(0, len(texts), chunk_size):
-            raw_batch = texts[i : i + chunk_size]
-
-            # 3a) Hard-truncate each email to <= max_len tokens
-            truncated_batch = []
-            for txt in raw_batch:
-                tok = self.tokenizer(
-                    txt,
-                    truncation=True,
-                    max_length=max_len,
-                    return_tensors="pt",
-                )
-                truncated = self.tokenizer.decode(
-                    tok.input_ids[0],
-                    skip_special_tokens=True,
-                )
-                truncated_batch.append(truncated)
-
-            # 3b) Run zero-shot pipeline with truncation & padding
-            preds = self.classifier_pipeline(
-                truncated_batch,
-                candidate_labels,
-                multi_label=False,
-                truncation=True,  # pipeline-level safety
-                padding=True,
-                max_length=max_len,
+            batch = texts[i : i + chunk_size]
+            embs = self.sentence_model.encode(
+                batch,
+                convert_to_tensor=True,
+                device="cpu",
                 batch_size=chunk_size,
+                show_progress_bar=False,
             )
+            email_embeds.append(embs)
+            print(f"  • Encoded emails {i}–{i+len(batch)-1}")
 
-            # 3c) Map predictions back to internal keys
-            for pred in preds:
-                top_score = pred["scores"][0]
-                if top_score >= threshold:
-                    # find the matching category key
-                    lbl = next(
-                        key
-                        for key, val in self.categories.items()
-                        if val["name"] == pred["labels"][0]
-                    )
-                else:
-                    lbl = "operational"
-                labels.append(lbl)
+        # Concatenate into one tensor of shape (N_emails, dim)
+        email_embeds = torch.cat(email_embeds, dim=0)
 
+        # 2) Compute cosine similarities: (N_emails × N_categories)
+        print("[EmbedZeroShot] Computing cosine similarities…")
+        sims = util.cos_sim(email_embeds, self._category_embeds)
+
+        # 3) Pick best category per email
+        top_scores, top_idxs = sims.max(dim=1)
+        for idx, score in zip(top_idxs.tolist(), top_scores.tolist()):
+            cat_key = self._category_keys[idx]
+            labels.append(cat_key)
+
+        print(f"[EmbedZeroShot] Assigned {len(labels)} labels")
         return labels
 
     def map_folder_to_category(self, folder_name: str) -> str:
