@@ -169,6 +169,7 @@ coverage/
 *.gz
 *.7z
 maildir/
+*.db
 
 # ================================
 # Environment Variables and Secrets
