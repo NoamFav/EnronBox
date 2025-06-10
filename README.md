@@ -66,6 +66,11 @@ Welcome to **EnronClassifier**, a sophisticated email analysis application! Buil
 <p>Available as both a web application and desktop app via Tauri framework.</p>
 </div>
 
+<div style="flex: 1; min-width: 250px; padding: 10px;">
+<h3>🤖 AI Response Generation</h3>
+<p>Intelligent email response generation powered by Ollama integration.</p>
+</div>
+
 </div>
 
 ---
@@ -99,9 +104,10 @@ Before diving into the email analysis, ensure your system meets these requiremen
 | Requirement                 | Version | Notes                                                         |
 | --------------------------- | ------- | ------------------------------------------------------------- |
 | **Node.js & npm**           | v18+    | [Download Node.js](https://nodejs.org/)                       |
-| **Docker & Docker Compose** | Latest  | [Get Docker](https://www.docker.com/products/docker-desktop/) |
+| **Docker & Docker Compose** | Latest  | [Get Docker](https://www.docker.com/products/docker-desktop/) (Windows only) |
 | **Rust toolchain**          | Latest  | Required for Tauri builds                                     |
 | **Python**                  | 3.10+   | For local development of Flask API                            |
+| **Ollama**                  | Latest  | [Install Ollama](https://ollama.com) for AI response generation |
 
 **Hardware Acceleration Support:**
 - **CUDA GPU**: Full acceleration support for NVIDIA GPUs
@@ -110,60 +116,126 @@ Before diving into the email analysis, ensure your system meets these requiremen
 
 </details>
 
-<details open>
-<summary><b>Backend Setup</b></summary>
+---
 
-### Docker Setup (Recommended for Linux/Windows)
+## 🖥️ Platform-Specific Setup
 
-Launch the backend services quickly with Docker Compose:
+### 🪟 Windows Setup
+
+<details>
+<summary><b>Windows Installation (Docker-based)</b></summary>
+
+For Windows users, we use Docker for the complete backend setup:
 
 ```bash
-# Start the Flask API
+# 1. Download and extract the Enron dataset
+./bin/download_enron.cmd
+
+# 2. Generate the SQLite database
+./bin/generate_db.cmd
+
+# 3. Start the Flask API with Docker
 docker compose up --build
-```
 
-This will start the **Flask API** on port 5050 with the pre-loaded Enron SQLite database.
-
-### Native Flask Setup (Recommended for macOS)
-
-For optimal performance on macOS with Apple Silicon, run Flask natively to leverage MPS acceleration:
-
-```bash
-# Run the Flask API setup script (handles dependencies and execution)
-./bin/flask-api.sh
-```
-
-> **Note for macOS users**: Docker doesn't support MPS acceleration, so running Flask natively provides significantly better performance on Apple Silicon devices.
-
-</details>
-
-<details open>
-<summary><b>Running the Application</b></summary>
-
-### Desktop Application (Development)
-
-```bash
-# Run the Tauri desktop app in development mode
+# 4. In a new terminal, run the desktop application
 npm --prefix ./apps/enron_classifier run tauri dev
 ```
 
-### Desktop Application (Production Build)
-
+Or for the web version:
 ```bash
-# Build the desktop application installers
-npm --prefix ./apps/enron_classifier run tauri build
-```
-
-Installers will be available in `apps/enron_classifier/src-tauri/target/release/bundle/`.
-
-### Web Application
-
-```bash
-# Run the web version in development mode
+# Run the web version
 npm --prefix ./apps/enron_classifier run dev
 ```
 
-Access the web app at http://localhost:5173
+</details>
+
+---
+
+### 🐧 Unix Setup (Linux, macOS, WSL)
+
+<details open>
+<summary><b>One-Command Setup (Recommended)</b></summary>
+
+For Unix-based systems (Linux, macOS, WSL), use our streamlined setup script:
+
+```bash
+# Complete setup - downloads data, builds database, frontend, and starts API
+./bin/enron_classifier.sh
+```
+
+**That's it!** The script will:
+1. Download and extract the Enron dataset
+2. Generate the SQLite database from scratch
+3. Install frontend dependencies and build the application
+4. Start the Flask API server
+5. Launch the desktop application
+
+</details>
+
+<details>
+<summary><b>Advanced Usage Options</b></summary>
+
+The `enron_classifier.sh` script supports various options for different workflows:
+
+```bash
+# Show help and available options
+./bin/enron_classifier.sh --help
+
+# Only download and extract the Enron dataset
+./bin/enron_classifier.sh --download-only
+
+# Only generate the database (requires dataset to be downloaded)
+./bin/enron_classifier.sh --db-only
+
+# Only build the frontend application
+./bin/enron_classifier.sh --frontend-only
+
+# Only run the Flask API server
+./bin/enron_classifier.sh --api-only
+
+# Run complete setup but skip frontend building
+./bin/enron_classifier.sh --skip-frontend
+```
+
+**Usage Examples:**
+```bash
+# Fresh installation
+./bin/enron_classifier.sh
+
+# Update database only
+./bin/enron_classifier.sh --db-only
+
+# Development: rebuild frontend only
+./bin/enron_classifier.sh --frontend-only
+
+# Run just the API for development
+./bin/enron_classifier.sh --api-only
+```
+
+</details>
+
+---
+
+## 🤖 Ollama Setup
+
+<details>
+<summary><b>AI Response Generation Setup</b></summary>
+
+For AI-powered email response generation, you need to install and configure Ollama:
+
+```bash
+# 1. Install Ollama from https://ollama.com
+
+# 2. Pull a recommended model (choose one)
+ollama pull llama3.2:3b        # Lightweight, fast responses
+ollama pull llama3.1:8b        # Balanced performance
+ollama pull codellama:7b       # For technical emails
+
+# 3. Verify installation
+ollama list
+```
+
+The application will automatically detect available Ollama models and use them for intelligent email response generation.
 
 </details>
 
@@ -175,10 +247,10 @@ Access the web app at http://localhost:5173
 <summary><b>System Architecture</b></summary>
 
 ```
-┌──────────────┐    HTTP    ┌───────────────┐
-│   Frontend   │──────────▶│  Flask API     │
-│ (React +     │◀──────────│  (Advanced NLP │
-│  Tauri)      │           │   Pipeline)    │
+┌──────────────┐    HTTP    ┌───────────────┐    AI Models    ┌─────────────┐
+│   Frontend   │──────────▶│  Flask API     │◀───────────────│   Ollama    │
+│ (React +     │◀──────────│  (Advanced NLP │                 │  (Optional) │
+│  Tauri)      │           │   Pipeline)    │                 └─────────────┘
 └──────────────┘           └───────────────┘
                                 ▲
                                 │
@@ -188,10 +260,11 @@ Access the web app at http://localhost:5173
                            └──────────┘
 ```
 
-The system uses a modern architecture with two main components:
+The system uses a modern architecture with three main components:
 
 1. **Frontend**: React-based UI with Tauri integration for desktop deployment
 2. **Flask API**: Python backend with transformer models for advanced ML and NLP processing
+3. **Ollama Integration**: Optional AI service for intelligent response generation
 
 ### Advanced ML Pipeline
 
@@ -200,6 +273,7 @@ The classification system uses state-of-the-art transformer models:
 - **Sentence Transformer**: `all-MiniLM-L6-v2` for semantic embeddings
 - **Zero-shot Classification**: `facebook/bart-base` for flexible email categorization
 - **Tokenization**: `distilbert-base-uncased` for efficient text processing
+- **Ollama Models**: Various LLMs for response generation (llama3.2, codellama, etc.)
 
 **Device Optimization:**
 - Automatic GPU detection and optimization
@@ -238,8 +312,13 @@ The Flask API exposes these endpoints for frontend integration:
 git clone https://github.com/NoamFav/NLP_project.git
 cd NLP_project
 
-# Install dependencies
-npm --prefix ./apps/enron_classifier install
+# For Unix systems (Linux, macOS, WSL) - One command setup
+./bin/enron_classifier.sh
+
+# For Windows - Manual setup
+./bin/download_enron.cmd
+./bin/generate_db.cmd
+docker compose up --build
 ```
 
 </details>
@@ -250,7 +329,11 @@ npm --prefix ./apps/enron_classifier install
 Start the React app in development mode:
 
 ```bash
+# Desktop application
 npm --prefix ./apps/enron_classifier run tauri dev
+
+# Web application
+npm --prefix ./apps/enron_classifier run dev
 ```
 
 The UI is built with:
@@ -266,17 +349,17 @@ The UI is built with:
 <details>
 <summary><b>Backend Development</b></summary>
 
-### Using Docker (Linux/Windows)
+### Using the Setup Script (Unix)
+
+```bash
+# Run only the API for development
+./bin/enron_classifier.sh --api-only
+```
+
+### Using Docker (Windows/Cross-platform)
 
 ```bash
 docker compose up --build
-```
-
-### Using Native Flask (macOS recommended)
-
-```bash
-# Setup and run Flask API
-./bin/flask-api.sh
 ```
 
 ### Manual Setup
@@ -304,11 +387,13 @@ NLP_project/
 │   │   │   │   ├── enron_classifier.py  # Advanced transformer pipeline
 │   │   │   │   ├── emotion_enhancer.py
 │   │   │   │   ├── summarizer.py
+│   │   │   │   ├── responder.py         # AI response generation
+│   │   │   │   ├── ollama_service.py    # Ollama integration
 │   │   │   │   └── ner_engine.py
 │   │   │   ├── tests/        # Evaluation scripts
 │   │   │   └── ui/           # CLI interface
 │   │   ├── data/
-│   │   │   └── enron.db      # Pre-loaded Enron dataset
+│   │   │   └── enron.db      # Generated Enron dataset
 │   │   ├── models/           # Trained ML models
 │   │   └── requirements.txt  # Python dependencies
 │   ├── enron_classifier/     # Frontend code
@@ -319,10 +404,13 @@ NLP_project/
 │   │   │   ├── pages/        # Application pages
 │   │   │   └── utils/        # Utility functions
 │   │   └── src-tauri/        # Tauri configuration
-│   └── SQLite_db/            # Database initialization
+│   └── SQLite_db/            # Database generation
+│       └── generate_db.py    # Database creation script
 ├── bin/
-│   ├── flask-api.sh          # Native Flask runner for macOS
-│   └── download_enron.*      # Data download scripts
+│   ├── enron_classifier.sh   # 🆕 Unix one-command setup
+│   ├── download_enron.*      # Data download scripts
+│   ├── generate_db.*         # Database generation scripts
+│   └── flask-api.sh          # Native Flask runner
 ├── docker-compose.yml        # Service definitions
 └── README.md
 ```
@@ -335,43 +423,46 @@ NLP_project/
 
 - **CUDA**: Full support with automatic device detection
 - **Apple Silicon (MPS)**: Limited support due to Hugging Face compatibility issues
-- **Docker on macOS**: Does not support MPS - use native Flask for better performance
+- **Docker on macOS**: Does not support MPS - use native setup for better performance
 
 ### Recommended Setup by Platform
 
-| Platform | Backend Setup | Performance |
+| Platform | Setup Command | Performance |
 |----------|---------------|-------------|
-| **Linux with NVIDIA GPU** | Docker | Excellent (Full CUDA) |
-| **Windows with NVIDIA GPU** | Docker | Excellent (Full CUDA) |
-| **macOS (Intel)** | Docker or Native | Good (CPU) |
-| **macOS (Apple Silicon)** | Native Flask | Good (Limited MPS) |
-| **Any other** | Docker or Native | Fair (CPU fallback) |
+| **Linux with NVIDIA GPU** | `./bin/enron_classifier.sh` | Excellent (Full CUDA) |
+| **Windows with NVIDIA GPU** | Docker setup | Excellent (Full CUDA) |
+| **macOS (Intel)** | `./bin/enron_classifier.sh` | Good (CPU) |
+| **macOS (Apple Silicon)** | `./bin/enron_classifier.sh` | Good (Limited MPS) |
+| **WSL** | `./bin/enron_classifier.sh` | Good (CPU/CUDA if configured) |
 
 ---
 
 ## 🎯 Available Scripts
 
 <details>
-<summary><b>Main Package Scripts</b></summary>
+<summary><b>Setup Scripts</b></summary>
 
-| Command               | Description                            |
-| --------------------- | -------------------------------------- |
-| `npm run dev`         | Start frontend in development mode     |
-| `npm run build`       | Build frontend for production          |
-| `npm run preview`     | Preview production build locally       |
-| `npm run tauri dev`   | Start Tauri dev environment            |
-| `npm run tauri build` | Build desktop application              |
-| `npm run lint`        | Run ESLint checks                      |
+| Command | Platform | Description |
+| ------- | -------- | ----------- |
+| `./bin/enron_classifier.sh` | Unix (Linux, macOS, WSL) | Complete one-command setup |
+| `./bin/enron_classifier.sh --help` | Unix | Show all available options |
+| `./bin/download_enron.cmd` | Windows | Download Enron dataset |
+| `./bin/generate_db.cmd` | Windows | Generate SQLite database |
+| `docker compose up --build` | All | Run Flask API with Docker |
 
 </details>
 
 <details>
-<summary><b>Backend Scripts</b></summary>
+<summary><b>Frontend Scripts</b></summary>
 
-| Command                    | Description                            |
-| -------------------------- | -------------------------------------- |
-| `./bin/flask-api.sh`       | Run Flask API natively (macOS recommended) |
-| `docker compose up --build` | Run Flask API in Docker               |
+| Command               | Description                            |
+| --------------------- | -------------------------------------- |
+| `npm run dev`         | Start web app in development mode      |
+| `npm run build`       | Build frontend for production          |
+| `npm run preview`     | Preview production build locally       |
+| `npm run tauri dev`   | Start Tauri desktop app                |
+| `npm run tauri build` | Build desktop application              |
+| `npm run lint`        | Run ESLint checks                      |
 
 </details>
 
@@ -396,6 +487,48 @@ Please make sure to update tests as appropriate and adhere to the code style gui
 
 ---
 
+## 🔧 Troubleshooting
+
+<details>
+<summary><b>Common Issues</b></summary>
+
+**Setup Script Issues (Unix):**
+```bash
+# Make sure the script is executable
+chmod +x ./bin/enron_classifier.sh
+
+# Run with verbose output
+bash -x ./bin/enron_classifier.sh
+```
+
+**Docker Issues (Windows):**
+```bash
+# Ensure Docker is running and try rebuilding
+docker compose down
+docker compose up --build --force-recreate
+```
+
+**Ollama Connection Issues:**
+```bash
+# Verify Ollama is running
+ollama list
+
+# Test connection
+curl http://localhost:11434/api/tags
+```
+
+**Node.js/NPM Issues:**
+```bash
+# Clear npm cache and reinstall
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```
+
+</details>
+
+---
+
 ## 👤 Contributors
 
 <div align="center">
@@ -410,7 +543,7 @@ Please make sure to update tests as appropriate and adhere to the code style gui
 
 </div>
 
-> 💌 Special thanks to the Enron corpus, Hugging Face, and the open-source community for the foundational tools.
+> 💌 Special thanks to the Enron corpus, Hugging Face, Ollama, and the open-source community for the foundational tools.
 
 ---
 
