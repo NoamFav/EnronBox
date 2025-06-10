@@ -139,19 +139,16 @@ build_frontend() {
 # Function to setup and run Flask API
 run_flask_api() {
     print_status "Setting up Flask API..."
-
     # Move to Flask API directory
     if [ ! -d "apps/flask_api" ]; then
         print_error "Flask API directory not found!"
         exit 1
     fi
-
     cd apps/flask_api
 
     # Export environment variables
     export DB_PATH="../SQLite_db/enron.db"
     export OLLAMA_URL="http://localhost:11434"
-
     print_status "Using DB_PATH: $DB_PATH"
     print_status "Using OLLAMA_URL: $OLLAMA_URL"
 
@@ -161,7 +158,6 @@ run_flask_api() {
     # Install dependencies
     print_status "Installing Python dependencies..."
     $PIP_CMD install --upgrade pip
-
     if [ -f "requirements.txt" ]; then
         $PIP_CMD install -r requirements.txt
     else
@@ -173,9 +169,25 @@ run_flask_api() {
     print_status "Checking if Ollama is running..."
     if curl -s "$OLLAMA_URL" >/dev/null 2>&1; then
         print_success "Ollama is running at $OLLAMA_URL"
+
+        # Check if Mistral model is installed
+        print_status "Checking for Mistral model..."
+        if ollama list | grep -qi "mistral"; then
+            print_success "Mistral model is already installed"
+        else
+            print_status "Installing Mistral model..."
+            print_warning "This may take a while depending on your internet connection..."
+            if ollama pull mistral; then
+                print_success "Mistral model installed successfully"
+            else
+                print_error "Failed to install Mistral model"
+                print_warning "You can install it manually later with: ollama pull mistral"
+            fi
+        fi
     else
         print_warning "Ollama doesn't seem to be running at $OLLAMA_URL"
         print_warning "Please make sure Ollama is installed and running before using the classifier"
+        print_warning "After starting Ollama, you can install Mistral with: ollama pull mistral"
     fi
 
     # Start the Flask server
