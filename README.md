@@ -2,524 +2,396 @@
 
 # 📬 EnronClassifier
 
-[![React](https://img.shields.io/badge/React-18.0+-blue.svg)](https://reactjs.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.1-green.svg)](https://flask.palletsprojects.com/)
-[![Tauri](https://img.shields.io/badge/Tauri-Latest-purple.svg)](https://tauri.app/)
-[![Docker](https://img.shields.io/badge/Docker-Compatible-blue.svg)](https://www.docker.com/)
-[![Transformers](https://img.shields.io/badge/🤗_Transformers-Latest-yellow.svg)](https://huggingface.co/transformers/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.0+-61DAFB.svg?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1-000000.svg?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Tauri](https://img.shields.io/badge/Tauri-Latest-24C8DB.svg?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Docker](https://img.shields.io/badge/Docker-Compatible-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![HuggingFace](https://img.shields.io/badge/🤗_Transformers-Latest-FFD21E.svg?style=for-the-badge)](https://huggingface.co/transformers/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Latest-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-<img src="apps/enron_classifier/src-tauri/icons/icon.png" width="250" alt="EnronClassifier Logo"/>
+<img src="apps/enron_classifier/src-tauri/icons/icon.png" width="200" alt="EnronClassifier Logo" style="border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);"/>
 
-A powerful desktop and web application for classifying, summarizing, and analyzing emotion in Enron emails. Built with React, Flask API, and Tauri for cross-platform support, featuring advanced transformer models with GPU acceleration.
+### 🚀 Advanced Email Intelligence Platform
 
-[Quick Start](#-quick-start) •
-[Features](#-features) •
-[Architecture](#-architecture) •
-[Development](#-development)
+**Transform email analysis with AI-powered classification, summarization, and emotion detection**
+
+<p align="center">
+  <a href="#-quick-start"><kbd> <br> 🚀 Quick Start <br> </kbd></a>&nbsp;&nbsp;
+  <a href="#-features"><kbd> <br> ✨ Features <br> </kbd></a>&nbsp;&nbsp;
+  <a href="#-architecture"><kbd> <br> 🏗️ Architecture <br> </kbd></a>&nbsp;&nbsp;
+  <a href="#-development"><kbd> <br> 💻 Development <br> </kbd></a>
+</p>
 
 </div>
 
+> **🎯 Built for researchers, data scientists, and NLP enthusiasts** — Leverage cutting-edge transformer models and advanced NLP techniques to unlock insights from the Enron email dataset with GPU-accelerated performance.
+
 ---
 
-## 📋 Overview
+## 🌟 What is EnronClassifier?
 
-Welcome to **EnronClassifier**, a sophisticated email analysis application! Built with cutting-edge transformer models and NLP techniques, it provides comprehensive email classification, summarization, and emotion analysis capabilities through an elegant web and desktop interface. Whether you're a data scientist, researcher, or NLP enthusiast, this tool offers powerful insights into the Enron email dataset!
+**EnronClassifier** is a sophisticated email analysis platform that combines the power of modern transformer models with an intuitive cross-platform interface. Whether you're conducting research, analyzing communication patterns, or exploring NLP techniques, our application provides comprehensive tools for email classification, summarization, and emotion analysis.
 
 <div align="center">
-  <img src="docs/screenshots.png" width="600" alt="EnronClassifier Screenshot"/>
+  <img src="docs/screenshots.png" width="800" alt="EnronClassifier Interface" style="border-radius: 12px; box-shadow: 0 12px 48px rgba(0,0,0,0.1); margin: 20px 0;"/>
 </div>
 
 ---
 
-## 🚀 Features
+## ✨ Key Features
 
-<div style="display: flex; flex-wrap: wrap;">
+<table>
+<tr>
+<td width="50%">
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🧠 Advanced Email Classification</h3>
-<p>Uses state-of-the-art transformer models including BART and DistilBERT for zero-shot classification with 10 comprehensive categories.</p>
-</div>
+### 🧠 **Intelligent Classification**
+- **10 comprehensive categories** for precise email sorting
+- **Zero-shot classification** using BART transformer
+- **Semantic understanding** with sentence transformers
+- **Multi-label support** for complex emails
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>📄 Smart Summarization</h3>
-<p>Extractive summarization of lengthy emails using advanced NLP libraries (NLTK, spaCy, Sumy).</p>
-</div>
+</td>
+<td width="50%">
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🧠 Emotion Analysis</h3>
-<p>Detects emotional tone and offers phrasing suggestions to enhance communication.</p>
-</div>
+### 📄 **Smart Summarization** 
+- **Extractive summarization** using NLTK, spaCy, Sumy
+- **Key phrase extraction** for quick insights
+- **Configurable length** based on your needs
+- **Context preservation** for accurate summaries
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>👤 User Selection</h3>
-<p>Select and analyze emails from specific Enron employees in the dataset.</p>
-</div>
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>⚡ GPU Acceleration</h3>
-<p>Full CUDA support for high-performance inference, with limited MPS support for Apple Silicon.</p>
-</div>
+### 🎭 **Emotion Analysis**
+- **Sentiment detection** with confidence scores
+- **Tone analysis** for communication insights  
+- **Enhancement suggestions** for better phrasing
+- **Emotional context** understanding
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>💻 Cross-Platform</h3>
-<p>Available as both a web application and desktop app via Tauri framework.</p>
-</div>
+</td>
+<td width="50%">
 
-<div style="flex: 1; min-width: 250px; padding: 10px;">
-<h3>🤖 AI Response Generation</h3>
-<p>Intelligent email response generation powered by Ollama integration.</p>
-</div>
+### 🤖 **AI Response Generation**
+- **Ollama integration** for intelligent replies
+- **Context-aware responses** based on email content
+- **Multiple LLM options** (Llama, CodeLlama, etc.)
+- **Customizable tone** and style
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### ⚡ **Performance Optimized**
+- **GPU acceleration** with full CUDA support
+- **Apple Silicon (MPS)** compatibility
+- **Intelligent fallback** to CPU when needed
+- **Efficient caching** for faster processing
+
+</td>
+<td width="50%">
+
+### 💻 **Cross-Platform**
+- **Desktop app** via Tauri framework
+- **Web interface** for browser-based usage
+- **Docker support** for easy deployment
+- **Unix & Windows** compatibility
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏷️ Classification System
+
+Our advanced classification system categorizes emails into **10 distinct categories** using state-of-the-art transformer models:
+
+<div align="center">
+
+| 🎯 Category | 📝 Description | 🔍 Examples |
+|-------------|---------------|-------------|
+| **🎯 Strategic Planning** | Long-term strategy, acquisitions, corporate planning | "Q4 merger discussion", "5-year growth plan" |
+| **⚙️ Daily Operations** | Routine tasks, operational procedures | "Daily status update", "Process changes" |
+| **💰 Financial** | Budget, accounting, expense reports | "Monthly P&L", "Budget approval" |
+| **⚖️ Legal & Compliance** | Legal matters, regulatory compliance | "Contract review", "Compliance audit" |
+| **🤝 Client & External** | External communications, partnerships | "Client meeting", "Vendor negotiation" |
+| **👥 HR & Personnel** | Human resources, hiring matters | "New hire onboarding", "Performance review" |
+| **🗓️ Meetings & Events** | Scheduling, event planning | "Board meeting agenda", "Conference planning" |
+| **🚨 Urgent & Critical** | Time-sensitive, emergency issues | "System outage", "Urgent approval needed" |
+| **💬 Personal & Informal** | Personal communications, informal chats | "Lunch plans", "Weekend discussion" |
+| **🔧 Technical & IT** | Technical support, system issues | "Server maintenance", "Software bug report" |
 
 </div>
 
 ---
 
-## 🏷️ Classification Categories
+## 🚀 Quick Start Guide
 
-The system classifies emails into 10 comprehensive categories:
+### 📋 Prerequisites
 
-| Category | Description |
-|----------|-------------|
-| **Strategic Planning** | Long-term business strategy, corporate planning, acquisitions |
-| **Daily Operations** | Day-to-day operations, routine tasks, procedures |
-| **Financial** | Budget, accounting, financial reports, expenses |
-| **Legal & Compliance** | Legal matters, regulatory compliance, contracts |
-| **Client & External** | External communications, client relations, partnerships |
-| **HR & Personnel** | Human resources, hiring, employee matters |
-| **Meetings & Events** | Meeting scheduling, event planning, appointments |
-| **Urgent & Critical** | Time-sensitive, emergency, critical issues |
-| **Personal & Informal** | Personal communications, informal chats, non-work related |
-| **Technical & IT** | Technical issues, IT support, system problems |
+<div align="center">
 
----
+| 🛠️ Tool | 📌 Version | 📝 Notes |
+|---------|------------|----------|
+| **Node.js & npm** | `v18+` | [Download here](https://nodejs.org/) |
+| **Docker** | `Latest` | [Get Docker](https://www.docker.com/products/docker-desktop/) |
+| **Rust** | `Latest` | Required for Tauri builds |
+| **Python** | `3.10+` | For local Flask development |
+| **Ollama** | `Latest` | [Install Ollama](https://ollama.com) for AI features |
 
-## 🚀 Quick Start
+</div>
 
-<details open>
-<summary><b>Prerequisites</b></summary>
+### 🎯 One-Command Setup
 
-Before diving into the email analysis, ensure your system meets these requirements:
+<table>
+<tr>
+<td width="50%" align="center">
 
-| Requirement                 | Version | Notes                                                         |
-| --------------------------- | ------- | ------------------------------------------------------------- |
-| **Node.js & npm**           | v18+    | [Download Node.js](https://nodejs.org/)                       |
-| **Docker & Docker Compose** | Latest  | [Get Docker](https://www.docker.com/products/docker-desktop/) (Windows only) |
-| **Rust toolchain**          | Latest  | Required for Tauri builds                                     |
-| **Python**                  | 3.10+   | For local development of Flask API                            |
-| **Ollama**                  | Latest  | [Install Ollama](https://ollama.com) for AI response generation |
-
-**Hardware Acceleration Support:**
-- **CUDA GPU**: Full acceleration support for NVIDIA GPUs
-- **Apple Silicon (M1/M2)**: Limited MPS acceleration (native Flask recommended)
-- **CPU**: Fallback support for all systems
-
-</details>
-
----
-
-## 🖥️ Platform-Specific Setup
-
-### 🪟 Windows Setup
-
-<details>
-<summary><b>Windows Installation (Docker-based)</b></summary>
-
-For Windows users, we use Docker for the complete backend setup:
+### 🐧 **Unix Systems**
+*Linux, macOS, WSL*
 
 ```bash
-# 1. Download and extract the Enron dataset
+# Complete setup in one command
+./bin/enron_classifier.sh
+```
+
+**That's it!** ✨ The script handles everything:
+- 📥 Downloads Enron dataset
+- 🗄️ Builds SQLite database  
+- 🎨 Installs frontend dependencies
+- 🚀 Starts Flask API
+- 💻 Launches desktop app
+
+</td>
+<td width="50%" align="center">
+
+### 🪟 **Windows**
+*Docker-based setup*
+
+```bash
+# 1. Download dataset
 ./bin/download_enron.cmd
 
-# 2. Generate the SQLite database
+# 2. Generate database
 ./bin/generate_db.cmd
 
-# 3. Start the Flask API with Docker
+# 3. Start services
 docker compose up --build
 
-# 4. In a new terminal, run the desktop application
+# 4. Launch desktop app
 npm --prefix ./apps/enron_classifier run tauri dev
 ```
 
-Or for the web version:
-```bash
-# Run the web version
-npm --prefix ./apps/enron_classifier run dev
-```
+</td>
+</tr>
+</table>
 
-</details>
+### 🤖 AI Setup (Optional)
 
----
-
-### 🐧 Unix Setup (Linux, macOS, WSL)
-
-<details open>
-<summary><b>One-Command Setup (Recommended)</b></summary>
-
-For Unix-based systems (Linux, macOS, WSL), use our streamlined setup script:
+Enable intelligent email response generation:
 
 ```bash
-# Complete setup - downloads data, builds database, frontend, and starts API
-./bin/enron_classifier.sh
-```
+# Install Ollama from https://ollama.com
 
-**That's it!** The script will:
-1. Download and extract the Enron dataset
-2. Generate the SQLite database from scratch
-3. Install frontend dependencies and build the application
-4. Start the Flask API server
-5. Launch the desktop application
+# Choose your preferred model
+ollama pull llama3.2:3b        # 🏃‍♂️ Fast & lightweight
+ollama pull llama3.1:8b        # ⚖️ Balanced performance  
+ollama pull codellama:7b       # 💻 Technical emails
 
-</details>
-
-<details>
-<summary><b>Advanced Usage Options</b></summary>
-
-The `enron_classifier.sh` script supports various options for different workflows:
-
-```bash
-# Show help and available options
-./bin/enron_classifier.sh --help
-
-# Only download and extract the Enron dataset
-./bin/enron_classifier.sh --download-only
-
-# Only generate the database (requires dataset to be downloaded)
-./bin/enron_classifier.sh --db-only
-
-# Only build the frontend application
-./bin/enron_classifier.sh --frontend-only
-
-# Only run the Flask API server
-./bin/enron_classifier.sh --api-only
-
-# Run complete setup but skip frontend building
-./bin/enron_classifier.sh --skip-frontend
-```
-
-**Usage Examples:**
-```bash
-# Fresh installation
-./bin/enron_classifier.sh
-
-# Update database only
-./bin/enron_classifier.sh --db-only
-
-# Development: rebuild frontend only
-./bin/enron_classifier.sh --frontend-only
-
-# Run just the API for development
-./bin/enron_classifier.sh --api-only
-```
-
-</details>
-
----
-
-## 🤖 Ollama Setup
-
-<details>
-<summary><b>AI Response Generation Setup</b></summary>
-
-For AI-powered email response generation, you need to install and configure Ollama:
-
-```bash
-# 1. Install Ollama from https://ollama.com
-
-# 2. Pull a recommended model (choose one)
-ollama pull llama3.2:3b        # Lightweight, fast responses
-ollama pull llama3.1:8b        # Balanced performance
-ollama pull codellama:7b       # For technical emails
-
-# 3. Verify installation
+# Verify installation
 ollama list
 ```
 
-The application will automatically detect available Ollama models and use them for intelligent email response generation.
+---
 
-</details>
+## 🏗️ Architecture Overview
+
+<div align="center">
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[React + TypeScript UI]
+        B[Tauri Desktop Wrapper]
+        C[Web Application]
+    end
+    
+    subgraph "API Layer"
+        D[Flask REST API]
+        E[Advanced NLP Pipeline]
+        F[Transformer Models]
+    end
+    
+    subgraph "Data Layer"
+        G[SQLite Database]
+        H[Enron Email Dataset]
+    end
+    
+    subgraph "AI Services"
+        I[Ollama Server]
+        J[LLM Models]
+    end
+    
+    A --> D
+    B --> A
+    C --> A
+    D --> E
+    E --> F
+    D --> G
+    G --> H
+    D --> I
+    I --> J
+    
+    style A fill:#61DAFB,stroke:#21325B,color:#000
+    style D fill:#000000,stroke:#FFFFFF,color:#fff  
+    style F fill:#FFD21E,stroke:#FF6B35,color:#000
+    style I fill:#00D4AA,stroke:#007A5E,color:#000
+```
+
+</div>
+
+### 🔧 Technology Stack
+
+<div align="center">
+
+| Layer | Technologies | Purpose |
+|-------|-------------|---------|
+| **🎨 Frontend** | React 18, TypeScript, Tailwind CSS, Framer Motion | Modern, responsive user interface |
+| **🖥️ Desktop** | Tauri, Rust | Cross-platform desktop application |
+| **🔗 API** | Flask 3.1, Python 3.10+ | RESTful backend services |
+| **🧠 ML/NLP** | Transformers, BART, DistilBERT, NLTK, spaCy | Advanced language processing |
+| **🗄️ Database** | SQLite | Efficient email data storage |
+| **🤖 AI** | Ollama, Llama models | Intelligent response generation |
+
+</div>
 
 ---
 
-## 🛠️ Architecture
+## 🛠️ Development Setup
 
-<details open>
-<summary><b>System Architecture</b></summary>
-
-```
-┌──────────────┐    HTTP    ┌───────────────┐    AI Models    ┌─────────────┐
-│   Frontend   │──────────▶│  Flask API     │◀───────────────│   Ollama    │
-│ (React +     │◀──────────│  (Advanced NLP │                 │  (Optional) │
-│  Tauri)      │           │   Pipeline)    │                 └─────────────┘
-└──────────────┘           └───────────────┘
-                                ▲
-                                │
-                           ┌──────────┐
-                           │ SQLite   │
-                           │ (enron.db)│
-                           └──────────┘
-```
-
-The system uses a modern architecture with three main components:
-
-1. **Frontend**: React-based UI with Tauri integration for desktop deployment
-2. **Flask API**: Python backend with transformer models for advanced ML and NLP processing
-3. **Ollama Integration**: Optional AI service for intelligent response generation
-
-### Advanced ML Pipeline
-
-The classification system uses state-of-the-art transformer models:
-
-- **Sentence Transformer**: `all-MiniLM-L6-v2` for semantic embeddings
-- **Zero-shot Classification**: `facebook/bart-base` for flexible email categorization
-- **Tokenization**: `distilbert-base-uncased` for efficient text processing
-- **Ollama Models**: Various LLMs for response generation (llama3.2, codellama, etc.)
-
-**Device Optimization:**
-- Automatic GPU detection and optimization
-- CUDA support for NVIDIA GPUs
-- MPS support for Apple Silicon (with fallback handling)
-- Intelligent CPU fallback for unsupported configurations
-
-</details>
-
-<details>
-<summary><b>API Endpoints</b></summary>
-
-The Flask API exposes these endpoints for frontend integration:
-
-| Route                     | Method | Description                      |
-| ------------------------- | ------ | -------------------------------- |
-| `/classify`               | POST   | Classify email content using transformers |
-| `/summarize`              | POST   | Summarize email text             |
-| `/emotion-enhance`        | POST   | Analyze & enhance emotional tone |
-| `/users`                  | GET    | List available Enron users       |
-| `/users/<user_id>/emails` | GET    | Fetch emails for a specific user |
-| `/ner`                    | POST   | Named entity recognition         |
-| `/respond`                | POST   | AI-powered email response generation |
-
-</details>
-
----
-
-## 💻 Development
-
-<details>
-<summary><b>Clone & Setup</b></summary>
-
-```bash
-# Clone the repository
-git clone https://github.com/NoamFav/NLP_project.git
-cd NLP_project
-
-# For Unix systems (Linux, macOS, WSL) - One command setup
-./bin/enron_classifier.sh
-
-# For Windows - Manual setup
-./bin/download_enron.cmd
-./bin/generate_db.cmd
-docker compose up --build
-```
-
-</details>
-
-<details>
-<summary><b>Frontend Development</b></summary>
-
-Start the React app in development mode:
-
-```bash
-# Desktop application
-npm --prefix ./apps/enron_classifier run tauri dev
-
-# Web application
-npm --prefix ./apps/enron_classifier run dev
-```
-
-The UI is built with:
-
-- Vite + React 18
-- TypeScript
-- Tailwind CSS
-- Framer Motion for animations
-- React Router DOM for navigation
-
-</details>
-
-<details>
-<summary><b>Backend Development</b></summary>
-
-### Using the Setup Script (Unix)
-
-```bash
-# Run only the API for development
-./bin/enron_classifier.sh --api-only
-```
-
-### Using Docker (Windows/Cross-platform)
-
-```bash
-docker compose up --build
-```
-
-### Manual Setup
-
-```bash
-cd apps/flask_api
-pip install -r requirements.txt
-python -m app.server
-```
-
-</details>
-
----
-
-## 📁 Project Structure
+### 📁 Project Structure
 
 ```
 NLP_project/
-├── apps/
-│   ├── flask_api/            # Flask backend & Dockerfile
+├── 📱 apps/
+│   ├── 🐍 flask_api/              # Backend API
 │   │   ├── app/
-│   │   │   ├── main.py
-│   │   │   ├── routes/       # API endpoints
-│   │   │   ├── services/     # ML/NLP services
-│   │   │   │   ├── enron_classifier.py  # Advanced transformer pipeline
-│   │   │   │   ├── emotion_enhancer.py
-│   │   │   │   ├── summarizer.py
-│   │   │   │   ├── responder.py         # AI response generation
-│   │   │   │   ├── ollama_service.py    # Ollama integration
-│   │   │   │   └── ner_engine.py
-│   │   │   ├── tests/        # Evaluation scripts
-│   │   │   └── ui/           # CLI interface
-│   │   ├── data/
-│   │   │   └── enron.db      # Generated Enron dataset
-│   │   ├── models/           # Trained ML models
-│   │   └── requirements.txt  # Python dependencies
-│   ├── enron_classifier/     # Frontend code
+│   │   │   ├── 🛣️ routes/         # API endpoints
+│   │   │   ├── 🔧 services/       # ML/NLP services
+│   │   │   │   ├── 🧠 enron_classifier.py
+│   │   │   │   ├── 🎭 emotion_enhancer.py
+│   │   │   │   ├── 📄 summarizer.py
+│   │   │   │   ├── 🤖 responder.py
+│   │   │   │   └── 🏷️ ner_engine.py
+│   │   │   └── 🧪 tests/
+│   │   └── 📊 models/
+│   ├── ⚛️ enron_classifier/       # Frontend React app
 │   │   ├── src/
-│   │   │   ├── components/   # React components
-│   │   │   ├── contexts/     # React contexts
-│   │   │   ├── hooks/        # Custom hooks
-│   │   │   ├── pages/        # Application pages
-│   │   │   └── utils/        # Utility functions
-│   │   └── src-tauri/        # Tauri configuration
-│   └── SQLite_db/            # Database generation
-│       └── generate_db.py    # Database creation script
-├── bin/
-│   ├── enron_classifier.sh   # 🆕 Unix one-command setup
-│   ├── download_enron.*      # Data download scripts
-│   ├── generate_db.*         # Database generation scripts
-│   └── flask-api.sh          # Native Flask runner
-├── docker-compose.yml        # Service definitions
-└── README.md
+│   │   │   ├── 🧩 components/
+│   │   │   ├── 🔄 contexts/
+│   │   │   ├── 🪝 hooks/
+│   │   │   └── 📱 pages/
+│   │   └── 🦀 src-tauri/         # Tauri config
+│   └── 🗄️ SQLite_db/             # Database generation
+├── 📜 bin/                       # Setup scripts
+├── 🐳 docker-compose.yml
+└── 📖 README.md
 ```
 
----
+### 🚀 Development Commands
 
-## ⚡ Performance Notes
+<div align="center">
 
-### GPU Acceleration
+| Command | Description | Platform |
+|---------|-------------|----------|
+| `./bin/enron_classifier.sh` | 🎯 Complete setup | Unix |
+| `./bin/enron_classifier.sh --api-only` | 🔧 API development | Unix |
+| `./bin/enron_classifier.sh --frontend-only` | 🎨 Frontend development | Unix |
+| `docker compose up --build` | 🐳 Docker development | All |
+| `npm run tauri dev` | 🖥️ Desktop app development | All |
+| `npm run dev` | 🌐 Web app development | All |
 
-- **CUDA**: Full support with automatic device detection
-- **Apple Silicon (MPS)**: Limited support due to Hugging Face compatibility issues
-- **Docker on macOS**: Does not support MPS - use native setup for better performance
+</div>
 
-### Recommended Setup by Platform
+### 🔗 API Endpoints
 
-| Platform | Setup Command | Performance |
-|----------|---------------|-------------|
-| **Linux with NVIDIA GPU** | `./bin/enron_classifier.sh` | Excellent (Full CUDA) |
-| **Windows with NVIDIA GPU** | Docker setup | Excellent (Full CUDA) |
-| **macOS (Intel)** | `./bin/enron_classifier.sh` | Good (CPU) |
-| **macOS (Apple Silicon)** | `./bin/enron_classifier.sh` | Good (Limited MPS) |
-| **WSL** | `./bin/enron_classifier.sh` | Good (CPU/CUDA if configured) |
+<div align="center">
 
----
+| 🛣️ Endpoint | 📝 Method | 🎯 Purpose | 📊 Input |
+|-------------|-----------|-----------|----------|
+| `/classify` | `POST` | Email classification | Email text |
+| `/summarize` | `POST` | Text summarization | Email content |
+| `/emotion-enhance` | `POST` | Emotion analysis | Email text |
+| `/respond` | `POST` | AI response generation | Email context |
+| `/users` | `GET` | List Enron users | None |
+| `/users/<id>/emails` | `GET` | User's emails | User ID |
 
-## 🎯 Available Scripts
-
-<details>
-<summary><b>Setup Scripts</b></summary>
-
-| Command | Platform | Description |
-| ------- | -------- | ----------- |
-| `./bin/enron_classifier.sh` | Unix (Linux, macOS, WSL) | Complete one-command setup |
-| `./bin/enron_classifier.sh --help` | Unix | Show all available options |
-| `./bin/download_enron.cmd` | Windows | Download Enron dataset |
-| `./bin/generate_db.cmd` | Windows | Generate SQLite database |
-| `docker compose up --build` | All | Run Flask API with Docker |
-
-</details>
-
-<details>
-<summary><b>Frontend Scripts</b></summary>
-
-| Command               | Description                            |
-| --------------------- | -------------------------------------- |
-| `npm run dev`         | Start web app in development mode      |
-| `npm run build`       | Build frontend for production          |
-| `npm run preview`     | Preview production build locally       |
-| `npm run tauri dev`   | Start Tauri desktop app                |
-| `npm run tauri build` | Build desktop application              |
-| `npm run lint`        | Run ESLint checks                      |
-
-</details>
+</div>
 
 ---
 
-## 🤝 Contributing
+## ⚡ Performance & Optimization
 
-<details>
-<summary><b>Contribution Guidelines</b></summary>
+### 🎯 Hardware Acceleration
 
-We welcome contributions to make EnronClassifier even better! Please follow these steps:
+<div align="center">
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| 🖥️ Platform | 🚀 Acceleration | 📈 Performance | 🛠️ Setup Command |
+|-------------|----------------|----------------|------------------|
+| **🐧 Linux + NVIDIA** | Full CUDA | ⭐⭐⭐⭐⭐ Excellent | `./bin/enron_classifier.sh` |
+| **🪟 Windows + NVIDIA** | Full CUDA | ⭐⭐⭐⭐⭐ Excellent | Docker setup |
+| **🍎 macOS (Apple Silicon)** | Limited MPS | ⭐⭐⭐⭐ Good | `./bin/enron_classifier.sh` |
+| **🍎 macOS (Intel)** | CPU only | ⭐⭐⭐ Good | `./bin/enron_classifier.sh` |
+| **🐧 WSL** | CPU/CUDA | ⭐⭐⭐⭐ Good | `./bin/enron_classifier.sh` |
 
-Please make sure to update tests as appropriate and adhere to the code style guidelines.
+</div>
 
-</details>
+### 💡 Performance Tips
+
+- **🚀 GPU Acceleration**: Use NVIDIA GPUs for best performance
+- **🍎 Apple Silicon**: Native setup recommended over Docker
+- **💾 Memory**: 8GB+ RAM recommended for large datasets
+- **🔄 Caching**: Models are cached after first load
 
 ---
 
-## 🔧 Troubleshooting
+## 🛠️ Troubleshooting
 
 <details>
-<summary><b>Common Issues</b></summary>
+<summary><b>🔧 Common Issues & Solutions</b></summary>
 
-**Setup Script Issues (Unix):**
+### 🐧 Unix Setup Issues
 ```bash
-# Make sure the script is executable
+# Make script executable
 chmod +x ./bin/enron_classifier.sh
 
-# Run with verbose output
+# Run with debug output
 bash -x ./bin/enron_classifier.sh
 ```
 
-**Docker Issues (Windows):**
+### 🐳 Docker Issues
 ```bash
-# Ensure Docker is running and try rebuilding
-docker compose down
+# Reset Docker environment  
+docker compose down --volumes
 docker compose up --build --force-recreate
 ```
 
-**Ollama Connection Issues:**
+### 🤖 Ollama Connection Issues
 ```bash
-# Verify Ollama is running
+# Check Ollama status
 ollama list
-
-# Test connection
 curl http://localhost:11434/api/tags
+
+# Restart Ollama service
+ollama serve
 ```
 
-**Node.js/NPM Issues:**
+### 📦 Node.js Issues
 ```bash
-# Clear npm cache and reinstall
+# Clear and reinstall dependencies
 npm cache clean --force
 rm -rf node_modules package-lock.json
 npm install
@@ -529,32 +401,83 @@ npm install
 
 ---
 
-## 👤 Contributors
+## 🤝 Contributing
 
 <div align="center">
 
-| Contributor            | Role           | Focus Area                        |
-| ---------------------- | -------------- | --------------------------------- |
-| **Project Lead**       | Lead Developer | Architecture, ML Integration      |
-| **Backend Developer**  | Developer      | Flask API, Transformer Models    |
-| **Frontend Developer** | Developer      | React, Tauri Integration          |
-| **ML Engineer**        | Data Scientist | Advanced NLP Pipeline, GPU Optimization |
-| **UX Designer**        | Designer       | User Interface, Experience Design |
+### 🌟 We welcome contributions!
+
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
 
 </div>
 
-> 💌 Special thanks to the Enron corpus, Hugging Face, Ollama, and the open-source community for the foundational tools.
+**How to contribute:**
+
+1. 🍴 **Fork** the repository
+2. 🌿 **Create** your feature branch (`git checkout -b feature/amazing-feature`)
+3. ✨ **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. 🚀 **Push** to the branch (`git push origin feature/amazing-feature`)
+5. 🎯 **Open** a Pull Request
+
+**Contribution areas:**
+- 🧠 ML model improvements
+- 🎨 UI/UX enhancements  
+- 📚 Documentation updates
+- 🧪 Test coverage expansion
+- 🐛 Bug fixes
 
 ---
 
-## 📄 License
+## 👥 Team
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
+<div align="center">
+
+| Role | Focus | Expertise |
+|------|-------|-----------|
+| **🚀 Lead Developer** | Architecture & Integration | Full-stack, ML Pipeline |
+| **🧠 ML Engineer** | NLP & AI Models | Transformers, GPU Optimization |
+| **🎨 Frontend Developer** | UI/UX & React | TypeScript, Modern Web |
+| **🐍 Backend Developer** | API & Services | Flask, Python, Databases |
+| **📊 Data Scientist** | Analytics & Insights | Statistics, Visualization |
+
+</div>
+
+---
+
+## 📜 License
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE.md) file for details.
+
+</div>
+
+---
+
+## 🙏 Acknowledgments
+
+<div align="center">
+
+**Built with ❤️ and powered by:**
+
+[![Hugging Face](https://img.shields.io/badge/🤗-Hugging%20Face-FFD21E?style=for-the-badge)](https://huggingface.co/)
+[![Ollama](https://img.shields.io/badge/🦙-Ollama-00D4AA?style=for-the-badge)](https://ollama.com/)
+[![Enron Corpus](https://img.shields.io/badge/📧-Enron%20Dataset-FF6B35?style=for-the-badge)](https://www.cs.cmu.edu/~enron/)
+
+*Special thanks to the open-source community and research institutions that make advanced NLP accessible to everyone.*
+
+</div>
 
 ---
 
 <div align="center">
 
-### 📧 Happy Email Analysis with AI! 📧
+### 🎉 Ready to revolutionize email analysis?
+
+<a href="#-quick-start"><kbd> <br> 🚀 Get Started Now <br> </kbd></a>
+
+**📧 Transform emails into insights with AI! 📧**
 
 </div>
