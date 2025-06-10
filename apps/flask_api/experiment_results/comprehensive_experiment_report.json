@@ -1,0 +1,286 @@
+{
+  "experiment_summary": {
+    "total_execution_time": 38.88953495025635,
+    "experiments_completed": 5,
+    "timestamp": "2025-06-10T19:25:38.340712",
+    "database_path": "enron_emails.db",
+    "max_emails_processed": 1000
+  },
+  "results": {
+    "experiment_1": {
+      "analysis": {
+        "total_emails": 120,
+        "total_categories": 8,
+        "label_distribution": {
+          "operational": 4,
+          "personal_informal": 4,
+          "hr_personnel": 2,
+          "client_external": 4,
+          "technical_it": 42,
+          "meetings_events": 26,
+          "urgent_critical": 2,
+          "financial": 36
+        },
+        "insufficient_categories": {},
+        "categories_to_filter": 0,
+        "data_quality": {
+          "null_subjects": 0,
+          "null_bodies": 0,
+          "empty_subjects": 0,
+          "empty_bodies": 0,
+          "emails_with_content": 120
+        },
+        "text_statistics": {
+          "avg_text_length": 112.975,
+          "median_text_length": 111.0,
+          "min_text_length": 95,
+          "max_text_length": 155,
+          "very_short_emails": 0,
+          "very_long_emails": 0
+        },
+        "recommendations": []
+      },
+      "execution_time": 0.9588890075683594,
+      "status": "completed"
+    },
+    "experiment_2": {
+      "device_info": {
+        "device": "mps",
+        "cuda_available": false,
+        "mps_available": true
+      },
+      "training_metrics": {
+        "training_time": 0.9309718608856201,
+        "device_used": "mps",
+        "num_emails": 120,
+        "num_categories": 8,
+        "feature_dimensions": null
+      },
+      "execution_time": 0.9310009479522705,
+      "status": "completed"
+    },
+    "experiment_3": {
+      "accuracy_results": {
+        "overall_accuracy": 1.0,
+        "average_confidence": 0.7283272250951967,
+        "category_accuracy": {
+          "technical_it": 1.0,
+          "meetings_events": 1.0,
+          "personal_informal": 1.0,
+          "financial": 1.0,
+          "hr_personnel": 1.0,
+          "urgent_critical": 1.0,
+          "operational": 1.0,
+          "client_external": 1.0
+        },
+        "average_prediction_time": 0.3219609355926514,
+        "total_prediction_time": 32.19609355926514,
+        "test_size": 100,
+        "predictions_sample": [
+          {
+            "category": "technical_it",
+            "category_name": "Technical & IT",
+            "confidence": 0.7646794685705202,
+            "transformer_category": "urgent_critical",
+            "transformer_confidence": 0.10571317374706268,
+            "emotion": {
+              "polarity": 0.0,
+              "subjectivity": 0.5,
+              "stress_score": 0.0,
+              "relaxation_score": 0.0
+            },
+            "device_used": "mps"
+          },
+          {
+            "category": "technical_it",
+            "category_name": "Technical & IT",
+            "confidence": 0.7597453460872222,
+            "transformer_category": "urgent_critical",
+            "transformer_confidence": 0.1055644154548645,
+            "emotion": {
+              "polarity": 0.0,
+              "subjectivity": 0.5,
+              "stress_score": 0.0,
+              "relaxation_score": 0.0
+            },
+            "device_used": "mps"
+          },
+          {
+            "category": "meetings_events",
+            "category_name": "Meetings & Events",
+            "confidence": 0.6195215696838532,
+            "transformer_category": "operational",
+            "transformer_confidence": 0.10496528446674347,
+            "emotion": {
+              "polarity": 0.3182,
+              "subjectivity": 0.5,
+              "stress_score": 0.0,
+              "relaxation_score": 0.0
+            },
+            "device_used": "mps"
+          },
+          {
+            "category": "technical_it",
+            "category_name": "Technical & IT",
+            "confidence": 0.7176397540599486,
+            "transformer_category": "strategic_planning",
+            "transformer_confidence": 0.10480649024248123,
+            "emotion": {
+              "polarity": 0.0,
+              "subjectivity": 0.5,
+              "stress_score": 0.13999999999999999,
+              "relaxation_score": 0.0
+            },
+            "device_used": "mps"
+          },
+          {
+            "category": "technical_it",
+            "category_name": "Technical & IT",
+            "confidence": 0.7586617368873165,
+            "transformer_category": "urgent_critical",
+            "transformer_confidence": 0.10545942187309265,
+            "emotion": {
+              "polarity": 0.0,
+              "subjectivity": 0.5,
+              "stress_score": 0.0,
+              "relaxation_score": 0.0
+            },
+            "device_used": "mps"
+          }
+        ]
+      },
+      "execution_time": 32.204527854919434,
+      "status": "completed"
+    },
+    "experiment_4": {
+      "device_performance": {
+        "device": "mps",
+        "sample_size": 50,
+        "feature_extraction_time": 0.09896492958068848,
+        "embedding_extraction_time": 0.03736090660095215,
+        "features_per_second": 505.22948090650436,
+        "embeddings_per_second": 1338.2972885011775,
+        "feature_shape": [
+          50,
+          393
+        ],
+        "embedding_shape": [
+          50,
+          384
+        ]
+      },
+      "execution_time": 0.1371021270751953,
+      "status": "completed"
+    },
+    "experiment_5": {
+      "scenario_results": [
+        {
+          "scenario_name": "Urgent Client Issue",
+          "expected_category": "urgent_critical",
+          "predicted_category": "urgent_critical",
+          "predicted_category_name": "Urgent & Critical",
+          "confidence": 0.5749998189083126,
+          "is_correct": true,
+          "prediction_time": 0.3569509983062744,
+          "transformer_category": "client_external",
+          "transformer_confidence": 0.10353432595729828,
+          "emotion_analysis": {
+            "polarity": -0.3453,
+            "subjectivity": 0.5,
+            "stress_score": 0.54,
+            "relaxation_score": 0.0
+          }
+        },
+        {
+          "scenario_name": "Weekly Team Meeting",
+          "expected_category": "meetings_events",
+          "predicted_category": "hr_personnel",
+          "predicted_category_name": "HR & Personnel",
+          "confidence": 0.29567904324459393,
+          "is_correct": false,
+          "prediction_time": 0.34406399726867676,
+          "transformer_category": "meetings_events",
+          "transformer_confidence": 0.10470239073038101,
+          "emotion_analysis": {
+            "polarity": 0.4939,
+            "subjectivity": 0.5,
+            "stress_score": 0.34,
+            "relaxation_score": 0.0
+          }
+        },
+        {
+          "scenario_name": "Budget Approval Request",
+          "expected_category": "financial",
+          "predicted_category": "hr_personnel",
+          "predicted_category_name": "HR & Personnel",
+          "confidence": 0.3417083795016665,
+          "is_correct": false,
+          "prediction_time": 0.3240969181060791,
+          "transformer_category": "meetings_events",
+          "transformer_confidence": 0.10513333231210709,
+          "emotion_analysis": {
+            "polarity": 0.8442,
+            "subjectivity": 0.5,
+            "stress_score": 0.0,
+            "relaxation_score": 0.0
+          }
+        },
+        {
+          "scenario_name": "Personal Lunch Invitation",
+          "expected_category": "personal_informal",
+          "predicted_category": "personal_informal",
+          "predicted_category_name": "Personal & Informal",
+          "confidence": 0.44887395076256076,
+          "is_correct": true,
+          "prediction_time": 0.25687575340270996,
+          "transformer_category": "financial",
+          "transformer_confidence": 0.10571695864200592,
+          "emotion_analysis": {
+            "polarity": 0.6351,
+            "subjectivity": 0.5,
+            "stress_score": 0.36,
+            "relaxation_score": 0.0
+          }
+        },
+        {
+          "scenario_name": "Legal Contract Review",
+          "expected_category": "legal_compliance",
+          "predicted_category": "hr_personnel",
+          "predicted_category_name": "HR & Personnel",
+          "confidence": 0.26825804683370574,
+          "is_correct": false,
+          "prediction_time": 0.3082401752471924,
+          "transformer_category": "client_external",
+          "transformer_confidence": 0.1045520007610321,
+          "emotion_analysis": {
+            "polarity": 0.8442,
+            "subjectivity": 0.5,
+            "stress_score": 0.0,
+            "relaxation_score": 0.0
+          }
+        },
+        {
+          "scenario_name": "System Maintenance Notice",
+          "expected_category": "technical_it",
+          "predicted_category": "urgent_critical",
+          "predicted_category_name": "Urgent & Critical",
+          "confidence": 0.36476817471227907,
+          "is_correct": false,
+          "prediction_time": 0.32549309730529785,
+          "transformer_category": "meetings_events",
+          "transformer_confidence": 0.10587688535451889,
+          "emotion_analysis": {
+            "polarity": 0.6124,
+            "subjectivity": 0.5,
+            "stress_score": 0.0,
+            "relaxation_score": 0.0
+          }
+        }
+      ],
+      "scenario_accuracy": 0.3333333333333333,
+      "average_confidence": 0.3823812356605198,
+      "execution_time": 1.9171037673950195,
+      "status": "completed"
+    }
+  }
+}
