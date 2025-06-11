@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Responder Service Architecture</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .service-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .phase {
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-left: 6px solid #3498db;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .phase:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .phase-title {
+        font-size: 1.8em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .step {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .step:hover {
+        border-color: #3498db;
+        background: rgba(52, 152, 219, 0.1);
+        transform: scale(1.02);
+      }
+
+      .step-number {
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: #3498db;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .step-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        margin-top: 8px;
+      }
+
+      .step-desc {
+        color: #555;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 25px solid #3498db;
+        margin: 10px auto;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .tech-stack {
+        background: linear-gradient(145deg, #2c3e50, #34495e);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .tech-title {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+
+      .tech-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+      }
+
+      .prompt-examples {
+        background: linear-gradient(145deg, #2980b9, #3498db);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .prompt-box {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>✉️ Email Responder Service Architecture</h1>
+
+      <div class="service-flow">
+        <!-- Initialization Phase -->
+        <div class="phase">
+          <div class="phase-title">🚀 Service Initialization</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">URL Configuration</div>
+              <div class="step-desc">
+                Configures Ollama service URL from environment variables or defaults to localhost:11434
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">URL Sanitization</div>
+              <div class="step-desc">
+                Strips quotes and validates URL format for clean service communication
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Service Integration</div>
+              <div class="step-desc">
+                Initializes OllamaService instance for AI-powered reply generation
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Prompt Processing -->
+        <div class="phase">
+          <div class="phase-title">📝 Prompt Engineering</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Context Formatting</div>
+              <div class="step-desc">
+                Formats email content with subject, sender information, and clear reply instructions
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">System Prompt Creation</div>
+              <div class="step-desc">
+                Creates professional email assistant prompt with company branding and formatting rules
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Urgency Detection</div>
+              <div class="step-desc">
+                Analyzes email subject for urgency keywords and adjusts response tone accordingly
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Reply Generation -->
+        <div class="phase">
+          <div class="phase-title">🤖 AI Reply Generation</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Ollama Service Call</div>
+              <div class="step-desc">
+                Calls Ollama service with formatted prompt, model selection, and temperature settings
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Response Processing</div>
+              <div class="step-desc">
+                Processes AI-generated reply with proper email formatting and professional tone
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Metadata Extraction</div>
+              <div class="step-desc">
+                Extracts generation metadata including timing, token counts, and model information
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Error Handling -->
+        <div class="phase">
+          <div class="phase-title">🛠️ Error Management</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Connection Error Handling</div>
+              <div class="step-desc">
+                Re-raises connection errors for proper route-level error handling and user feedback
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Timeout Management</div>
+              <div class="step-desc">
+                Handles request timeouts gracefully with appropriate error messages for users
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Service Recovery</div>
+              <div class="step-desc">
+                Provides fallback mechanisms and detailed error reporting for debugging
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technology Stack -->
+      <div class="tech-stack">
+        <div class="tech-title">🛠️ Technology Stack</div>
+        <div class="tech-grid">
+          <div class="tech-item">
+            <strong>Service Integration:</strong> OllamaService for AI model communication
+          </div>
+          <div class="tech-item">
+            <strong>Exception Handling:</strong> Requests exceptions for connection management
+          </div>
+          <div class="tech-item">
+            <strong>Configuration:</strong> Environment variable support with fallbacks
+          </div>
+          <div class="tech-item">
+            <strong>Type Safety:</strong> Python typing annotations for better code quality
+          </div>
+          <div class="tech-item">
+            <strong>Prompt Engineering:</strong> Dynamic system prompt generation
+          </div>
+          <div class="tech-item">
+            <strong>Context Management:</strong> Email metadata formatting and processing
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt Examples -->
+      <div class="prompt-examples">
+        <div class="tech-title">📝 Prompt Engineering Examples</div>
+        
+        <div class="prompt-box">
+          <strong>System Prompt:</strong><br>
+          "You are a research email assistant that generates professional, concise, and appropriate replies to emails. Keep your responses clear, relevant, and to the point, also ignore controversy that a company might've been implied to. Format your response as a proper email reply without including any email headers like 'To:', 'From:', or 'Subject:'. When specifying the sender's regards at the end of the response make sure to always say your name as [Your Name] and the company as [Company Name]."
+        </div>
+        
+        <div class="prompt-box">
+          <strong>Formatted Input Example:</strong><br>
+          Subject: Project Update Request<br>
+          From: John Smith<br><br>
+          Hello, I need an update on the quarterly project status. Can you provide the latest metrics?<br><br>
+          Please generate a professional and appropriate reply to this email.
+        </div>
+        
+        <div class="prompt-box">
+          <strong>Urgency Detection:</strong><br>
+          If subject contains "urgent" → "This is an urgent email, so acknowledge the urgency in your response."
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ollama Service Architecture</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .service-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .phase {
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-left: 6px solid #e74c3c;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .phase:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .phase-title {
+        font-size: 1.8em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .step {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .step:hover {
+        border-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.1);
+        transform: scale(1.02);
+      }
+
+      .step-number {
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: #e74c3c;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .step-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        margin-top: 8px;
+      }
+
+      .step-desc {
+        color: #555;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 25px solid #e74c3c;
+        margin: 10px auto;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .tech-stack {
+        background: linear-gradient(145deg, #2c3e50, #34495e);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .tech-title {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+
+      .tech-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #e74c3c;
+      }
+
+      .api-endpoints {
+        background: linear-gradient(145deg, #c0392b, #e74c3c);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .endpoint {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+      }
+
+      .method {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-right: 10px;
+        background: #27ae60;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🤖 Ollama Service Architecture</h1>
+
+      <div class="service-flow">
+        <!-- Initialization Phase -->
+        <div class="phase">
+          <div class="phase-title">🚀 Service Initialization</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">URL Configuration</div>
+              <div class="step-desc">
+                Configures base URL from environment variable, parameter, or defaults to
+                http://127.0.0.1:11434
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">URL Sanitization</div>
+              <div class="step-desc">
+                Strips surrounding quotes and validates URL format for clean API communication
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Connection Ready</div>
+              <div class="step-desc">
+                Service ready to accept email content and generate AI-powered replies
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Request Processing -->
+        <div class="phase">
+          <div class="phase-title">📨 Request Processing</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">System Prompt Setup</div>
+              <div class="step-desc">
+                Creates professional email assistant prompt or uses custom system prompt
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Payload Construction</div>
+              <div class="step-desc">
+                Builds JSON payload with model, prompt, system message, temperature, and streaming
+                settings
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">API Call</div>
+              <div class="step-desc">
+                Makes POST request to /api/generate endpoint with proper headers and timeout
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Response Handling -->
+        <div class="phase">
+          <div class="phase-title">⚡ Response Handling</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Status Validation</div>
+              <div class="step-desc">
+                Validates HTTP response status and raises exceptions for 4XX/5XX errors
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">JSON Parsing</div>
+              <div class="step-desc">
+                Parses response JSON and extracts generated reply with performance metadata
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Result Formatting</div>
+              <div class="step-desc">
+                Returns structured response with success status, reply text, and timing information
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Error Management -->
+        <div class="phase">
+          <div class="phase-title">🛠️ Error Management</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Connection Errors</div>
+              <div class="step-desc">
+                Re-raises ConnectionError for caller handling when Ollama service is unreachable
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Timeout Handling</div>
+              <div class="step-desc">
+                Re-raises Timeout exceptions when requests exceed configured timeout limit
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">HTTP Error Recovery</div>
+              <div class="step-desc">
+                Returns structured error response with status code and detailed error information
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-title">General Exception Handling</div>
+              <div class="step-desc">
+                Catches unexpected errors and returns detailed failure information
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technology Stack -->
+      <div class="tech-stack">
+        <div class="tech-title">🛠️ Technology Stack</div>
+        <div class="tech-grid">
+          <div class="tech-item">
+            <strong>HTTP Client:</strong> Python requests library for API communication
+          </div>
+          <div class="tech-item">
+            <strong>Data Format:</strong> JSON serialization for payload and response handling
+          </div>
+          <div class="tech-item">
+            <strong>Environment:</strong> OS environment variable support for configuration
+          </div>
+          <div class="tech-item">
+            <strong>Error Handling:</strong> Comprehensive exception management with re-raising
+          </div>
+          <div class="tech-item">
+            <strong>Type Safety:</strong> Python typing annotations for better code quality
+          </div>
+          <div class="tech-item">
+            <strong>Configuration:</strong> Flexible URL configuration with fallback defaults
+          </div>
+        </div>
+      </div>
+
+      <!-- API Configuration -->
+      <div class="api-endpoints">
+        <div class="tech-title">🔗 Configuration Options</div>
+        <div class="endpoint">
+          <span class="method">ENV</span>OLLAMA_URL - Environment variable for service URL
+        </div>
+        <div class="endpoint">
+          <span class="method">DEFAULT</span>http://127.0.0.1:11434 - Local Ollama instance
+        </div>
+        <div class="endpoint">
+          <span class="method">MODEL</span>llama3.2 - Default AI model for reply generation
+        </div>
+        <div class="endpoint">
+          <span class="method">TEMP</span>0.7 - Default temperature for response creativity
+        </div>
+        <div class="endpoint">
+          <span class="method">TIMEOUT</span>60 seconds - Default request timeout limit
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
