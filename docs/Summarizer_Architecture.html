@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Summarizer System Flow</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #2ecc71 0%, #3498db 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .flow-diagram {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .phase {
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-left: 6px solid;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .phase:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .phase-1 {
+        border-left-color: #e74c3c;
+      }
+      .phase-2 {
+        border-left-color: #f39c12;
+      }
+      .phase-3 {
+        border-left-color: #3498db;
+      }
+      .phase-4 {
+        border-left-color: #2ecc71;
+      }
+      .phase-5 {
+        border-left-color: #9b59b6;
+      }
+
+      .phase-title {
+        font-size: 1.8em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .step {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 18px;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 120px;
+      }
+
+      .step:hover {
+        border-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.1);
+        transform: scale(1.02);
+      }
+
+      .step-number {
+        position: absolute;
+        top: -10px;
+        left: 15px;
+        background: #2ecc71;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .step-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        margin-top: 8px;
+        font-size: 1.1em;
+      }
+
+      .step-desc {
+        color: #555;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 25px solid #2ecc71;
+        margin: 10px auto;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .tech-stack {
+        background: linear-gradient(145deg, #2c3e50, #34495e);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .tech-title {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .tech-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #2ecc71;
+      }
+
+      .code-sample {
+        background: linear-gradient(145deg, #34495e, #2c3e50);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        font-family: 'Courier New', monospace;
+      }
+
+      .code-block {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 12px;
+        border-radius: 8px;
+        margin: 8px 0;
+        font-size: 0.9em;
+        overflow-x: auto;
+      }
+
+      .regex-patterns {
+        background: linear-gradient(145deg, #8e44ad, #9b59b6);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .pattern {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+
+      .pattern-desc {
+        color: #ecf0f1;
+        font-size: 0.85em;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📄 Email Summarizer System Architecture</h1>
+
+      <div class="flow-diagram">
+        <!-- Phase 1: Initialization -->
+        <div class="phase phase-1">
+          <div class="phase-title">🚀 Phase 1: System Initialization</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Class Instantiation</div>
+              <div class="step-desc">
+                Creates EmailSummarizer instance and initializes the summarization pipeline
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">NLTK Resource Check</div>
+              <div class="step-desc">
+                Automatically downloads required NLTK resources: 'punkt' and 'punkt_tab' tokenizers
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Dependency Validation</div>
+              <div class="step-desc">
+                Verifies sumy, nltk, and regex libraries are available for text processing
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Phase 2: Email Preprocessing -->
+        <div class="phase phase-2">
+          <div class="phase-title">🧹 Phase 2: Email Body Extraction & Cleaning</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Header Removal</div>
+              <div class="step-desc">
+                Strips standard email headers: Message-ID, From, To, Subject, Date, CC, BCC, MIME headers
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Enron Metadata Cleanup</div>
+              <div class="step-desc">
+                Removes Enron-specific metadata: X-Folder, X-Origin, X-FileName entries
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Forward/Reply Removal</div>
+              <div class="step-desc">
+                Eliminates forwarding chains and reply metadata using pattern matching
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-title">Email Address Scrubbing</div>
+              <div class="step-desc">
+                Removes all email addresses from CC, BCC, and body content
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-title">Whitespace Normalization</div>
+              <div class="step-desc">
+                Cleans excessive newlines and normalizes text formatting
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Phase 3: Text Analysis -->
+        <div class="phase phase-3">
+          <div class="phase-title">🔍 Phase 3: Text Parsing & Analysis</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Plaintext Parsing</div>
+              <div class="step-desc">
+                Uses sumy's PlaintextParser to convert cleaned email into structured document
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">English Tokenization</div>
+              <div class="step-desc">
+                Applies NLTK English tokenizer to split text into sentences and words
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Document Structure Analysis</div>
+              <div class="step-desc">
+                Analyzes sentence structure and importance for optimal summarization
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Phase 4: LSA Summarization -->
+        <div class="phase phase-4">
+          <div class="phase-title">🧠 Phase 4: LSA Summarization Process</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">LSA Algorithm Initialization</div>
+              <div class="step-desc">
+                Initializes Latent Semantic Analysis summarizer for topic extraction
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Sentence Scoring</div>
+              <div class="step-desc">
+                Calculates semantic importance scores for each sentence using SVD
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Top Sentence Selection</div>
+              <div class="step-desc">
+                Selects configurable number of highest-scoring sentences (default: 3)
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-title">Summary Generation</div>
+              <div class="step-desc">
+                Combines selected sentences into coherent summary text
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <!-- Phase 5: Output & Error Handling -->
+        <div class="phase phase-5">
+          <div class="phase-title">📊 Phase 5: Output Processing & Error Handling</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-title">Summary Formatting</div>
+              <div class="step-desc">
+                Formats selected sentences with proper line breaks and structure
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-title">Exception Handling</div>
+              <div class="step-desc">
+                Handles ValueError, AttributeError, TypeError, and RuntimeError gracefully
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-title">Fallback Response</div>
+              <div class="step-desc">
+                Returns "Unable to generate summary" message for failed processing
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-title">Final Output</div>
+              <div class="step-desc">
+                Delivers clean, readable summary or appropriate error message
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technology Stack -->
+      <div class="tech-stack">
+        <div class="tech-title">🛠️ Technology Stack</div>
+        <div class="tech-grid">
+          <div class="tech-item">
+            <strong>Core NLP:</strong> sumy (Latent Semantic Analysis)
+          </div>
+          <div class="tech-item">
+            <strong>Tokenization:</strong> NLTK punkt tokenizers
+          </div>
+          <div class="tech-item">
+            <strong>Text Processing:</strong> Python regex (re module)
+          </div>
+          <div class="tech-item">
+            <strong>Parsing:</strong> PlaintextParser, English language support
+          </div>
+          <div class="tech-item">
+            <strong>Error Handling:</strong> Comprehensive exception management
+          </div>
+          <div class="tech-item">
+            <strong>Algorithm:</strong> Singular Value Decomposition (SVD)
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Sample -->
+      <div class="code-sample">
+        <div class="tech-title">💻 Key Code Components</div>
+        <div class="code-block">
+# Initialize and use the summarizer
+summarizer = EmailSummarizer()
+summary = summarizer.summarize_email(email_text, num_sentences=3)
+        </div>
+        <div class="code-block">
+# Core summarization process
+parser = PlaintextParser.from_string(cleaned_text, Tokenizer("english"))
+summarizer = LsaSummarizer()
+summary = summarizer(parser.document, num_sentences)
+        </div>
+      </div>
+
+      <!-- Regex Patterns -->
+      <div class="regex-patterns">
+        <div class="tech-title">🔍 Regular Expression Patterns</div>
+        <div class="pattern">
+          r"^(Message-ID|From|To|Subject|Date|Cc|Bcc|Mime-Version|Content-Type|...):.*$"
+          <div class="pattern-desc">Removes standard email headers</div>
+        </div>
+        <div class="pattern">
+          r"X-Folder:.*|X-Origin:.*|X-FileName:.*"
+          <div class="pattern-desc">Eliminates Enron-specific metadata</div>
+        </div>
+        <div class="pattern">
+          r"(-{2,}|={2,})\s*(Original Message|Forwarded by).*"
+          <div class="pattern-desc">Removes forwarding and reply chains</div>
+        </div>
+        <div class="pattern">
+          r"[\w\.-]+@[\w\.-]+\.\w{2,3}"
+          <div class="pattern-desc">Strips email addresses from content</div>
+        </div>
+        <div class="pattern">
+          r"\n\s*\n+"
+          <div class="pattern-desc">Normalizes excessive whitespace</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

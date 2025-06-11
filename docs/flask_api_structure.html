@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flask API Structure Graph</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .graph-container {
+        width: 100%;
+        height: 800px;
+        border: 2px solid #ddd;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+      }
+
+      .node {
+        position: absolute;
+        padding: 12px 20px;
+        border-radius: 25px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+      }
+
+      .node:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+      }
+
+      .blueprint {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        min-width: 120px;
+      }
+
+      .route {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        font-size: 12px;
+        min-width: 100px;
+      }
+
+      .service {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        min-width: 130px;
+      }
+
+      .method {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        font-size: 11px;
+        padding: 8px 15px;
+        min-width: 80px;
+      }
+
+      .connection {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.6), rgba(241, 147, 251, 0.6));
+        transform-origin: left center;
+        pointer-events: none;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .legend {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .info-panel {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        display: none;
+      }
+
+      .info-panel.active {
+        display: block;
+        animation: slideUp 0.3s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .controls {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        margin: 0 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(241, 147, 251, 0.1));
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .stat-label {
+        color: #666;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 Flask API Structure Graph</h1>
+
+      <div class="controls">
+        <button class="btn" onclick="resetView()">Reset View</button>
+        <button class="btn" onclick="highlightPaths()">Highlight Paths</button>
+        <button class="btn" onclick="showStats()">Show Statistics</button>
+      </div>
+
+      <div class="graph-container" id="graph">
+        <div class="legend">
+          <h3>Legend</h3>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background: linear-gradient(135deg, #667eea, #764ba2)"
+            ></div>
+            <span>Blueprints</span>
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background: linear-gradient(135deg, #f093fb, #f5576c)"
+            ></div>
+            <span>Routes</span>
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background: linear-gradient(135deg, #4facfe, #00f2fe)"
+            ></div>
+            <span>Services</span>
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background: linear-gradient(135deg, #43e97b, #38f9d7)"
+            ></div>
+            <span>HTTP Methods</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <h3>API Structure Overview</h3>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-number">6</div>
+            <div class="stat-label">Blueprints</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">15</div>
+            <div class="stat-label">Routes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Services</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">3</div>
+            <div class="stat-label">HTTP Methods</div>
+          </div>
+        </div>
+        <p>
+          <strong>Key Features:</strong> Email classification, NER extraction, auto-response
+          generation, text summarization, user management, and emotion analysis.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const apiStructure = {
+        blueprints: [
+          {
+            name: 'classify_bp',
+            file: 'classify.py',
+            routes: [
+              { path: '/email/<id>', method: 'GET', function: 'classify_email' },
+              { path: '/batch', method: 'POST', function: 'classify_batch' },
+              { path: '/folder/<user>/<folder>', method: 'POST', function: 'classify_folder' },
+              { path: '/analyze/text', method: 'POST', function: 'analyze_text' },
+              { path: '/train', method: 'POST', function: 'train_classifier' },
+              { path: '/model/status', method: 'GET', function: 'model_status' },
+            ],
+            services: ['EnronEmailClassifier', 'EmotionEnhancer', 'DB Service'],
+          },
+          {
+            name: 'emails_bp',
+            file: 'emails.py',
+            routes: [
+              {
+                path: '/users/<user>/folders/<folder>/emails',
+                method: 'GET',
+                function: 'list_emails',
+              },
+              { path: '/email/<id>', method: 'GET', function: 'get_email' },
+              { path: '/emails/<id>/status', method: 'POST', function: 'update_email_status' },
+            ],
+            services: ['DB Service'],
+          },
+          {
+            name: 'ner_bp',
+            file: 'ner.py',
+            routes: [{ path: '/ner', method: 'POST', function: 'extract_entities' }],
+            services: ['NER Engine', 'Extractor'],
+          },
+          {
+            name: 'respond_bp',
+            file: 'respond.py',
+            routes: [{ path: '/respond', method: 'POST', function: 'generate_response' }],
+            services: ['EmailResponder', 'Ollama Service'],
+          },
+          {
+            name: 'summarize_bp',
+            file: 'summarize.py',
+            routes: [{ path: '/summarize', method: 'POST', function: 'summarize_email' }],
+            services: ['EmailSummarizer'],
+          },
+          {
+            name: 'users_bp',
+            file: 'users.py',
+            routes: [
+              { path: '/users', method: 'GET', function: 'list_users' },
+              { path: '/users/<user>/folders', method: 'GET', function: 'list_folders' },
+            ],
+            services: ['DB Service'],
+          },
+        ],
+      };
+
+      let connections = [];
+      let nodes = [];
+
+      function createGraph() {
+        const graph = document.getElementById('graph');
+        const graphRect = graph.getBoundingClientRect();
+
+        // Clear existing content
+        graph.innerHTML = '';
+
+        // Add legend back
+        const legend = document.createElement('div');
+        legend.className = 'legend';
+        legend.innerHTML = `
+                <h3>Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                    <span>Blueprints</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+                    <span>Routes</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
+                    <span>Services</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
+                    <span>HTTP Methods</span>
+                </div>
+            `;
+        graph.appendChild(legend);
+
+        const centerX = 400;
+        const centerY = 400;
+        const radius = 250;
+
+        // Create blueprint nodes in a circle
+        apiStructure.blueprints.forEach((blueprint, index) => {
+          const angle = (index / apiStructure.blueprints.length) * 2 * Math.PI;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+
+          const blueprintNode = createNode(blueprint.name, x, y, 'blueprint');
+          blueprintNode.addEventListener('click', () => showBlueprintDetails(blueprint));
+          graph.appendChild(blueprintNode);
+          nodes.push({ element: blueprintNode, x, y, type: 'blueprint', data: blueprint });
+
+          // Create route nodes around each blueprint
+          blueprint.routes.forEach((route, routeIndex) => {
+            const routeAngle = angle + (routeIndex - blueprint.routes.length / 2) * 0.3;
+            const routeRadius = 120;
+            const routeX = x + routeRadius * Math.cos(routeAngle);
+            const routeY = y + routeRadius * Math.sin(routeAngle);
+
+            const routeNode = createNode(route.path, routeX, routeY, 'route');
+            routeNode.addEventListener('click', () => showRouteDetails(route, blueprint));
+            graph.appendChild(routeNode);
+            nodes.push({ element: routeNode, x: routeX, y: routeY, type: 'route', data: route });
+
+            // Create method node
+            const methodX = routeX + 60 * Math.cos(routeAngle);
+            const methodY = routeY + 60 * Math.sin(routeAngle);
+            const methodNode = createNode(route.method, methodX, methodY, 'method');
+            graph.appendChild(methodNode);
+            nodes.push({
+              element: methodNode,
+              x: methodX,
+              y: methodY,
+              type: 'method',
+              data: route,
+            });
+
+            // Create connections
+            createConnection(x, y, routeX, routeY, graph);
+            createConnection(routeX, routeY, methodX, methodY, graph);
+          });
+
+          // Create service nodes
+          blueprint.services.forEach((service, serviceIndex) => {
+            const serviceAngle =
+              angle + Math.PI + (serviceIndex - blueprint.services.length / 2) * 0.4;
+            const serviceRadius = 150;
+            const serviceX = x + serviceRadius * Math.cos(serviceAngle);
+            const serviceY = y + serviceRadius * Math.sin(serviceAngle);
+
+            const serviceNode = createNode(service, serviceX, serviceY, 'service');
+            serviceNode.addEventListener('click', () => showServiceDetails(service, blueprint));
+            graph.appendChild(serviceNode);
+            nodes.push({
+              element: serviceNode,
+              x: serviceX,
+              y: serviceY,
+              type: 'service',
+              data: service,
+            });
+
+            createConnection(x, y, serviceX, serviceY, graph);
+          });
+        });
+      }
+
+      function createNode(text, x, y, type) {
+        const node = document.createElement('div');
+        node.className = `node ${type}`;
+        node.textContent = text.length > 20 ? text.substring(0, 20) + '...' : text;
+        node.style.left = x + 'px';
+        node.style.top = y + 'px';
+        node.title = text;
+        return node;
+      }
+
+      function createConnection(x1, y1, x2, y2, container) {
+        const connection = document.createElement('div');
+        connection.className = 'connection';
+
+        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+
+        connection.style.width = length + 'px';
+        connection.style.left = x1 + 'px';
+        connection.style.top = y1 + 'px';
+        connection.style.transform = `rotate(${angle}deg)`;
+
+        container.appendChild(connection);
+        connections.push(connection);
+      }
+
+      function showBlueprintDetails(blueprint) {
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+                <h3>📁 ${blueprint.name}</h3>
+                <p><strong>File:</strong> ${blueprint.file}</p>
+                <p><strong>Routes:</strong> ${blueprint.routes.length}</p>
+                <p><strong>Services:</strong> ${blueprint.services.join(', ')}</p>
+                <h4>Available Routes:</h4>
+                <ul>
+                    ${blueprint.routes.map((route) => `<li><span style="color: #667eea;">${route.method}</span> ${route.path} → ${route.function}</li>`).join('')}
+                </ul>
+            `;
+        panel.classList.add('active');
+      }
+
+      function showRouteDetails(route, blueprint) {
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+                <h3>🛣️ Route Details</h3>
+                <p><strong>Path:</strong> ${route.path}</p>
+                <p><strong>Method:</strong> <span style="color: #f5576c;">${route.method}</span></p>
+                <p><strong>Function:</strong> ${route.function}</p>
+                <p><strong>Blueprint:</strong> ${blueprint.name}</p>
+                <p><strong>File:</strong> ${blueprint.file}</p>
+            `;
+        panel.classList.add('active');
+      }
+
+      function showServiceDetails(service, blueprint) {
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+                <h3>⚙️ Service Details</h3>
+                <p><strong>Service:</strong> ${service}</p>
+                <p><strong>Used by:</strong> ${blueprint.name}</p>
+                <p><strong>File:</strong> ${blueprint.file}</p>
+                <p><strong>Type:</strong> ${getServiceType(service)}</p>
+            `;
+        panel.classList.add('active');
+      }
+
+      function getServiceType(service) {
+        if (service.includes('DB')) return 'Database Service';
+        if (service.includes('Email')) return 'Email Processing';
+        if (service.includes('NER')) return 'Natural Language Processing';
+        if (service.includes('Ollama')) return 'AI/ML Service';
+        if (service.includes('Emotion')) return 'Sentiment Analysis';
+        return 'Utility Service';
+      }
+
+      function resetView() {
+        const panel = document.getElementById('infoPanel');
+        panel.classList.remove('active');
+
+        // Reset all node styles
+        nodes.forEach((node) => {
+          node.element.style.transform = 'scale(1)';
+          node.element.style.opacity = '1';
+        });
+
+        // Reset all connection styles
+        connections.forEach((connection) => {
+          connection.style.opacity = '0.6';
+        });
+      }
+
+      function highlightPaths() {
+        // Animate connections
+        connections.forEach((connection, index) => {
+          setTimeout(() => {
+            connection.style.background = 'linear-gradient(90deg, #43e97b, #38f9d7)';
+            connection.style.opacity = '1';
+            connection.style.height = '4px';
+
+            setTimeout(() => {
+              connection.style.background =
+                'linear-gradient(90deg, rgba(102, 126, 234, 0.6), rgba(241, 147, 251, 0.6))';
+              connection.style.height = '2px';
+            }, 1000);
+          }, index * 100);
+        });
+      }
+
+      function showStats() {
+        const panel = document.getElementById('infoPanel');
+        panel.innerHTML = `
+                <h3>📊 API Statistics</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Blueprints</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">15</div>
+                        <div class="stat-label">Total Routes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Unique Services</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">HTTP Methods</div>
+                    </div>
+                </div>
+                <h4>Blueprint Distribution:</h4>
+                <ul>
+                    <li><strong>classify_bp:</strong> 6 routes (Email ML/AI)</li>
+                    <li><strong>emails_bp:</strong> 3 routes (Email CRUD)</li>
+                    <li><strong>ner_bp:</strong> 1 route (Entity Extraction)</li>
+                    <li><strong>respond_bp:</strong> 1 route (Auto-Reply)</li>
+                    <li><strong>summarize_bp:</strong> 1 route (Text Summarization)</li>
+                    <li><strong>users_bp:</strong> 2 routes (User Management)</li>
+                </ul>
+                <p><strong>Technologies:</strong> Flask, SQLite, Ollama, NLP, Machine Learning</p>
+            `;
+        panel.classList.add('active');
+      }
+
+      // Initialize the graph
+      document.addEventListener('DOMContentLoaded', () => {
+        createGraph();
+
+        // Add some initial animation
+        setTimeout(() => {
+          nodes.forEach((node, index) => {
+            setTimeout(() => {
+              node.element.style.animation = 'pulse 0.5s ease';
+            }, index * 50);
+          });
+        }, 500);
+      });
+
+      // Add click outside to close info panel
+      document.addEventListener('click', (e) => {
+        if (
+          !e.target.closest('.node') &&
+          !e.target.closest('.info-panel') &&
+          !e.target.closest('.btn')
+        ) {
+          document.getElementById('infoPanel').classList.remove('active');
+        }
+      });
+    </script>
+  </body>
+</html>
