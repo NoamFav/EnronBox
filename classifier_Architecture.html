@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Classification System - Technical Guide</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        color: #666;
+      }
+
+      .section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .section:hover {
+        transform: translateY(-5px);
+      }
+
+      .section h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section h3 {
+        color: #764ba2;
+        margin: 20px 0 15px 0;
+        font-size: 1.4rem;
+      }
+
+      .icon {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .icon::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+      }
+
+      .flow-diagram {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+
+      .flow-step {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .flow-step:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(240, 147, 251, 0.4);
+      }
+
+      .flow-step h4 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+
+      .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .category-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+      }
+
+      .category-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      .category-card h4 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+      }
+
+      .keywords {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+      }
+
+      .keyword {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+
+      .code-block {
+        background: #1e1e1e;
+        color: #f8f8f2;
+        padding: 20px;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+      }
+
+      .api-endpoint {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+        font-family: monospace;
+      }
+
+      .method {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      .tech-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .tech-item {
+        background: linear-gradient(135deg, #fa709a, #fee140);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .performance-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .metric {
+        background: linear-gradient(135deg, #a8edea, #fed6e3);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .metric h4 {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      .metric p {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .warning {
+        background: linear-gradient(135deg, #ff9a9e, #fecfef);
+        border-left: 5px solid #ff6b6b;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 15px 0;
+      }
+
+      .info {
+        background: linear-gradient(135deg, #a8edea, #fed6e3);
+        border-left: 5px solid #4ecdc4;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 15px 0;
+      }
+
+      .usage-example {
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 15px 0;
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .flow-diagram {
+          grid-template-columns: 1fr;
+        }
+
+        .categories-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.8s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header animate-fade-in">
+        <h1>📧 Email Classification System</h1>
+        <p>Advanced AI-Powered Email Categorization & Analysis</p>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>System Overview</h2>
+        <p>
+          This advanced email classification system uses modern machine learning techniques to
+          automatically categorize emails into 10 distinct categories. Built with transformers,
+          ensemble models, and GPU acceleration, it provides high-accuracy classification along with
+          emotional analysis.
+        </p>
+
+        <div class="info">
+          <strong>Key Features:</strong> GPU-accelerated processing, Transformer models, Ensemble
+          learning, Emotional analysis, Real-time classification
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>How Classification Works</h2>
+
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <h4>📥 Email Input</h4>
+            <p>Subject, body, metadata collected</p>
+          </div>
+          <div class="flow-step">
+            <h4>🧹 Text Preprocessing</h4>
+            <p>Clean HTML, URLs, normalize text</p>
+          </div>
+          <div class="flow-step">
+            <h4>🔢 Feature Extraction</h4>
+            <p>Sentence transformers + metadata</p>
+          </div>
+          <div class="flow-step">
+            <h4>🤖 ML Classification</h4>
+            <p>Ensemble model prediction</p>
+          </div>
+          <div class="flow-step">
+            <h4>🎯 Zero-Shot Backup</h4>
+            <p>Transformer-based classification</p>
+          </div>
+          <div class="flow-step">
+            <h4>💭 Emotion Analysis</h4>
+            <p>Sentiment & emotional scoring</p>
+          </div>
+        </div>
+
+        <h3>Technical Process Details</h3>
+
+        <div class="usage-example">
+          <h4>1. Text Preprocessing</h4>
+          <div class="code-block">
+            def preprocess_text(self, text: str) -> str: text = str(text).lower() text =
+            re.sub(r'&lt;[^&gt;]+&gt;', '', text) # Remove HTML text = re.sub(r'\S+@\S+\.\S+',
+            '[EMAIL]', text) # Replace emails text = re.sub(r'http\S+|www\S+', '[URL]', text) #
+            Replace URLs return re.sub(r'\s+', ' ', text).strip()
+          </div>
+        </div>
+
+        <div class="usage-example">
+          <h4>2. Feature Extraction</h4>
+          <p>The system extracts two types of features:</p>
+          <ul style="margin: 10px 0 10px 20px">
+            <li>
+              <strong>Text Embeddings:</strong> Using SentenceTransformer 'all-MiniLM-L6-v2' model
+            </li>
+            <li>
+              <strong>Metadata Features:</strong> Subject length, body length, attachments,
+              recipients, send time, emotion scores
+            </li>
+          </ul>
+        </div>
+
+        <div class="usage-example">
+          <h4>3. Ensemble Classification</h4>
+          <p>
+            Combines Random Forest (200 trees) + Logistic Regression with soft voting for robust
+            predictions.
+          </p>
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>Email Categories</h2>
+        <p>The system classifies emails into 10 comprehensive categories:</p>
+
+        <div class="categories-grid">
+          <div class="category-card">
+            <h4>📋 Strategic Planning</h4>
+            <p>Long-term business strategy, corporate planning, acquisitions</p>
+            <div class="keywords">
+              <span class="keyword">strategy</span>
+              <span class="keyword">planning</span>
+              <span class="keyword">acquisition</span>
+              <span class="keyword">merger</span>
+              <span class="keyword">vision</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>⚙️ Daily Operations</h4>
+            <p>Day-to-day operations, routine tasks, procedures</p>
+            <div class="keywords">
+              <span class="keyword">operations</span>
+              <span class="keyword">daily</span>
+              <span class="keyword">routine</span>
+              <span class="keyword">workflow</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>💰 Financial</h4>
+            <p>Budget, accounting, financial reports, expenses</p>
+            <div class="keywords">
+              <span class="keyword">budget</span>
+              <span class="keyword">accounting</span>
+              <span class="keyword">revenue</span>
+              <span class="keyword">profit</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>⚖️ Legal & Compliance</h4>
+            <p>Legal matters, regulatory compliance, contracts</p>
+            <div class="keywords">
+              <span class="keyword">legal</span>
+              <span class="keyword">compliance</span>
+              <span class="keyword">contract</span>
+              <span class="keyword">policy</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>🤝 Client & External</h4>
+            <p>External communications, client relations, partnerships</p>
+            <div class="keywords">
+              <span class="keyword">client</span>
+              <span class="keyword">customer</span>
+              <span class="keyword">partner</span>
+              <span class="keyword">vendor</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>👥 HR & Personnel</h4>
+            <p>Human resources, hiring, employee matters</p>
+            <div class="keywords">
+              <span class="keyword">hr</span>
+              <span class="keyword">hiring</span>
+              <span class="keyword">employee</span>
+              <span class="keyword">recruitment</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>📅 Meetings & Events</h4>
+            <p>Meeting scheduling, event planning, appointments</p>
+            <div class="keywords">
+              <span class="keyword">meeting</span>
+              <span class="keyword">schedule</span>
+              <span class="keyword">event</span>
+              <span class="keyword">calendar</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>🚨 Urgent & Critical</h4>
+            <p>Time-sensitive, emergency, critical issues</p>
+            <div class="keywords">
+              <span class="keyword">urgent</span>
+              <span class="keyword">emergency</span>
+              <span class="keyword">asap</span>
+              <span class="keyword">deadline</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>💬 Personal & Informal</h4>
+            <p>Personal communications, informal chats</p>
+            <div class="keywords">
+              <span class="keyword">personal</span>
+              <span class="keyword">casual</span>
+              <span class="keyword">chat</span>
+              <span class="keyword">social</span>
+            </div>
+          </div>
+
+          <div class="category-card">
+            <h4>💻 Technical & IT</h4>
+            <p>Technical issues, IT support, system problems</p>
+            <div class="keywords">
+              <span class="keyword">technical</span>
+              <span class="keyword">system</span>
+              <span class="keyword">software</span>
+              <span class="keyword">network</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>API Endpoints</h2>
+        <p>The system provides RESTful API endpoints for various classification tasks:</p>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span>/classify/email/&lt;email_id&gt;
+          <p style="margin-top: 10px; opacity: 0.9">Classify a single email by ID</p>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">POST</span>/classify/batch
+          <p style="margin-top: 10px; opacity: 0.9">Classify multiple emails in batch</p>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">POST</span>/classify/folder/&lt;username&gt;/&lt;folder&gt;
+          <p style="margin-top: 10px; opacity: 0.9">Classify all emails in a specific folder</p>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">POST</span>/classify/analyze/text
+          <p style="margin-top: 10px; opacity: 0.9">Analyze text for emotional content</p>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">POST</span>/classify/train
+          <p style="margin-top: 10px; opacity: 0.9">Train the classifier on Enron dataset</p>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span>/classify/model/status
+          <p style="margin-top: 10px; opacity: 0.9">Check if the model is trained and ready</p>
+        </div>
+
+        <h3>Example API Usage</h3>
+        <div class="code-block">
+          # Single email classification curl -X GET http://localhost:5000/classify/email/123 # Batch
+          classification curl -X POST http://localhost:5000/classify/batch \ -H "Content-Type:
+          application/json" \ -d '[{"subject": "Meeting tomorrow", "body": "Can we schedule..."}]' #
+          Train model curl -X POST http://localhost:5000/classify/train \ -H "Content-Type:
+          application/json" \ -d '{"enron_dir": "/path/to/enron.db", "max_emails": 5000}'
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>Technology Stack</h2>
+
+        <div class="tech-stack">
+          <div class="tech-item">🤖 Transformers</div>
+          <div class="tech-item">🧠 SentenceTransformers</div>
+          <div class="tech-item">🌲 Random Forest</div>
+          <div class="tech-item">📊 Logistic Regression</div>
+          <div class="tech-item">🚀 GPU Acceleration</div>
+          <div class="tech-item">🐍 Python Flask</div>
+          <div class="tech-item">📦 scikit-learn</div>
+          <div class="tech-item">🔥 PyTorch</div>
+        </div>
+
+        <div class="warning">
+          <strong>Device Support:</strong> The system automatically detects and uses the best
+          available device:
+          <ul style="margin: 10px 0 0 20px">
+            <li>CUDA GPU (preferred for best performance)</li>
+            <li>Apple Metal Performance Shaders (MPS)</li>
+            <li>CPU fallback (if no GPU available)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>Performance & Features</h2>
+
+        <div class="performance-metrics">
+          <div class="metric">
+            <h4>⚡</h4>
+            <p>GPU Accelerated</p>
+          </div>
+          <div class="metric">
+            <h4>🎯</h4>
+            <p>High Accuracy</p>
+          </div>
+          <div class="metric">
+            <h4>📊</h4>
+            <p>Batch Processing</p>
+          </div>
+          <div class="metric">
+            <h4>💾</h4>
+            <p>Model Persistence</p>
+          </div>
+          <div class="metric">
+            <h4>📈</h4>
+            <p>Emotion Analysis</p>
+          </div>
+          <div class="metric">
+            <h4>🔄</h4>
+            <p>Real-time Classification</p>
+          </div>
+        </div>
+
+        <h3>Emotional Analysis Features</h3>
+        <ul style="margin: 15px 0 15px 20px">
+          <li><strong>Sentiment Analysis:</strong> Polarity and subjectivity scoring</li>
+          <li><strong>Stress Detection:</strong> Identifies stressed communication patterns</li>
+          <li><strong>Tone Analysis:</strong> Formal, casual, sarcastic tone detection</li>
+          <li><strong>Dominant Emotion:</strong> Overall emotional classification</li>
+        </ul>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>Training Process</h2>
+        <p>The system can be trained on the Enron email dataset with advanced analytics:</p>
+
+        <div class="usage-example">
+          <h4>Training Steps:</h4>
+          <ol style="margin: 10px 0 10px 20px">
+            <li><strong>Data Loading:</strong> Load emails from SQLite database</li>
+            <li><strong>Dataset Analysis:</strong> Comprehensive data quality assessment</li>
+            <li>
+              <strong>Zero-shot Labeling:</strong> Initial categorization using embedding similarity
+            </li>
+            <li>
+              <strong>Feature Engineering:</strong> Extract text embeddings + metadata features
+            </li>
+            <li><strong>Model Training:</strong> Train ensemble model with cross-validation</li>
+            <li><strong>Evaluation:</strong> Generate classification reports and metrics</li>
+            <li><strong>Model Persistence:</strong> Save trained model for future use</li>
+          </ol>
+        </div>
+
+        <div class="info">
+          <strong>Dataset Analysis Features:</strong>
+          <ul style="margin: 10px 0 0 20px">
+            <li>Label distribution analysis</li>
+            <li>Data quality checks (null/empty content)</li>
+            <li>Text length statistics</li>
+            <li>Category sufficiency validation</li>
+            <li>Automated recommendations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>Usage Examples</h2>
+
+        <h3>1. Training the Model</h3>
+        <div class="code-block">
+          # First, analyze the dataset curl -X POST http://localhost:5000/classify/train \ -H
+          "Content-Type: application/json" \ -d '{ "enron_dir": "/path/to/enron.db", "max_emails":
+          5000, "analyze_only": true }' # Then train the model curl -X POST
+          http://localhost:5000/classify/train \ -H "Content-Type: application/json" \ -d '{
+          "enron_dir": "/path/to/enron.db", "max_emails": 5000, "analyze_only": false }'
+        </div>
+
+        <h3>2. Classifying Emails</h3>
+        <div class="code-block">
+          # Single email classification import requests response =
+          requests.get('http://localhost:5000/classify/email/123') result = response.json()
+          print(f"Category: {result['classification']['category_name']}") print(f"Confidence:
+          {result['classification']['confidence']:.2f}") print(f"Emotion:
+          {result['classification']['emotion']}")
+        </div>
+
+        <h3>3. Batch Processing</h3>
+        <div class="code-block">
+          emails = [ { "subject": "Quarterly Budget Review", "body": "Please review the attached
+          budget proposals...", "sender": "finance@company.com" }, { "subject": "Team Meeting -
+          Tomorrow 2 PM", "body": "Don't forget our weekly team meeting...", "sender":
+          "manager@company.com" } ] response = requests.post(
+          'http://localhost:5000/classify/batch', json=emails )
+        </div>
+      </div>
+
+      <div class="section animate-fade-in">
+        <h2><span class="icon"></span>System Requirements & Setup</h2>
+
+        <div class="warning">
+          <strong>Hardware Requirements:</strong>
+          <ul style="margin: 10px 0 0 20px">
+            <li>GPU with CUDA support (recommended) or Apple Silicon for MPS</li>
+            <li>Minimum 8GB RAM (16GB+ recommended for large datasets)</li>
+            <li>SSD storage for model files and datasets</li>
+          </ul>
+        </div>
+
+        <div class="info">
+          <strong>Software Dependencies:</strong>
+          <ul style="margin: 10px 0 0 20px">
+            <li>Python 3.8+</li>
+            <li>PyTorch with GPU support</li>
+            <li>Transformers library</li>
+            <li>SentenceTransformers</li>
+            <li>scikit-learn</li>
+            <li>Flask for API endpoints</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Add smooth scrolling and animations
+      document.addEventListener('DOMContentLoaded', function () {
+        // Animate sections as they come into view
+        const sections = document.querySelectorAll('.section');
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.animation = 'fadeIn 0.8s ease-in';
+            }
+          });
+        });
+
+        sections.forEach((section) => {
+          observer.observe(section);
+        });
+
+        // Add click animations to interactive elements
+        const cards = document.querySelectorAll('.category-card, .flow-step, .tech-item');
+        cards.forEach((card) => {
+          card.addEventListener('click', function () {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+              this.style.transform = '';
+            }, 100);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
