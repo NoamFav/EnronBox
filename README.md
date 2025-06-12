@@ -40,6 +40,8 @@
 
 ## ✨ Key Features
 
+⚠️ Note: The initial label generation step can take time (e.g. ~10 minutes per 10k emails on CPU), but it runs automatically as part of the training process — no manual labeling required!
+
 <table>
 <tr>
 <td width="50%">
