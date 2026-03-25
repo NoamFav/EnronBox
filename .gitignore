@@ -1,7 +1,6 @@
 # ================================
 # OS-Specific Junk (macOS, Windows, Linux)
 # ================================
-.DS_Store
 .AppleDouble
 .LSOverride
 Thumbs.db
