@@ -1,7 +1,7 @@
 Flask==3.1.1
 Flask_Cors==5.0.0
 matplotlib==3.10.3
-nltk==3.9.1
+nltk==3.9.4
 numpy==1.26.4
 pandas==2.3.0
 prompt_toolkit==3.0.48
